@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logos/senpai.png" width=320 />
+  <img src="assets/logos/senpai.png" width=240 />
 </p>
 
 # SENPAI
