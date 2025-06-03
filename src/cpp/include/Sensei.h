@@ -13,7 +13,13 @@
 #define SENSEI_ATTR_MAPPING        "SENSEI:attr_mapping"
 
 // message codes
-#define SENSEI_MESSAGE_TYPE        'SEni'
+enum {
+	SENSEI_CMD_EXTRACT	= 'SEex',
+	SENSEI_CMD_ENRICH	= 'SEer',
+	SENSEI_CMD_IDENTIFY	= 'SEid',
+	SENSEI_CMD_NAVIGATE	= 'SEnv',
+};
+
 #define SENSEI_MESSAGE_RESULT      'SErs'
 
 // dynamic relations
