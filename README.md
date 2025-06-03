@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="assets/logos/senpai.png" width=240 />
+  <img src="assets/logos/sento-logo.webp" width=240 />
 </p>
 
-# SENPAI
+# SENTO - The Open SEN API
 
-SEN *P*rogrammable *A*pplication *I*nterface
+Like a Japanese hot bath, this is a place to exchange information freely, this one is for apps though:)
 
 Contains API definitions to develop for SEN. Currently contains only C/C++ headers but support for other languages (think Python library) may be added later.
 
