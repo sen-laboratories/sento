@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logos/sento-logo.webp" width=240 />
+  <img src="assets/logos/sento-logo.webp" width=320 />
 </p>
 
 # SENTO - The Open SEN API
