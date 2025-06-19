@@ -33,6 +33,8 @@
 // relations
 
 // used in file types
+#define SEN_ENTITY_SUPERTYPE        "entity"
+#define SEN_META_SUPERTYPE          "meta"
 #define SEN_RELATION_SUPERTYPE      "relation"
 
 // relation source path as TEXT - only use for external clients that cannot send a native ref.
@@ -85,10 +87,13 @@
 #define SEN_RELATION_IS_META        "sen:meta"
 
 // command messages
-#define SEN_RELATIONS_GET           'SRgo'
-#define SEN_RELATIONS_GET_ALL       'SRga'
-#define SEN_RELATIONS_GET_SELF      'SRsg'
-#define SEN_RELATIONS_GET_ALL_SELF  'SRsa'
+#define SEN_RELATIONS_GET                  'SRge'
+#define SEN_RELATIONS_GET_ALL              'SRga'
+#define SEN_RELATIONS_GET_SELF             'SRsg'
+#define SEN_RELATIONS_GET_ALL_SELF         'SRsa'
+#define SEN_RELATIONS_GET_COMPATIBLE       'SRgc'
+#define SEN_RELATIONS_GET_COMPATIBLE_TYPES 'SRgt'
+#define SEN_RELATIONS_GET_NEW_TARGET       'SRgn'
 
 #define SEN_RELATION_ADD	        'SRad'
 #define SEN_RELATION_REMOVE	    	'SRrm'
@@ -114,6 +119,9 @@
 #define SEN_RELATION_META_ATTR		SEN_RELATION_ATTR_PREFIX "META"
 
 // Message Replies
-#define SEN_RESULT_INFO				'SCri'
-#define SEN_RESULT_STATUS			'SCrs'
-#define SEN_RESULT_RELATIONS		'SCre'
+#define SEN_RESULT_INFO             'SCri'
+#define SEN_RESULT_STATUS           'SCrs'
+#define SEN_RESULT_RELATIONS        'SCre'
+
+// common message fields used in requests/replies
+#define SEN_MSG_TYPES               "types"
