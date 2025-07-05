@@ -11,26 +11,48 @@
 #define SEN_SERVER_SIGNATURE "application/x-vnd.sen-labs.sen-server"
 
 // simple logging, todo: integrate simple but more standard logging
-#define LOG(x...)		printf(x);
-#define ERROR(x...)		fprintf(stderr, x);
+#define LOG(x...)                    printf(x);
+#define ERROR(x...)                  fprintf(stderr, x);
 
-// core
+// message commands CORE
 
-#define SEN_CORE_INFO 				'SCin'
-#define SEN_CORE_STATUS 			'SCst'
+#define SEN_CORE_INFO               'SCin'
+#define SEN_CORE_STATUS             'SCst'
 // validate and repair config
-#define SEN_CORE_CHECK				'SCck'
+#define SEN_CORE_CHECK              'SCck'
 // some sanity testing
 #define SEN_CORE_TEST               'SCts'
 // core functionality
-#define SEN_QUERY_ID 			    'SCqi'
+#define SEN_QUERY_ID                'SCqi'
 // used for SEN relation definitions in resource files
 #define SEN_RELATION_DEFINITION     'SCrd'
 
 // Actions for communication with clients
-#define SEN_ACTION_CMD		        "SEN:action"
+#define SEN_ACTION_CMD              "SEN:action"
 
-// relations
+// message commands RELATIONS
+// todo: aggregate into RELATIONS_GET/ADD/REMOVE with type parameter for specialisation and filtering
+#define SEN_RELATIONS_GET                  'SRge'
+#define SEN_RELATIONS_GET_ALL              'SRga'
+#define SEN_RELATIONS_GET_SELF             'SRsg'
+#define SEN_RELATIONS_GET_ALL_SELF         'SRsa'
+#define SEN_RELATIONS_GET_COMPATIBLE       'SRgc'
+#define SEN_RELATIONS_GET_COMPATIBLE_TYPES 'SRgt'
+#define SEN_RELATIONS_GET_NEW_TARGET       'SRgn'
+
+#define SEN_RELATION_ADD                   'SRad'
+#define SEN_RELATION_REMOVE                'SRrm'
+#define SEN_RELATIONS_REMOVE_ALL           'SRra'
+
+// Tracker integration
+#define SEN_OPEN_RELATION_VIEW             'STor'
+#define SEN_OPEN_RELATION_TARGET_VIEW      'STot'
+// sent when a relation is invoked to include arguments for handling plugin
+#define SEN_OPEN_RELATION_ARGS_KEY         "sen:args"
+
+// Message Fields and other markers
+
+// Relations
 
 // used in file types
 #define SEN_ENTITY_SUPERTYPE        "entity"
@@ -60,6 +82,8 @@
 // relation target. see notes on SEN_RELATION_SOURCE
 #define SEN_RELATION_TARGET         "SEN:target"
 #define SEN_RELATION_TARGET_REF     "SEN:targetRef"
+// maps SEN:ID to entry_refs, sent in relation replies
+#define SEN_ID_TO_REF_MAP           "id_to_ref"
 
 #define SEN_RELATION_PROPERTIES     "SEN:relationProps"
 
@@ -67,56 +91,35 @@
 // relation config properties declared in a BMessage using SEN Relation properties.
 // used to declare defaults and restrictions in file type definitions (see sen-oni)
 //
-#define SEN_RELATION_CONFIG			"sen:relation"
+#define SEN_RELATION_CONFIG         "sen:relation"
 // define properties for the reverse relation (e.g. a different Label) if bidirectional
 #define SEN_RELATION_CONFIG_REVERSE "sen:reverse"
 
 // is the relation is bidirectional? If so, SEN will create the opposite relation automatically by default.
-#define SEN_RELATION_IS_BIDIR		"sen:bidir"
-// is the relation allowed to point back to its origin? (e.g. NO for parent-child relations)
-#define SEN_RELATION_IS_REFLEXIVE   "sen:reflexive"
+#define SEN_RELATION_IS_BIDIR       "sen:bidir"
 
 // relation properties used at runtime (e.g. as returned by plugins)
-#define SEN_RELATION_IS_DYNAMIC     "sen:dynamic"		// relation was created on-the-fly and is not persisted.
-#define SEN_RELATION_IS_SELF 	    "sen:self"			// indicates a particular relation is self referencing.
+/** relation was created on-the-fly and is not persisted. */
+#define SEN_RELATION_IS_DYNAMIC     "sen:dynamic"
+/** indicates a self referencing relation. */
+#define SEN_RELATION_IS_SELF        "sen:self"
+/** relation used for classification and context */
+#define SEN_LABEL_RELATION_TYPE     SEN_RELATION_SUPERTYPE "/x-vnd.sen-labs.relation.association"
 
 // message field name for reverse relation label
 #define SEN_INVERSE_RELATION_LABEL  "SEN:REL:Label"
 
-// meta relations are used for classification and context
-#define SEN_RELATION_IS_META        "sen:meta"
-
-// command messages
-#define SEN_RELATIONS_GET                  'SRge'
-#define SEN_RELATIONS_GET_ALL              'SRga'
-#define SEN_RELATIONS_GET_SELF             'SRsg'
-#define SEN_RELATIONS_GET_ALL_SELF         'SRsa'
-#define SEN_RELATIONS_GET_COMPATIBLE       'SRgc'
-#define SEN_RELATIONS_GET_COMPATIBLE_TYPES 'SRgt'
-#define SEN_RELATIONS_GET_NEW_TARGET       'SRgn'
-
-#define SEN_RELATION_ADD	        'SRad'
-#define SEN_RELATION_REMOVE	    	'SRrm'
-#define SEN_RELATIONS_REMOVE_ALL    'SRra'
-
-// Tracker integration
-#define SEN_OPEN_RELATION_VIEW		    'STor'
-#define SEN_OPEN_RELATION_TARGET_VIEW	'STot'
-// sent when a relation is invoked to include arguments for handling plugin
-#define SEN_OPEN_RELATION_ARGS_KEY	    "sen:args"
-
 // standard length of a TSID = 14 + NULL byte, see IceDustGenerator
-#define SEN_ID_LEN					15
+#define SEN_ID_LEN                  15
 
 // used on any linked file
-#define SEN_ATTR_PREFIX     		"SEN:"
-#define SEN_ID_ATTR        			SEN_ATTR_PREFIX "ID"
-#define SEN_TO_ATTR        			SEN_ATTR_PREFIX "TO"
+#define SEN_ATTR_PREFIX             "SEN:"
+#define SEN_ID_ATTR                 SEN_ATTR_PREFIX "ID"
+#define SEN_TO_ATTR                 SEN_ATTR_PREFIX "TO"
 #define SEN_RELATION_ATTR_PREFIX    SEN_ATTR_PREFIX "REL:"
 // used only for ad-hoc created relation files pointing to the target
 #define SEN_RELATION_SOURCE_ATTR    SEN_RELATION_ATTR_PREFIX "ID"
 #define SEN_RELATION_TARGET_ATTR    SEN_RELATION_ATTR_PREFIX "TO"
-#define SEN_RELATION_META_ATTR		SEN_RELATION_ATTR_PREFIX "META"
 
 // Message Replies
 #define SEN_RESULT_INFO             'SCri'

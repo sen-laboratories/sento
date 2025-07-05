@@ -13,14 +13,25 @@
 #define SENSEI_ATTR_MAPPING        "SENSEI:attr_mapping"
 
 // message codes
-enum {
+enum SENSEI_CMD {
 	SENSEI_CMD_EXTRACT	= 'SEex',
 	SENSEI_CMD_ENRICH	= 'SEer',
 	SENSEI_CMD_IDENTIFY	= 'SEid',
 	SENSEI_CMD_NAVIGATE	= 'SEnv',
 };
 
+// features
+#define SENSEI_PLUGIN_FEATURE_ATTR "SEN:plugin"
+#define SENSEI_FEATURE_SEARCH      "search"
+#define SENSEI_FEATURE_EXTRACT     "extract"
+#define SENSEI_FEATURE_NAVIGATE    "navigate"
+#define SENSEI_FEATURE_ENRICH      "enrich"
+#define SENSEI_FEATURE_IDENTIFY    "identify"
+
 #define SENSEI_MESSAGE_RESULT      'SErs'
+
+// SENSEI meta type for all SEN plugins
+#define SENSEI_PLUGIN_TYPE         "application/x-vnd.sen-labs.plugin"
 
 // dynamic relations
 #define SENSEI_PLUGIN_CONFIG_KEY   "SENSEI:plugin_config"
