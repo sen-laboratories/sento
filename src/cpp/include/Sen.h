@@ -82,8 +82,11 @@
 // relation target. see notes on SEN_RELATION_SOURCE
 #define SEN_RELATION_TARGET         "SEN:target"
 #define SEN_RELATION_TARGET_REF     "SEN:targetRef"
+// used to find compatible relations / types
+#define SEN_RELATION_TARGET_TYPE    "SEN:targetType"
+
 // maps SEN:ID to entry_refs, sent in relation replies
-#define SEN_ID_TO_REF_MAP           "id_to_ref"
+#define SEN_ID_TO_REF_MAP           "SEN:id_to_ref"
 
 #define SEN_RELATION_PROPERTIES     "SEN:relationProps"
 
@@ -106,8 +109,13 @@
 /** relation used for classification and context */
 #define SEN_LABEL_RELATION_TYPE     SEN_RELATION_SUPERTYPE "/x-vnd.sen-labs.relation.association"
 
+//
+// common message fields used in requests/replies
+//
+
 // message field name for reverse relation label
-#define SEN_INVERSE_RELATION_LABEL  "SEN:REL:Label"
+#define SEN_INVERSE_RELATION_LABEL    "SEN:REL:Label"
+#define SEN_RELATION_COMPATIBLE_TYPES "SEN:types"
 
 // standard length of a TSID = 14 + NULL byte, see IceDustGenerator
 #define SEN_ID_LEN                  15
@@ -117,6 +125,8 @@
 #define SEN_ID_ATTR                 SEN_ATTR_PREFIX "ID"
 #define SEN_TO_ATTR                 SEN_ATTR_PREFIX "TO"
 #define SEN_RELATION_ATTR_PREFIX    SEN_ATTR_PREFIX "REL:"
+#define SEN_RELATION_ATTR_PREFIX_LEN 8
+
 // used only for ad-hoc created relation files pointing to the target
 #define SEN_RELATION_SOURCE_ATTR    SEN_RELATION_ATTR_PREFIX "ID"
 #define SEN_RELATION_TARGET_ATTR    SEN_RELATION_ATTR_PREFIX "TO"
@@ -125,6 +135,3 @@
 #define SEN_RESULT_INFO             'SCri'
 #define SEN_RESULT_STATUS           'SCrs'
 #define SEN_RESULT_RELATIONS        'SCre'
-
-// common message fields used in requests/replies
-#define SEN_MSG_TYPES               "types"
