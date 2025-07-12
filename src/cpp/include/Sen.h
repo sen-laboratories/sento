@@ -8,7 +8,12 @@
 
 #include <stdio.h>
 
-#define SEN_SERVER_SIGNATURE "application/x-vnd.sen-labs.sen-server"
+#define SEN_SERVER_SIGNATURE        "application/x-vnd.sen-labs.sen-server"
+
+/**
+ * semantic type of a file, e.g. text/scientific-paper vs. application/pdf
+ */
+#define SEN_TYPE                    "SEN:TYPE"
 
 // simple logging, todo: integrate simple but more standard logging
 #define LOG(x...)                    printf(x);
@@ -31,7 +36,7 @@
 #define SEN_ACTION_CMD              "SEN:action"
 
 // message commands RELATIONS
-// todo: aggregate into RELATIONS_GET/ADD/REMOVE with type parameter for specialisation and filtering
+// todo: aggregate into RELATIONS_GET/ADD/REMOVE with parameters for specialisation and filtering
 #define SEN_RELATIONS_GET                  'SRge'
 #define SEN_RELATIONS_GET_ALL              'SRga'
 #define SEN_RELATIONS_GET_SELF             'SRsg'
@@ -39,6 +44,12 @@
 #define SEN_RELATIONS_GET_COMPATIBLE       'SRgc'
 #define SEN_RELATIONS_GET_COMPATIBLE_TYPES 'SRgt'
 #define SEN_RELATIONS_GET_NEW_TARGET       'SRgn'
+
+// filters
+#define SEN_RELATION_FILTER_TYPE           "filter"
+	// todo: add compatible, all, ...
+#define SEN_INCLUDE_TYPES                  "mimeIncludes"
+#define SEN_EXCLUDE_TYPES                  "mimeExcludes"
 
 #define SEN_RELATION_ADD                   'SRad'
 #define SEN_RELATION_REMOVE                'SRrm'
@@ -59,10 +70,8 @@
 #define SEN_META_SUPERTYPE          "meta"
 #define SEN_RELATION_SUPERTYPE      "relation"
 
-// relation source path as TEXT - only use for external clients that cannot send a native ref.
-#define SEN_RELATION_SOURCE         "SEN:source"
-// relation source entry_ref
-#define SEN_RELATION_SOURCE_REF     "SEN:sourceRef"
+// source refs using common field name
+#define SEN_RELATION_SOURCE_REF     "refs"
 
 #define SEN_RELATION_SOURCE_ID      "SEN:sourceId"
 #define SEN_RELATION_TARGET_ID      "SEN:targetId"
