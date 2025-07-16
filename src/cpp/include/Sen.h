@@ -10,16 +10,22 @@
 
 #define SEN_SERVER_SIGNATURE        "application/x-vnd.sen-labs.sen-server"
 
+
+#define SEN_CONTEXT_TYPE            "meta/x-vnd.sen-labs.entity.context"
+
 /**
  * semantic type of a file, e.g. text/scientific-paper vs. application/pdf
  */
+ //todo: use META:TYPE ?
 #define SEN_TYPE                    "SEN:TYPE"
 
 // simple logging, todo: integrate simple but more standard logging
 #define LOG(x...)                    printf(x);
 #define ERROR(x...)                  fprintf(stderr, x);
 
+//
 // message commands CORE
+//
 
 #define SEN_CORE_INFO               'SCin'
 #define SEN_CORE_STATUS             'SCst'
@@ -35,8 +41,40 @@
 // Actions for communication with clients
 #define SEN_ACTION_CMD              "SEN:action"
 
+//
+// Configuration
+//
+
+// returns static configuration as BMessage, read-only for now
+#define SEN_CONFIG_GET                     'SCge'
+
+// *** classification
+
+// fields, mainly for internal use: classifications path and ref
+#define SEN_CONFIG_PATH                    "senConfigPath"
+#define SEN_CONFIG_CLASS_BASE_PATH         "classificationPath"
+#define SEN_CONFIG_CLASS_BASE_PATH_REF     "classificationPathRef"
+#define SEN_CONFIG_CLASS_PATH_NAME         "classifications"
+
+// common classification message fields "context", "type" and "name"
+#define SEN_CONFIG_CLASS_CONTEXT           "context"
+#define SEN_CONFIG_CLASS_TYPE              "type"
+#define SEN_CONFIG_CLASS_NAME              "name"
+
+// add a classification entity with fields below
+#define SEN_CONFIG_CLASS_ADD               'SZad'
+
+// get classifications (message with type/refs map), optionally filtered for context(s, type(s) and/or names
+#define SEN_CONFIG_CLASS_GET               'SZge'
+
+// classification context specific
+#define SEN_CONFIG_CONTEXT_BASE_PATH       "contextPath"
+#define SEN_CONFIG_CONTEXT_BASE_PATH_REF   "contextPathRef"
+#define SEN_CONFIG_CONTEXT_PATH_NAME       "contexts"
+#define SEN_CONFIG_CONTEXT_GLOBAL          "global"
+
 // message commands RELATIONS
-// todo: aggregate into RELATIONS_GET/ADD/REMOVE with parameters for specialisation and filtering
+// todo: aggregate into RELATIONS_GET/ADD/REMOVE with parameters for specialisation and filtering, see filters
 #define SEN_RELATIONS_GET                  'SRge'
 #define SEN_RELATIONS_GET_ALL              'SRga'
 #define SEN_RELATIONS_GET_SELF             'SRsg'
@@ -46,8 +84,13 @@
 #define SEN_RELATIONS_GET_NEW_TARGET       'SRgn'
 
 // filters
-#define SEN_RELATION_FILTER_TYPE           "filter"
-	// todo: add compatible, all, ...
+#define SEN_MSG_FILTER                     "filter"
+#define SEN_MSG_FILTER_COMPATIBLE          "compatible"
+// common specification fields
+#define SEN_MSG_CONTEXT                    "context"
+#define SEN_MSG_TYPE                       "type"
+#define SEN_MSG_NAME                       "name"
+
 #define SEN_INCLUDE_TYPES                  "mimeIncludes"
 #define SEN_EXCLUDE_TYPES                  "mimeExcludes"
 
