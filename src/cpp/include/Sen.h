@@ -64,8 +64,11 @@
 // add a classification entity with fields below
 #define SEN_CONFIG_CLASS_ADD               'SZad'
 
-// get classifications (message with type/refs map), optionally filtered for context(s, type(s) and/or names
+// get classification by context and name (message with type/refs map)
 #define SEN_CONFIG_CLASS_GET               'SZge'
+
+// find classifications (message with type/refs map), optionally filtered for context(s, type(s) and/or names
+#define SEN_CONFIG_CLASS_FIND              'SZfi'
 
 // classification context specific
 #define SEN_CONFIG_CONTEXT_BASE_PATH       "contextPath"
