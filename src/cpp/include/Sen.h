@@ -91,8 +91,10 @@
 #define SEN_MSG_FILTER_COMPATIBLE          "compatible"
 // common specification fields
 #define SEN_MSG_CONTEXT                    "context"
-#define SEN_MSG_TYPE                       "type"
 #define SEN_MSG_NAME                       "name"
+#define SEN_MSG_TYPE                       "type"
+// get relations together with properties or just relations?
+#define SEN_MSG_PROPERTIES                 "properties"
 
 #define SEN_INCLUDE_TYPES                  "mimeIncludes"
 #define SEN_EXCLUDE_TYPES                  "mimeExcludes"
