@@ -136,8 +136,6 @@
 // unique relation MIME type
 #define SEN_RELATION_TYPE           "SEN:relationType"
 
-// relation target. see notes on SEN_RELATION_SOURCE
-#define SEN_RELATION_TARGET         "SEN:target"
 #define SEN_RELATION_TARGET_REF     "SEN:targetRef"
 // used to find compatible relations / types
 #define SEN_RELATION_TARGET_TYPE    "SEN:targetType"
@@ -152,8 +150,8 @@
 // used to declare defaults and restrictions in file type definitions (see sen-oni)
 //
 #define SEN_RELATION_CONFIG         "sen:relation"
-// define properties for the reverse relation (e.g. a different Label) if bidirectional
-#define SEN_RELATION_CONFIG_REVERSE "sen:reverse"
+// define properties for the inverse relation from target back to src (e.g. a different Label) if bidirectional
+#define SEN_RELATION_CONFIG_INVERSE "sen:inverse"
 
 // is the relation is bidirectional? If so, SEN will create the opposite relation automatically by default.
 #define SEN_RELATION_IS_BIDIR       "sen:bidir"
