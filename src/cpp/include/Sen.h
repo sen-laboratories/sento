@@ -114,6 +114,7 @@
 // Relations
 
 // used in file types
+#define SEN_CLASS_SUPERTYPE         "classification"
 #define SEN_ENTITY_SUPERTYPE        "entity"
 #define SEN_META_SUPERTYPE          "meta"
 #define SEN_RELATION_SUPERTYPE      "relation"
@@ -162,7 +163,7 @@
 /** indicates a self referencing relation. */
 #define SEN_RELATION_IS_SELF        "sen:self"
 /** relation used for classification and context */
-#define SEN_LABEL_RELATION_TYPE     SEN_RELATION_SUPERTYPE "/x-vnd.sen-labs.relation.association"
+#define SEN_ASSOC_RELATION_TYPE     SEN_RELATION_SUPERTYPE "/x-vnd.sen-labs.relation.association"
 
 //
 // common message fields used in requests/replies
