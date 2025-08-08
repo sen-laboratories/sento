@@ -8,6 +8,9 @@
 
 #include <stdio.h>
 
+#include <Entry.h>
+#include <String.h>
+
 #define SEN_SERVER_SIGNATURE         "application/x-vnd.sen-labs.sen-server"
 
 #define SEN_CONTEXT_TYPE             "association/x-vnd.sen-labs.entity.context"
@@ -94,6 +97,7 @@
 // filters
 #define SEN_MSG_FILTER                      "filter"
 #define SEN_MSG_FILTER_COMPATIBLE           "compatible"
+
 // common specification fields
 #define SEN_MSG_CONTEXT                     "context"
 #define SEN_MSG_NAME                        "name"
@@ -198,3 +202,24 @@
 #define SEN_RESULT_INFO             'SCri'
 #define SEN_RESULT_STATUS           'SCrs'
 #define SEN_RESULT_RELATIONS        'SCre'
+
+// simple data exchange object needed for creating and populating the relation view directory
+struct RelationInfo {
+	entry_ref srcRef;
+	entry_ref targetRef;
+	entry_ref relationDirRef;
+
+	BString relationType;
+	BString relationLabel;
+	BString srcId;
+	BString targetId;
+};
+
+struct RelationConfig {
+    BString typeName;
+    BString shortName;
+    bool    isSelf;
+    bool    isDynamic;
+    bool    isBidir;
+    bool    isAssociation;
+};

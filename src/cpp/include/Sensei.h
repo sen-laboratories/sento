@@ -7,10 +7,11 @@
 #pragma once
 
 // attributes, also used as message keys
-#define SENSEI_TYPE                "SENSEI:type"
-#define SENSEI_INPUT_TYPES         "SENSEI:input_types"
-#define SENSEI_TYPE_MAPPING        "SENSEI:type_mapping"
-#define SENSEI_ATTR_MAPPING        "SENSEI:attr_mapping"
+#define SENSEI_ATTR_PREFIX         "SENSEI:"
+#define SENSEI_TYPE                SENSEI_ATTR_PREFIX "type"
+#define SENSEI_INPUT_TYPES         SENSEI_ATTR_PREFIX "input_types"
+#define SENSEI_TYPE_MAPPING        SENSEI_ATTR_PREFIX "type_mapping"
+#define SENSEI_ATTR_MAPPING        SENSEI_ATTR_PREFIX "attr_mapping"
 
 // message codes
 enum SENSEI_CMD {
@@ -34,8 +35,8 @@ enum SENSEI_CMD {
 #define SENSEI_PLUGIN_TYPE         "application/x-vnd.sen-labs.plugin"
 
 // dynamic relations
-#define SENSEI_PLUGIN_CONFIG_KEY   "SENSEI:plugin_config"
-#define SENSEI_PLUGIN_KEY          "SENSEI:plugin"
-#define SENSEI_TYPES_PLUGINS_KEY   "SENSEI:types_plugins"
-#define SENSEI_DEFAULT_TYPE_KEY    "SENSEI:default_type"
-#define SENSEI_DEFAULT_TYPE        "SENSEI:default"
+#define SENSEI_PLUGIN_CONFIG_KEY   SENSEI_ATTR_PREFIX "plugin_config"
+#define SENSEI_PLUGIN_KEY          SENSEI_ATTR_PREFIX "plugin"
+#define SENSEI_TYPES_PLUGINS_KEY   SENSEI_ATTR_PREFIX "types_plugins"
+#define SENSEI_DEFAULT_TYPE_KEY    SENSEI_ATTR_PREFIX "default_type"
+#define SENSEI_DEFAULT_TYPE        SENSEI_ATTR_PREFIX "default"
