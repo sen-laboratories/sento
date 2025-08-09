@@ -117,8 +117,6 @@
 // Tracker integration
 #define SEN_OPEN_RELATION_VIEW              'STor'
 #define SEN_OPEN_RELATION_TARGET_VIEW       'STot'
-// sent when a relation is invoked to include arguments for handling plugin
-#define SEN_OPEN_RELATION_ARGS_KEY          "sen:args"
 
 // Message Fields and other markers
 
@@ -149,6 +147,10 @@
 #define SEN_RELATION_TYPE           "SEN:relationType"
 
 #define SEN_RELATION_TARGET_REF     "SEN:targetRef"
+
+// used in relation target views as target (e.g. file) name
+#define SEN_RELATION_TARGET_LABEL   "SEN:targetLabel"
+
 // used to find compatible relations / types
 #define SEN_RELATION_TARGET_TYPE    "SEN:targetType"
 
@@ -194,7 +196,11 @@
 #define SEN_RELATION_ATTR_PREFIX    SEN_ATTR_PREFIX "REL:"
 #define SEN_RELATION_ATTR_PREFIX_LEN 8
 
-// used only for ad-hoc created relation files pointing to the target
+// self-relation pseudo ID
+#define SEN_ID_SELF                 "_self"
+#define SEN_ID_SELF_LEN             5
+
+// used for ad-hoc created relation files pointing to the source and target of the relation
 #define SEN_RELATION_SOURCE_ATTR    SEN_RELATION_ATTR_PREFIX "ID"
 #define SEN_RELATION_TARGET_ATTR    SEN_RELATION_ATTR_PREFIX "TO"
 

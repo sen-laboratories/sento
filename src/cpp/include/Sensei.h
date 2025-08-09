@@ -8,7 +8,6 @@
 
 // attributes, also used as message keys
 #define SENSEI_ATTR_PREFIX         "SENSEI:"
-#define SENSEI_TYPE                SENSEI_ATTR_PREFIX "type"
 #define SENSEI_INPUT_TYPES         SENSEI_ATTR_PREFIX "input_types"
 #define SENSEI_TYPE_MAPPING        SENSEI_ATTR_PREFIX "type_mapping"
 #define SENSEI_ATTR_MAPPING        SENSEI_ATTR_PREFIX "attr_mapping"
@@ -29,7 +28,12 @@ enum SENSEI_CMD {
 #define SENSEI_FEATURE_ENRICH      "enrich"
 #define SENSEI_FEATURE_IDENTIFY    "identify"
 
+// result message
 #define SENSEI_MESSAGE_RESULT      'SErs'
+// reserved internal / common parameters
+#define SENSEI_ITEM                "_item"
+#define SENSEI_LABEL               "_label"
+#define SENSEI_TYPE                "_type"
 
 // SENSEI meta type for all SEN plugins
 #define SENSEI_PLUGIN_TYPE         "application/x-vnd.sen-labs.plugin"
