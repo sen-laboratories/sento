@@ -56,6 +56,9 @@
 // returns static configuration as BMessage, read-only for now
 #define SEN_CONFIG_GET                      'SCge'
 
+// resource ID and message key for relation configuration
+#define SEN_MIME_CONFIG                     "SEN:REL:CONFIG"
+
 // *** classification
 
 // fields, mainly for internal use: classifications path and ref
