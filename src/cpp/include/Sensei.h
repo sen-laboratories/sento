@@ -15,7 +15,7 @@
 // message codes
 enum SENSEI_CMD {
 	SENSEI_CMD_EXTRACT	= 'SEex',
-	SENSEI_CMD_ENRICH	= 'SEer',
+	SENSEI_CMD_ENRICH	  = 'SEer',
 	SENSEI_CMD_IDENTIFY	= 'SEid',
 	SENSEI_CMD_NAVIGATE	= 'SEnv',
 };
@@ -34,6 +34,8 @@ enum SENSEI_CMD {
 #define SENSEI_ITEM                "_item"
 #define SENSEI_LABEL               "_label"
 #define SENSEI_TYPE                "_type"
+// optional custom path reflecting the structure (e.g. used in Tracker for relation folder of self relations)
+#define SENSEI_PATH                "_path"
 
 // SENSEI meta type for all SEN plugins
 #define SENSEI_PLUGIN_TYPE         "application/x-vnd.sen-labs.plugin"

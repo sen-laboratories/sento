@@ -25,7 +25,7 @@
   * also useful for translation. */
 #define META_FOLDER_NAME             "META:FOLDER_NAME"
 
-#define SEN_RELATION_FOLDER_TYPE    "application/x-vnd.sen-labs.sen-relation-folder"
+#define SEN_RELATION_FOLDER_TYPE     "application/x-vnd.sen-labs.sen-relation-folder"
 
 // simple logging, todo: integrate simple but more standard logging
 #define LOG(x...)                    printf(x);
@@ -55,9 +55,6 @@
 
 // returns static configuration as BMessage, read-only for now
 #define SEN_CONFIG_GET                      'SCge'
-
-// resource ID and message key for relation configuration
-#define SEN_MIME_CONFIG                     "SEN:REL:CONFIG"
 
 // *** classification
 
@@ -107,8 +104,10 @@
 #define SEN_MSG_TYPE                        "type"
 #define SEN_MSG_COUNT                       "count"
 
-// get relations together with properties or just relations?
-#define SEN_MSG_PROPERTIES                  "properties"
+// get flat or deep result together with properties? (currently used for relations only)
+#define SEN_MSG_PROPERTIES                  "withProps"
+// get result with configurations? (currently used for relations only)
+#define SEN_MSG_CONFIGS                     "withConfigs"
 
 #define SEN_INCLUDE_TYPES                   "mimeIncludes"
 #define SEN_EXCLUDE_TYPES                   "mimeExcludes"
@@ -118,8 +117,9 @@
 #define SEN_RELATIONS_REMOVE_ALL            'SRra'
 
 // Tracker integration
-#define SEN_OPEN_RELATION_VIEW              'STor'
-#define SEN_OPEN_RELATION_TARGET_VIEW       'STot'
+#define SEN_OPEN_RELATION_TARGET            'STot'
+#define SEN_OPEN_RELATION_VIEW              'STrv'
+#define SEN_OPEN_RELATION_TARGET_VIEW       'STtv'
 
 // Message Fields and other markers
 
@@ -141,13 +141,16 @@
 #define SEN_RELATIONS               "SEN:relations"
 
 // short name of the relation type
-#define SEN_RELATION_NAME           "SEN:relation"
+#define SEN_RELATION_NAME           "SEN:relationName"
 
 // label used for a particular relation
 #define SEN_RELATION_LABEL          "SEN:relationLabel"
 
 // unique relation MIME type
 #define SEN_RELATION_TYPE           "SEN:relationType"
+
+// root of all relations in cascading relations (self or n-ary)
+#define SEN_RELATION_ROOT           "SEN:relationRoot"
 
 #define SEN_RELATION_TARGET_REF     "SEN:targetRef"
 
@@ -162,22 +165,25 @@
 
 #define SEN_RELATION_PROPERTIES     "SEN:relationProps"
 
-//
-// relation config properties declared in a BMessage using SEN Relation properties.
-// used to declare defaults and restrictions in file type definitions (see sen-oni)
-//
-#define SEN_RELATION_CONFIG         "sen:relation"
+// relation configuration from the Relations's MIME type,
+#define SEN_RELATION_CONFIG         "SEN:relationConfig"
+
+// resource ID and fs attribute for relation configuration
+#define SEN_RELATION_CONFIG_ATTR    "SEN:REL:CONFIG"
+
 // define properties for the inverse relation from target back to src (e.g. a different Label) if bidirectional
-#define SEN_RELATION_CONFIG_INVERSE "sen:inverse"
+#define SEN_RELATION_CONFIG_INVERSE "SEN:inverse"
 
 // is the relation is bidirectional? If so, SEN will create the opposite relation automatically by default.
-#define SEN_RELATION_IS_BIDIR       "sen:bidir"
+#define SEN_RELATION_IS_BIDIR       "SEN:bidir"
 
 // relation properties used at runtime (e.g. as returned by plugins)
 /** relation was created on-the-fly and is not persisted. */
-#define SEN_RELATION_IS_DYNAMIC     "sen:dynamic"
+#define SEN_RELATION_IS_DYNAMIC     "SEN:dynamic"
+
 /** indicates a self referencing relation. */
-#define SEN_RELATION_IS_SELF        "sen:self"
+#define SEN_RELATION_IS_SELF        "SEN:self"
+
 /** relation used for classification and context */
 #define SEN_ASSOC_RELATION_TYPE     SEN_RELATION_SUPERTYPE "/x-vnd.sen-labs.relation.association"
 
@@ -222,13 +228,4 @@ struct RelationInfo {
 	BString relationLabel;
 	BString srcId;
 	BString targetId;
-};
-
-struct RelationConfig {
-    BString typeName;
-    BString shortName;
-    bool    isSelf;
-    bool    isDynamic;
-    bool    isBidir;
-    bool    isAssociation;
 };
