@@ -25,6 +25,10 @@
   * also useful for translation. */
 #define META_FOLDER_NAME             "META:FOLDER_NAME"
 
+/** used for relation folders to display a matching icon */
+#define SEN_RELATION_FOLDER_ICON     "SEN:ICON:FOLDER"
+
+/** used to denote a relation folder, which is a specialized virtual folder for relations */
 #define SEN_RELATION_FOLDER_TYPE     "application/x-vnd.sen-labs.sen-relation-folder"
 
 // simple logging, todo: integrate simple but more standard logging
@@ -146,6 +150,9 @@
 // label used for a particular relation
 #define SEN_RELATION_LABEL          "SEN:relationLabel"
 
+// relation label attribute
+#define SEN_RELATION_LABEL_ATTR     "SEN:REL:Label"
+
 // unique relation MIME type
 #define SEN_RELATION_TYPE           "SEN:relationType"
 
@@ -192,7 +199,7 @@
 //
 
 // message field name for reverse relation label
-#define SEN_INVERSE_RELATION_LABEL    "SEN:REL:Label"
+#define SEN_INVERSE_RELATION_LABEL    "SEN:REL:Label"   // same as SEN_RELATION_LABEL_ATTR but different use
 #define SEN_RELATION_COMPATIBLE_TYPES "SEN:types"
 
 // standard length of a TSID = 14 + NULL byte, see IceDustGenerator
