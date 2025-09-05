@@ -33,8 +33,13 @@ enum SENSEI_CMD {
 // reserved internal / common parameters
 #define SENSEI_ITEM                "_item"
 #define SENSEI_LABEL               "_label"
+#define SENSEI_NAME                "_name"
 #define SENSEI_TYPE                "_type"
-// optional custom path reflecting the structure (e.g. used in Tracker for relation folder of self relations)
+// item ID added by SEN to all plugin results to uniquely label nodes for tracking
+// (e.g. used in Tracker to map selected nested menu to correspondig relation folder)
+#define SENSEI_ITEM_ID             "_itemid"
+
+// optional custom path reflecting the structure
 #define SENSEI_PATH                "_path"
 
 // SENSEI meta type for all SEN plugins

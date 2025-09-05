@@ -135,12 +135,6 @@
 #define SEN_META_SUPERTYPE                  "meta"
 #define SEN_RELATION_SUPERTYPE              "relation"
 
-// source refs using common field name
-#define SEN_RELATION_SOURCE_REF            "refs"
-
-#define SEN_RELATION_SOURCE_ID      "SEN:sourceId"
-#define SEN_RELATION_TARGET_ID      "SEN:targetId"
-
 // used for relations in messages
 #define SEN_RELATIONS               "SEN:relations"
 
@@ -156,10 +150,20 @@
 // unique relation MIME type
 #define SEN_RELATION_TYPE           "SEN:relationType"
 
-// root of all relations in cascading relations (self or n-ary)
+// relation root (ptr), used in nested relations (self or n-ary)
 #define SEN_RELATION_ROOT           "SEN:relationRoot"
 
-#define SEN_RELATION_TARGET_REF     "SEN:targetRef"
+// selected relation target (nested item nodes, xpath style), used in nested relations (self or n-ary)
+#define SEN_RELATION_ITEM_ID        "SEN:relationItemId"
+
+// msg source ref using common name
+#define SEN_RELATION_SOURCE_ID       "SEN:sourceId"
+#define SEN_RELATION_SOURCE_REF      "refs"
+#define SEN_RELATION_SOURCE_REF_ATTR "SEN:REL:SRC"
+
+#define SEN_RELATION_TARGET_ID       "SEN:targetId"
+#define SEN_RELATION_TARGET_REF      "SEN:targetRef"
+#define SEN_RELATION_TARGET_REF_ATTR "SEN:REL:TRG"
 
 // used in relation target views as target (e.g. file) name
 #define SEN_RELATION_TARGET_LABEL   "SEN:targetLabel"
