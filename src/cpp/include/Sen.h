@@ -153,7 +153,7 @@
 // relation root (ptr), used in nested relations (self or n-ary)
 #define SEN_RELATION_ROOT           "SEN:relationRoot"
 
-// selected relation target (nested item nodes, xpath style), used in nested relations (self or n-ary)
+// selected relation target, used in nested relations (self or n-ary)
 #define SEN_RELATION_ITEM_ID        "SEN:relationItemId"
 
 // msg source ref using common name
@@ -175,6 +175,12 @@
 #define SEN_ID_TO_REF_MAP           "SEN:id_to_ref"
 
 #define SEN_RELATION_PROPERTIES     "SEN:relationProps"
+
+/** relation configuration
+ */
+
+// holds several relation configs, key is relation (MIME) type
+#define SEN_RELATION_CONFIG_MAP     "SEN:relationConfigMap"
 
 // relation configuration from the Relations's MIME type,
 #define SEN_RELATION_CONFIG         "SEN:relationConfig"
@@ -209,14 +215,27 @@
 // standard length of a TSID = 14 + NULL byte, see IceDustGenerator
 #define SEN_ID_LEN                  15
 
-// used on any linked file
+// used on any linked file or in relations returned by plugins
 #define SEN_ATTR_PREFIX             "SEN:"
 #define SEN_ID_ATTR                 SEN_ATTR_PREFIX "ID"
+/** target is a native SEN:ID, best option, always stable */
 #define SEN_TO_ATTR                 SEN_ATTR_PREFIX "TO"
+/** target is pointing back to source (self relation),
+    may contain the pseudo 'self' ID which is ignored),
+    will be resolved to source file on relation resolution */
+#define SEN_TO_SELF                 SEN_TO_ATTR ":SELF"
+/** target is an inode, second best option, stable on same device; will be resolved on relation resolution */
+#define SEN_TO_INO                  SEN_TO_ATTR ":INO"
+/** target is a filesystem path, most fragile option; will be resolved on relation resolution */
+#define SEN_TO_PATH                 SEN_TO_ATTR ":PATH"
+
+/** denotes a SEN target ID that refers to an inode - used in situations where it is safe to use
+    (for temporary / self relations)
+  */
 #define SEN_RELATION_ATTR_PREFIX    SEN_ATTR_PREFIX "REL:"
 #define SEN_RELATION_ATTR_PREFIX_LEN 8
 
-// self-relation pseudo ID
+// self-relation pseudo ID coming from plugins
 #define SEN_ID_SELF                 "_self"
 #define SEN_ID_SELF_LEN             5
 

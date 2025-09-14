@@ -28,8 +28,13 @@ enum SENSEI_CMD {
 #define SENSEI_FEATURE_ENRICH      "enrich"
 #define SENSEI_FEATURE_IDENTIFY    "identify"
 
+// common options (plugins should reuse these to provide some consistency)
+#define SENSEI_OPTION_SELF         "--self"
+
 // result message
 #define SENSEI_MESSAGE_RESULT      'SErs'
+#define SENSEI_RESULT              "result"  // use common result key
+
 // reserved internal / common parameters
 #define SENSEI_ITEM                "_item"
 #define SENSEI_LABEL               "_label"
