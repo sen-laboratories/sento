@@ -1,7 +1,7 @@
 #!/bin/bash
-USER_INCLUDES=$HOME/config/non-packaged/include
+USER_INCLUDES=$(findpaths -e B_FIND_PATH_HEADERS_DIRECTORY | grep /boot/home/config)
 
-echo Installing SEN development headers into user includes at USER_INCLUDES
+echo Installing SEN development headers into $USER_INCLUDES
 
 mkdir -p $USER_INCLUDES/sen && \
 cp ./src/cpp/include/* $USER_INCLUDES/sen/ && \
