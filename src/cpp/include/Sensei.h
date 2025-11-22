@@ -40,12 +40,15 @@ enum SENSEI_CMD {
 #define SENSEI_LABEL               "_label"
 #define SENSEI_NAME                "_name"
 #define SENSEI_TYPE                "_type"
-// item ID added by SEN to all plugin results to uniquely label nodes for tracking
-// (e.g. used in Tracker to map selected nested menu to correspondig relation folder)
-#define SENSEI_ITEM_ID             "_itemid"
-
-// optional custom path reflecting the structure
-#define SENSEI_PATH                "_path"
+// item ID to uniquely label nodes for tracking
+// (e.g. used in Tracker to map selected nested menu items to correspondig relation folders)
+// can be set by plugin to a custom value OR to _self to let SEN resolve it from the source (e.g. inode).
+#define SENSEI_ITEM_ID             "_itemId"
+// shortcut for relation target id (either native SEN:ID or one of the placeholder values below)
+#define SENSEI_TO                  "_to"
+// possible sensei_to placeholder values
+#define SENSEI_TO_SELF             "_self"
+#define SENSEI_TO_PATH             "_path"
 
 // SENSEI meta type for all SEN plugins
 #define SENSEI_PLUGIN_TYPE         "application/x-vnd.sen-labs.plugin"

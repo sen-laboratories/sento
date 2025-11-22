@@ -18,8 +18,7 @@
 /**
  * semantic type of a file, e.g. text/scientific-paper vs. application/pdf
  */
- //todo: use META:TYPE ?
-#define SEN_TYPE                     "SEN:TYPE"
+#define SEN_TYPE                     "META:TYPE"
 
 /** used as a display name, e.g. when the folder name should be unique but is too cumbersome to read,
   * also useful for translation. */
@@ -45,8 +44,11 @@
 #define SEN_CORE_CHECK              'SCck'
 // some sanity testing
 #define SEN_CORE_TEST               'SCts'
-// core functionality
-#define SEN_QUERY_ID                'SCqi'
+// find matching SEN:ID for the given ref
+#define SEN_QUERY_REF_FOR_ID        'SQri'
+// find matching entry_ref for the given SEN:ID
+#define SEN_QUERY_ID_FOR_REF        'SQir'
+
 // used for SEN relation definitions in resource files
 #define SEN_RELATION_DEFINITION     'SCrd'
 
@@ -154,7 +156,7 @@
 #define SEN_RELATION_ROOT           "SEN:relationRoot"
 
 // selected relation target, used in nested relations (self or n-ary)
-#define SEN_RELATION_ITEM_ID        "SEN:relationItemId"
+#define SEN_RELATION_ITEM_ID        "SEN:itemId"
 
 // msg source ref using common name
 #define SEN_RELATION_SOURCE_ID       "SEN:sourceId"
@@ -210,7 +212,6 @@
 
 // message field name for reverse relation label
 #define SEN_INVERSE_RELATION_LABEL    "SEN:REL:Label"   // same as SEN_RELATION_LABEL_ATTR but different use
-#define SEN_RELATION_COMPATIBLE_TYPES "SEN:types"
 
 // standard length of a TSID = 14 + NULL byte, see IceDustGenerator
 #define SEN_ID_LEN                  15
@@ -218,26 +219,17 @@
 // used on any linked file or in relations returned by plugins
 #define SEN_ATTR_PREFIX             "SEN:"
 #define SEN_ID_ATTR                 SEN_ATTR_PREFIX "ID"
-/** target is a native SEN:ID, best option, always stable */
+/** target is a native SEN:ID, best option, always stable.
+    MAY contain the pseudo '_self' ID which is resolved to
+    the source end of the relation when being resolved. */
 #define SEN_TO_ATTR                 SEN_ATTR_PREFIX "TO"
-/** target is pointing back to source (self relation),
-    may contain the pseudo 'self' ID which is ignored),
-    will be resolved to source file on relation resolution */
-#define SEN_TO_SELF                 SEN_TO_ATTR ":SELF"
-/** target is an inode, second best option, stable on same device; will be resolved on relation resolution */
-#define SEN_TO_INO                  SEN_TO_ATTR ":INO"
-/** target is a filesystem path, most fragile option; will be resolved on relation resolution */
+/** target is an entry_ref, second best option, stable on same device; may be resolved on relation resolution */
+#define SEN_TO_REF                  SEN_TO_ATTR ":REF"
+/** target is a static filesystem path, most fragile option */
 #define SEN_TO_PATH                 SEN_TO_ATTR ":PATH"
 
-/** denotes a SEN target ID that refers to an inode - used in situations where it is safe to use
-    (for temporary / self relations)
-  */
 #define SEN_RELATION_ATTR_PREFIX    SEN_ATTR_PREFIX "REL:"
 #define SEN_RELATION_ATTR_PREFIX_LEN 8
-
-// self-relation pseudo ID coming from plugins
-#define SEN_ID_SELF                 "_self"
-#define SEN_ID_SELF_LEN             5
 
 // used for ad-hoc created relation files pointing to the source and target of the relation
 #define SEN_RELATION_SOURCE_ATTR    SEN_RELATION_ATTR_PREFIX "ID"
