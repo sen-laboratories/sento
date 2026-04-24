@@ -7,7 +7,7 @@
 #pragma once
 
 // attributes, also used as message keys
-#define SENSEI_ATTR_PREFIX         "SENSEI:"
+#define SENSEI_ATTR_PREFIX         "SEN:"
 #define SENSEI_INPUT_TYPES         SENSEI_ATTR_PREFIX "input_types"
 #define SENSEI_TYPE_MAPPING        SENSEI_ATTR_PREFIX "type_mapping"
 #define SENSEI_ATTR_MAPPING        SENSEI_ATTR_PREFIX "attr_mapping"

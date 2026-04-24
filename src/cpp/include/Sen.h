@@ -18,7 +18,7 @@
 /**
  * semantic type of a file, e.g. text/scientific-paper vs. application/pdf
  */
-#define SEN_TYPE                     "META:TYPE"
+#define SEN_TYPE                     "SEN:TYPE"   // FIXME: recompile plugins for"META:TYPE"
 
 /** used as a display name, e.g. when the folder name should be unique but is too cumbersome to read,
   * also useful for translation. */
