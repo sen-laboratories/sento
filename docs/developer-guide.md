@@ -249,8 +249,12 @@ A relation is shown by a file named after its **target**; a relation to a file t
 
 ### 5.1 Editing relations by working with the files
 
-The pose views report what happens to the files of a relation folder to `RelationFolders` (`senryu/src/kits/tracker`), which sends the matching command to the server. Relation folders and files are registered when they are made.
+`RelationFolders` (`senryu/src/kits/tracker`) watches every relation folder with the node monitor and sends the matching command to the server. Relation folders and files are registered when they are made.
 Relations of plugins (dynamic, contained) are not registered: they are read-only.
+
+One watch per folder is enough: `watch_node(folder, B_WATCH_DIRECTORY | B_WATCH_CHILDREN | B_WATCH_ATTR)` reports the entries that are created, removed, moved or renamed
+**and the attribute changes of every file directly in the folder**, including files created after the watch was set (measured on Haiku R1/beta6; without `B_WATCH_CHILDREN` attribute changes
+are reported only for nodes that are watched themselves, and entries of sub folders are never reported). The folder is watched whether or not a window shows it, and whoever changes it: Tracker, a shell, another program. The pose view is only involved in the drop of files.
 
 | User does in a relation view | Relation does |
 |------------------------------|---------------|
@@ -286,7 +290,7 @@ sequenceDiagram
 ```
 
 Dropped files are never copied or moved into a relation folder by Tracker: `HandleDropCommon` hands the drop to `RelationFolders::HandleDrop` first. Renaming a file is not an edit of the relation (the name is the name of the target); editing the label attribute is.
-The attribute changes that Tracker's own writing of a new file causes are ignored for a short time.
+The attribute changes that Tracker's own writing of a new file causes are ignored for a short time (1.5 seconds after the file is registered).
 
 Known limits: a file that is restored from the Trash into a relation folder is not made a relation again; the reports reach the server synchronously (a few milliseconds; a window waits at most 5 seconds if the server hangs).
 Tests: `sen-core/tests/vm/tracker-folders.sh` runs these operations with the real code of the Tracker and a live server.
