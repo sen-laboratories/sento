@@ -80,7 +80,7 @@ Their names are deliberately short because they exist on every linked file.
 |-----------|------|---------|
 | `SEN:ID` | string | the file's identifier: a TSID (13 characters Crockford Base32, 42 bit ms since 2026-01-01, 10 bit machine, 12 bit counter), as an IRI `urn:sen:<tsid>`. Created on first linking. |
 | `SEN:TO` | string | the `SEN:ID`s of the targets of **normal** relations of this file, comma separated. Queried as `SEN:TO == '*<id>*'` to find inbound relations. **Chunked:** BFS indexes only the first ~255 bytes of a string (verified: ids beyond about the 17th are not found), so a file holds at most 16 ids per attribute: `SEN:TO`, `SEN:TO:1`, `SEN:TO:2`, ... and an inbound query asks all indexed chunks. |
-| `SEN:META` | string | Same for **meta** relations (classification *and* context, handled alike, chunked the same way). Keeps `SEN:TO` for normal relations and lets "what is labelled X" be one query. **Today** meta targets share `SEN:TO`. |
+| `SEN:META` | string | Same for **meta** relations (classification *and* context, handled alike, chunked the same way). Keeps `SEN:TO` for normal relations and lets "what is labelled X" be one query.|
 
 `SEN:TO` may also contain the pseudo target `_self` (the relation points to its own source), resolved when read.
 Targets can be identified by `SEN:ID` (best, stable), `entry_ref` (stable on one device) or path (fragile).
@@ -241,23 +241,24 @@ How it is built:
 **Nested relations** model n-ary relations: a relation can carry nested relation messages, which are shown as a sub folder. A relation between
 an Author and a Book can have a Reader relation attached. The same code that writes the self relation tree writes these.
 
-**The temporary folder must be unique.** Today it is `<temp>/sen/<inode of source>/<type>/`, and an inode is only unique on one volume while the temp folder is shared by all of them.
-**Target:** the folder is named after a fresh TSID per view (a `SEN:ID` that lives as long as the view), `<temp>/sen/<tsid>/<type>/`, and the real source is named by the `SEN:REL:ID` attribute (and the
-source ref where the source has no `SEN:ID`, as with dynamic relations). A fresh id per view also means that two views of the same file do not overwrite each other, which `CreateRelationDirectory` does today
-(it removes an existing folder first), and that merely browsing never writes a `SEN:ID` to a file.
+**The temporary folder is unique.** Every view has its own folder, named by a fresh TSID: `<temp>/sen/<tsid>/relation/<type>/` (an inode is only unique on one volume, while the temp folder is shared by all
+of them, and two views of the same file must not overwrite each other). The real source is named by the `SEN:REL:ID` attribute of the folder and of each file, and the refs; browsing never writes a `SEN:ID`
+to a file. Relation files carry the target as `SEN:REL:TO`, never as `SEN:TO` (they would be taken for files that link to the target).
 
-### 5.1 Editing relations by working with the files (target, last work package)
+A relation is shown by a file named after its **target**; a relation to a file that does not exist (any more) is shown with `(missing)` in its name and the attribute `SEN:REL:missing`.
 
-Today the view is read-only in effect: deleting or editing a file does nothing to the real relation, `RemoveRelation` / `RemoveAllRelations` in
-`sen_server` are stubs, and there is no update command. The target is that the usual file operations *are* the relation operations (a relation file whose target is gone is shown with the "broken link" icon, and deleting it removes the dangling relation):
+### 5.1 Editing relations by working with the files
+
+The pose views report what happens to the files of a relation folder to `RelationFolders` (`senryu/src/kits/tracker`), which sends the matching command to the server. Relation folders and files are registered when they are made.
+Relations of plugins (dynamic, contained) are not registered: they are read-only.
 
 | User does in a relation view | Relation does |
 |------------------------------|---------------|
-| drops a file into a **target folder** of a type | **create**: a new relation of that type to the dropped file (`SEN_RELATION_ADD`) |
-| drops a file into the **top level** (relation types only) | creates a generic relation (`relation/x-vnd.sen-labs.relation.reference`) to the file |
-| deletes a relation file | **delete** (`SEN_RELATION_REMOVE`), including the opposite side of a bidirectional one |
-| edits an attribute of a relation file | **update** the property (new `SEN_RELATION_UPDATE`) |
-| moves a relation file to another target folder | **update**: the relation gets the other target (or type) |
+| drops a file into the folder of a type | **create**: a relation of that type to the dropped file (`SEN_RELATION_ADD`); the file for it appears; the same relation is not created twice |
+| drops a file into the top level (the folder of all types) | creates a generic relation (`relation/x-vnd.sen-labs.relation.reference`), and the folder of that type if it is not there yet |
+| deletes a relation file, or moves it out of the folder (Trash, any other folder) | **delete** (`SEN_RELATION_REMOVE`), including the opposite side of a bidirectional one |
+| edits an attribute of a relation file | **update** the properties (`SEN_RELATION_UPDATE`); the identity attributes (`SEN:REL:ID`, `TO`, `SRC`, `TRG`, the relation id) are not properties |
+| moves a relation file to the folder of another type of the same source | **update**: the relation gets the other type (`SEN:newRelationType`) and the file follows |
 
 ```mermaid
 sequenceDiagram
@@ -284,9 +285,11 @@ sequenceDiagram
   Note over Tracker,Server: dynamic relations are read-only, nothing is watched
 ```
 
-Needed for this: the identity of each single relation (source, type and target, plus the relation id where several property sets exist, see 3.2; both are attributes of the
-relation file); one shared function that translates the attributes of a file back into the property message (and the Web Annotation selector) and the other way round; Tracker watching only the
-relation folders it created, never dynamic ones. A rename is not an edit of the relation (the file name is derived from the label); editing the label attribute is.
+Dropped files are never copied or moved into a relation folder by Tracker: `HandleDropCommon` hands the drop to `RelationFolders::HandleDrop` first. Renaming a file is not an edit of the relation (the name is the name of the target); editing the label attribute is.
+The attribute changes that Tracker's own writing of a new file causes are ignored for a short time.
+
+Known limits: a file that is restored from the Trash into a relation folder is not made a relation again; the reports reach the server synchronously (a few milliseconds; a window waits at most 5 seconds if the server hangs).
+Tests: `sen-core/tests/vm/tracker-folders.sh` runs these operations with the real code of the Tracker and a live server.
 
 ## 6. Plugins (SENSEI)
 
