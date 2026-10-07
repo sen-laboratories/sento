@@ -87,6 +87,19 @@ Targets can be identified by `SEN:ID` (best, stable), `entry_ref` (stable on one
 Nested relations (3.3) are **not** listed in `SEN:TO`: they are resolved dynamically when their parent relation is resolved, down to a fixed depth
 limit, so that the cost of a lookup stays bounded.
 
+**Every chunk attribute must be indexed.** A query for an id asks all of them joined by `||`, and BFS silently ignores a branch without an index: measured with an id in the last chunk,
+the query over `SEN:TO` ... `SEN:TO:7` found 5 files, with the indices of `:6` and `:7` removed it found 4, without an error and without being faster (`sen-core/tests/vm/perf.sh`). The
+ontology creates all eight indices, the server checks them on every volume at start and on mount. The cost of the extra terms is small, because the indices of the higher chunks are nearly empty and
+the time goes into the scan of the `SEN:TO` index (a wildcard on both sides cannot use the order of the index): 5,000 files, average of 20 runs:
+
+| files | 1 attribute | 2 | 6 | 8 |
+|-------|------------|---|---|---|
+| realistic (96% of the files link 3 targets, 3% 20, 1% more) | 16.0 ms | 16.5 ms | 16.9 ms | 17.0 ms |
+| extreme (30% of the files link more than 16 targets) | 20.3 ms | 26.7 ms | 30.9 ms | 31.4 ms |
+
+The scan grows with the number of files that have a list (about 3 microseconds per 1,000 files and index): a graph of 100,000 linked files would need a few hundred milliseconds per lookup. If that becomes
+a problem, the answer is not fewer chunks but a different lookup (e.g. a cache of the inbound ids in the server).
+
 **Symlinks** are resolved: a symbolic link is the same object as its target, so relations of a file are found, shown and written the same way
 through a link to it (traverse links when turning a path or ref into a node, before reading or creating a `SEN:ID`).
 

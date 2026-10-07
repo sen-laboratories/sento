@@ -19,9 +19,12 @@ PORT=${SEN_VM_PORT:-2222}; USER=${SEN_VM_USER:-user}; HOST=${SEN_VM_HOST:-localh
 REVISION=${HAIKU_REVISION:-hrev60209}
 SSH="ssh -o ServerAliveInterval=5 -o ServerAliveCountMax=3 -p $PORT $USER@$HOST"
 
+# the clock of the VM drifts (after a restart it can be hours off): files with a time in the future or the past confuse jam
+$SSH 'Time --update' </dev/null 2>&1 | tail -1
+
 echo "copying $TREE ..."
 COPYFILE_DISABLE=1 tar -C "$TREE" --exclude .git --exclude .DS_Store -cf - . \
-	| $SSH 'mkdir -p /Develop/haiku-senryu && cd /Develop/haiku-senryu && tar -xf - 2>/dev/null; echo copied' </dev/null 2>&1 | tail -1
+	| $SSH 'mkdir -p /Develop/haiku-senryu && cd /Develop/haiku-senryu && tar -xf - 2>/dev/null; echo copied' 2>&1 | tail -1
 
 $SSH "cat > /tmp/tracker-build.sh" <<SCRIPT
 #!/bin/sh
