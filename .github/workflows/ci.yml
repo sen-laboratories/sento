@@ -1,0 +1,59 @@
+# SPDX-License-Identifier: MIT
+# SPDX-FileCopyrightText: 2026 SEN Labs e.U.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    name: Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build and run the tests
+        run: |
+          for t in tests/*Test.cpp; do
+            echo "== $t"
+            g++ -std=c++20 -Wall -Wextra -pthread -o /tmp/sento-test "$t"
+            /tmp/sento-test
+          done
+
+  haiku:
+    name: API headers on Haiku
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start Haiku VM
+        uses: cross-platform-actions/action@v1.6.0
+        with:
+          operating_system: haiku
+          architecture: x86-64
+          version: 'r1beta6'
+
+      # the steps below run inside the VM, files are synced both ways
+      - name: Install build dependencies
+        shell: cpa.sh {0}
+        run: pkgman install -y cmd:gcc gcc_syslibs_devel cmd:make
+
+      - name: Install the headers and compile a client that includes them
+        shell: cpa.sh {0}
+        run: |
+          mkdir -p /boot/home/config/non-packaged/develop/headers
+          ./install.sh
+          printf '#include <sen/Sen.h>\nint main() { return sen::attr::kId[0] == 0; }\n' > /tmp/sen_api.cpp
+          g++ -std=c++20 -Wall -Wextra -I/boot/home/config/non-packaged/develop/headers -o /tmp/sen_api /tmp/sen_api.cpp -lbe
+          /tmp/sen_api
+
+      - name: Run the tests on Haiku
+        shell: cpa.sh {0}
+        run: |
+          for t in tests/*Test.cpp; do
+            g++ -std=c++20 -pthread -o /tmp/sento-test "$t"
+            /tmp/sento-test
+          done
