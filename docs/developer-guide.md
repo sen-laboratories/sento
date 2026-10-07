@@ -331,7 +331,7 @@ Rules for plugins: use the shared constants, never literals; a plugin writes no 
 - Doxygen Javadoc comments: `/** @brief ... @param ... @return ... */`. Comments say why, not what.
 - File header (every source, script and resource file):
   `SPDX-License-Identifier: MIT` and `SPDX-FileCopyrightText: <years> SEN Labs e.U.`
-- Logging: `spdlog` (HaikuPorts `spdlog`), no `printf` macros in public headers.
+- Logging: `spdlog` (HaikuPorts `spdlog_devel`, links `spdlog` and `fmt`, defines `SPDLOG_COMPILED_LIB SPDLOG_FMT_EXTERNAL`) everywhere, also in the Tracker; no `printf`/`fprintf` logging and no macros in public headers. Sinks and levels are configuration, not code: `sen_server` reads `SEN_LOG_LEVEL` (`trace`..`off`).
 - Do not touch legacy attributes of other programs (`META:*` of People, `bepdf:*`); new ones are written beside them.
 - Tests run in CI. Logic that needs no BeAPI is tested on Linux; attribute, query and message behaviour runs in a Haiku VM
   (see `haiku-agent-skills/skills/haiku-vm-workflow`).
