@@ -280,11 +280,11 @@ relation folders it created, never dynamic ones. A rename is not an edit of the 
 A plugin is a Haiku application with `B_MULTIPLE_LAUNCH | B_BACKGROUND_APP` and these resources:
 
 - the plugin type `application/x-vnd.sen-labs.plugin` (as the attribute `META:TYPE`, the semantic type).
-- feature flags, one boolean attribute per feature, prefix `SEN:plugin` (`SENSEI_PLUGIN_FEATURE_ATTR`): `SEN:plugin:extract`, `:enrich`, `:identify`, `:navigate` (and `search`).
+- feature flags, one 16 bit attribute (resource `(int16) 1`) per feature, prefix `SEN:plugin` (`sensei::kFeatureAttrPrefix`): `SEN:plugin:extract`, `:enrich`, `:identify`, `:navigate` (and `search`). BFS cannot index 16 bit values (only int32, int64, float, double and strings), so the flags are **not queried**.
 - `file_types`: the MIME types it can handle.
 - optional `SEN:type_mapping` (short alias to relation type, `SEN:default` is the default type) and `SEN:attr_mapping` (short property key to attribute name): they only keep messages small.
 
-The server finds plugins with a `BQuery` (plugin type + feature + supported type) every time (`GetPluginsForTypeAndFeature`).
+The server finds plugins with a `BQuery` for the plugin type (`META:TYPE`, indexed) on **all mounted volumes** (`sen::QueryAllVolumes`), reads the feature flag from each file and checks the supported file type, every time (`sen::FindPlugins`, `GetPluginsForTypeAndFeature`).
 
 ### Extractors look *inside* a file, and return normal and contained relations
 
@@ -335,3 +335,19 @@ Rules for plugins: use the shared constants, never literals; a plugin writes no 
 - Do not touch legacy attributes of other programs (`META:*` of People, `bepdf:*`); new ones are written beside them.
 - Tests run in CI. Logic that needs no BeAPI is tested on Linux; attribute, query and message behaviour runs in a Haiku VM
   (see `haiku-agent-skills/skills/haiku-vm-workflow`).
+
+## 8. Ontologies and the generator
+
+The types of SEN (entities, relations, classification, plugins) are described as [LinkML](https://linkml.io) schemas in `sen-oni/schema/`. A generator
+(`sen-oni/generator/oni_gen.py`, see its README) writes from them the Haiku resource definitions, the manifests and a C++ header per ontology
+(`SenOnto<Name>.h`, namespace `sen::onto::<name>`, with the attribute names, MIME types and the list of indices). Code uses these constants, never string
+literals of attribute names; the constants of the core API (`SenAttributes.h`, ...) stay hand written, and a test compares them with the schema.
+
+- **One attribute name, one type.** The generator refuses a schema that defines an attribute twice with a different type or index flag.
+- **Shared vocabulary for properties.** Relation properties use the same attribute names as the entities and as Toji (`schema:pageStart`, `oa:start`, `be:line`), so
+  columns and queries work across relation types.
+- **Indices** are created by the ontology installer (`sen-oni/bin/mime`) and by the SEN server (at start and when a volume is mounted) on every mounted volume that supports
+  them; an index is never removed (attribute names are shared with other programs). BFS indexes only the first 255 bytes of a string and no 16 bit values.
+- **Tests:** `python3 -m unittest discover -s sen-oni/tests` (also in CI) checks the generator, that the committed files are up to date, and that `sento` and `sensei` agree with the schema;
+  `sento/tests` runs the TSID tests on Linux, macOS and Haiku; `sen-core/tests/vm/run.sh` is the end-to-end test in the Haiku VM.
+
