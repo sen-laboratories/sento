@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: MIT
+# SPDX-FileCopyrightText: 2026 SEN Labs e.U.
+#
+# Documentation of the SEN API (the headers of sento): `doxygen Doxyfile` writes HTML to docs/api.
+PROJECT_NAME           = "SEN API"
+PROJECT_BRIEF          = "Constants, messages and helpers to develop for SEN"
+OUTPUT_DIRECTORY       = docs/api
+INPUT                  = src/cpp/include docs/developer-guide.md
+FILE_PATTERNS          = *.h *.md
+USE_MDFILE_AS_MAINPAGE = docs/developer-guide.md
+JAVADOC_AUTOBRIEF      = YES
+QT_AUTOBRIEF           = YES
+EXTRACT_ALL            = YES
+OPTIMIZE_OUTPUT_FOR_C  = NO
+GENERATE_LATEX         = NO
+HAVE_DOT               = NO
+WARN_IF_UNDOCUMENTED   = NO
+WARN_AS_ERROR          = NO
+QUIET                  = YES

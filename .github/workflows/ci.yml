@@ -57,3 +57,16 @@ jobs:
             g++ -std=c++20 -pthread -o /tmp/sento-test "$t"
             /tmp/sento-test
           done
+
+  docs:
+    name: API documentation (Doxygen)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: sudo apt-get update && sudo apt-get install -y doxygen
+      - name: Generate the documentation of the API headers
+        run: doxygen Doxyfile
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sen-api-docs
+          path: docs/api/html
