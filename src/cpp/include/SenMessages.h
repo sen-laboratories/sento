@@ -124,8 +124,17 @@ inline constexpr char kRelationType[]       = "SEN:relationType";
 inline constexpr char kRelationRoot[]       = "SEN:relationRoot";
 /** properties of one relation */
 inline constexpr char kRelationProperties[] = "SEN:relationProperties";
-/** identifier of a single relation, only present where several property sets of one type exist between two files */
+/**
+ * identifier of a single relation (a TSID). Only present where several property sets of one type exist between the same
+ * two files; it is the same for a relation and its opposite direction.
+ */
 inline constexpr char kRelationId[]         = "SEN:relationId";
+/** remove: bool, remove all relations of the type to the target, not only one */
+inline constexpr char kAllRelations[]       = "SEN:allRelations";
+/** update: the new target of the relation (entry_ref), it moves to that target */
+inline constexpr char kNewTargetRef[]       = "SEN:newTargetRef";
+/** update: the new type of the relation, it becomes a relation of that type */
+inline constexpr char kNewRelationType[]    = "SEN:newRelationType";
 /** the configurations of several relation types, keyed by relation type */
 inline constexpr char kRelationConfigMap[]  = "SEN:relationConfigMap";
 /** the configuration of one relation type (from the MIME type of the relation) */
@@ -183,6 +192,8 @@ inline constexpr char kContextGlobal[]      = "global";
  */
 namespace status {
 
+/** The first digit is the class of the result: 2 ok, 4 the request cannot be done as asked, 5 SEN or the system failed. */
+
 inline constexpr int32_t kOk        = 200;
 inline constexpr int32_t kCreated   = 201;
 /** nothing to return, e.g. a file without relations */
@@ -196,6 +207,8 @@ inline constexpr int32_t kErrRelationTargetMissing = 4002;	///< dangling: the ta
 inline constexpr int32_t kErrRelationNotFound      = 4003;
 inline constexpr int32_t kErrIdNotUnique           = 4004;	///< two files carry the same `SEN:ID`
 inline constexpr int32_t kErrUnknownRelationType   = 4005;
+inline constexpr int32_t kErrTooManyTargets        = 4006;	///< the list of targets of a file is full (sen::idlist::kMaxIds)
+inline constexpr int32_t kErrAmbiguousRelation     = 4007;	///< several relations match: name one by SEN:relationId
 
 inline constexpr int32_t kErrFailed               = 500;
 inline constexpr int32_t kErrUnavailable          = 503;
