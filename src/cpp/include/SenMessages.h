@@ -125,10 +125,13 @@ inline constexpr char kRelationRoot[]       = "SEN:relationRoot";
 /** properties of one relation */
 inline constexpr char kRelationProperties[] = "SEN:relationProperties";
 /**
- * identifier of a single relation (a TSID). Only present where several property sets of one type exist between the same
+ * identifier of a single relation (a TSID). It is named like an attribute of a relation file because the properties of a
+ * relation are shown as attributes of the file, and edited there. Only present where several property sets of one type exist between the same
  * two files; it is the same for a relation and its opposite direction.
  */
-inline constexpr char kRelationId[]         = "SEN:relationId";
+inline constexpr char kRelationId[]         = "SEN:REL:relationId";
+/** in the properties of a relation: bool, the target does not exist (any more); a dangling relation */
+inline constexpr char kTargetMissing[]      = "SEN:REL:missing";
 /** remove: bool, remove all relations of the type to the target, not only one */
 inline constexpr char kAllRelations[]       = "SEN:allRelations";
 /** update: the new target of the relation (entry_ref), it moves to that target */
@@ -208,7 +211,7 @@ inline constexpr int32_t kErrRelationNotFound      = 4003;
 inline constexpr int32_t kErrIdNotUnique           = 4004;	///< two files carry the same `SEN:ID`
 inline constexpr int32_t kErrUnknownRelationType   = 4005;
 inline constexpr int32_t kErrTooManyTargets        = 4006;	///< the list of targets of a file is full (sen::idlist::kMaxIds)
-inline constexpr int32_t kErrAmbiguousRelation     = 4007;	///< several relations match: name one by SEN:relationId
+inline constexpr int32_t kErrAmbiguousRelation     = 4007;	///< several relations match: name one by SEN:REL:relationId
 
 inline constexpr int32_t kErrFailed               = 500;
 inline constexpr int32_t kErrUnavailable          = 503;
