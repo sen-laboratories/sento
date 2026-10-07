@@ -280,11 +280,11 @@ relation folders it created, never dynamic ones. A rename is not an edit of the 
 A plugin is a Haiku application with `B_MULTIPLE_LAUNCH | B_BACKGROUND_APP` and these resources:
 
 - the plugin type `application/x-vnd.sen-labs.plugin` (as the attribute `META:TYPE`, the semantic type).
-- feature flags, one 16 bit attribute (resource `(int16) 1`) per feature, prefix `SEN:plugin` (`sensei::kFeatureAttrPrefix`): `SEN:plugin:extract`, `:enrich`, `:identify`, `:navigate` (and `search`). BFS cannot index 16 bit values (only int32, int64, float, double and strings), so the flags are **not queried**.
+- feature flags, one int32 attribute per feature, prefix `SEN:plugin` (`sensei::kFeatureAttrPrefix`): `SEN:plugin:extract`, `:enrich`, `:identify`, `:navigate` (and `search`). The flags are not indexed (BFS cannot index 16 bit values at all, so keep them 32 bit); a query needs only one indexed attribute, so the plugin type `META:TYPE` comes first.
 - `file_types`: the MIME types it can handle.
 - optional `SEN:type_mapping` (short alias to relation type, `SEN:default` is the default type) and `SEN:attr_mapping` (short property key to attribute name): they only keep messages small.
 
-The server finds plugins with a `BQuery` for the plugin type (`META:TYPE`, indexed) on **all mounted volumes** (`sen::QueryAllVolumes`), reads the feature flag from each file and checks the supported file type, every time (`sen::FindPlugins`, `GetPluginsForTypeAndFeature`).
+The server finds plugins with a `BQuery` for the plugin type (`META:TYPE`, indexed) on **all mounted volumes** (`sen::QueryAllVolumes`), with the feature flag in the same predicate, and checks the supported file type, every time (`sen::FindPlugins`, `GetPluginsForTypeAndFeature`).
 
 ### Extractors look *inside* a file, and return normal and contained relations
 
