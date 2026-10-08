@@ -295,6 +295,33 @@ The attribute changes that Tracker's own writing of a new file causes are ignore
 Known limits: a file that is restored from the Trash into a relation folder is not made a relation again; the reports reach the server synchronously (a few milliseconds; a window waits at most 5 seconds if the server hangs).
 Tests: `sen-core/tests/vm/tracker-folders.sh` runs these operations with the real code of the Tracker and a live server.
 
+### 5.2 Relation files are proxies for their target
+
+A relation that is shown as a file is a **proxy** (a placeholder): from the point of view of the relation the file *represents the target*.
+The file shows the properties of the relation (its attributes are the columns), but whatever is done *with* the file is done with the file
+at the end of the relation, the actual target.
+
+| What the user does with the relation file | What it applies to |
+|-------------------------------------------|--------------------|
+| double-click (Open) | the **target** is opened, with the navigator of the relation type; the properties of the relation come along (the navigator maps the ones that the application understands: a document reference gives the page to the PDF viewer, see `PdfNavigator`). |
+| *Open related...*, *Open contained...* | the **target**: the menus list the relations that apply to the file that the relation points to. |
+| edit an attribute of the file | the **relation**: the properties of the relation change (5.1). |
+| delete, move, drop (5.1) | the **relation**. |
+
+The target is carried by each file: `SEN:REL:TRG` (a ref), written by `TrackerSenRelations::RelationsToList` when the view is made, next to `SEN:REL:ID` (source)
+and `SEN:REL:TO` (target id). `TrackerSenRelations::RelationTargetOrSelf` is what Tracker uses for the relation menus; the navigators resolve the proxy the same way when they
+are given a relation file (`PdfNavigator`, `ReferenceNavigator`). A file without `SEN:REL:TRG` is an ordinary file and stands for itself.
+
+**Nested (n-ary) relations are not proxies.** A nested relation is shown as a **folder**, and everything that is done with that folder is done with the relation itself. Contained
+relations of a plugin (a bookmark in a document) are files whose target is the file that contains them.
+
+*Planned, not implemented yet:* *New related...* on a relation file or folder acts on the relation, not on its target: it adds a **dimension** to it. A binary relation
+(source and target) becomes a ternary one by relating it to a third file (dimension 1 to 2), and an n-ary relation that is already there gets another dimension in the same way (2 to 3, ...).
+In the view that is a nested folder inside the folder of the relation (see the nested relations above).
+
+Read-only relations (`SEN:REL:readonly`, e.g. the relations of an ontology to its types) are created as read-only files and are not registered for editing; the server refuses to change or
+remove them (status 403) unless the sender passes `SEN:override`, which only the installer of the ontologies does.
+
 ## 6. Plugins (SENSEI)
 
 A plugin is a Haiku application with `B_MULTIPLE_LAUNCH | B_BACKGROUND_APP` and these resources:
