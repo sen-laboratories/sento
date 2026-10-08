@@ -153,6 +153,9 @@ inline constexpr char kTargetRef[]          = "SEN:targetRef";
 inline constexpr char kTargetType[]         = "SEN:targetType";
 /** maps `SEN:ID` to entry_refs, sent in relation replies */
 inline constexpr char kIdToRefMap[]         = "SEN:idToRef";
+/** message: the name to show for each target (by SEN:ID), next to kIdToRefMap: the title of the file (dc:title), the short
+ *  description of a MIME type, else the name of the file */
+inline constexpr char kIdToNameMap[]        = "SEN:idToName";
 
 }	// namespace key
 
