@@ -178,6 +178,13 @@ inline constexpr char kBidirectional[] = "SEN:bidir";
 inline constexpr char kDynamic[]       = "SEN:dynamic";
 /** bool: reflexive; the relation lives inside the source file (shown as "contained") */
 inline constexpr char kSelf[]          = "SEN:self";
+/**
+ * strings: the relation can start only at files of these types (without it, at any file). A type is a MIME type or the
+ * start of one, e.g. a supertype ("audio"), like the filters for the templates of a new file.
+ */
+inline constexpr char kSourceTypes[]        = "SEN:sourceTypes";
+/** strings: the relation cannot start at files of these types (same kind of types); this wins over kSourceTypes */
+inline constexpr char kExcludeSourceTypes[] = "SEN:excludeSourceTypes";
 
 }	// namespace conf
 
