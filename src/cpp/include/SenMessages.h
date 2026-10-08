@@ -156,6 +156,8 @@ inline constexpr char kIdToRefMap[]         = "SEN:idToRef";
 /** message: the name to show for each target (by SEN:ID), next to kIdToRefMap: the title of the file (dc:title), the short
  *  description of a MIME type, else the name of the file */
 inline constexpr char kIdToNameMap[]        = "SEN:idToName";
+/** message, with add: properties of the opposite direction that replace the ones it gets from the relation (e.g. its own label) */
+inline constexpr char kInverseProperties[]  = "SEN:inverseProperties";
 /** bool, with remove, update and removeAll: also changes the relations that are read-only (for the installer of ontologies) */
 inline constexpr char kOverride[]           = "SEN:override";
 
