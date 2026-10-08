@@ -20,10 +20,12 @@ namespace mime {
 inline constexpr char kClassificationSupertype[] = "classification";
 inline constexpr char kEntitySupertype[]         = "entity";
 inline constexpr char kRelationSupertype[]       = "relation";
+inline constexpr char kMetaSupertype[]           = "meta";
 
 inline constexpr char kClassificationPrefix[]    = "classification/";
 inline constexpr char kEntityPrefix[]            = "entity/";
 inline constexpr char kRelationPrefix[]          = "relation/";
+inline constexpr char kMetaPrefix[]              = "meta/";
 
 // ---- types
 

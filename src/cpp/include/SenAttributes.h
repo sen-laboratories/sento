@@ -51,6 +51,8 @@ inline constexpr char kToPath[] = "SEN:TO:PATH";
 
 /** Prefix of the attributes that hold relations (`SEN:REL:<relation type without "relation/">`) and relation properties. */
 inline constexpr char kRelationPrefix[] = "SEN:REL:";
+/** bool, property of a relation: it cannot be changed or removed by users (the relations of the ontologies to their types) */
+inline constexpr char kRelationReadOnly[] = "SEN:REL:readonly";
 inline constexpr size_t kRelationPrefixLength = sizeof(kRelationPrefix) - 1;
 
 /** In a relation file: the `SEN:ID` (or inode for dynamic relations) of the source. */

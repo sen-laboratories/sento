@@ -156,6 +156,8 @@ inline constexpr char kIdToRefMap[]         = "SEN:idToRef";
 /** message: the name to show for each target (by SEN:ID), next to kIdToRefMap: the title of the file (dc:title), the short
  *  description of a MIME type, else the name of the file */
 inline constexpr char kIdToNameMap[]        = "SEN:idToName";
+/** bool, with remove, update and removeAll: also changes the relations that are read-only (for the installer of ontologies) */
+inline constexpr char kOverride[]           = "SEN:override";
 
 }	// namespace key
 
@@ -213,6 +215,7 @@ inline constexpr int32_t kCreated   = 201;
 inline constexpr int32_t kNoContent = 204;
 
 inline constexpr int32_t kErrBadRequest           = 400;
+inline constexpr int32_t kErrForbidden            = 403;	///< e.g. the relation is read-only (SEN:REL:readonly)
 inline constexpr int32_t kErrNotFound             = 404;
 inline constexpr int32_t kErrConflict             = 409;
 inline constexpr int32_t kErrRelationResolveFailed = 4001;	///< the relation could not be resolved
