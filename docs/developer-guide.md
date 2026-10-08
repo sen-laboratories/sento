@@ -359,7 +359,7 @@ Rules for plugins: use the shared constants, never literals; a plugin writes no 
 ## 8. Ontologies and the generator
 
 The types of SEN (entities, relations, classification, plugins) are described as [LinkML](https://linkml.io) schemas in `sen-oni/schema/`. A generator
-(`sen-oni/generator/oni_gen.py`, see its README) writes from them the Haiku resource definitions, the manifests and a C++ header per ontology
+(`sen-oni/generator/oni_gen.py`, see its README) writes from them the Haiku resource definitions (with an `ontology.rdef` that holds the metadata of the ontology) and a C++ header per ontology
 (`SenOnto<Name>.h`, namespace `sen::onto::<name>`, with the attribute names, MIME types and the list of indices). Code uses these constants, never string
 literals of attribute names; the constants of the core API (`SenAttributes.h`, ...) stay hand written, and a test compares them with the schema.
 
