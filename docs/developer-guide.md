@@ -331,6 +331,19 @@ In the view that is a nested folder inside the folder of the relation (see the n
 Read-only relations (`SEN:REL:readonly`, e.g. the relations of an ontology to its types) are created as read-only files and are not registered for editing; the server refuses to change or
 remove them (status 403) unless the sender passes `SEN:override`, which only the installer of the ontologies does.
 
+### 5.3 The menus of relations and their context
+
+The menus of relations ("Open related...", "Open contained...", "New related...") are built from answers of the server: the relation types and the config of each, for relations that
+plugins resolve the config of the plugin and the tree of what the plugin found. When an item of such a menu is chosen the handler needs some of that (the config of the relation to open its target, the
+tree to show contained relations as folders), but it gets the message of the item later through the queue of the application, when the menu may be gone.
+
+The data is kept in a **`RelationContext`** (`RelationContext.h` in Tracker), once for a build of the menus, and an item only carries the id of it (`sen::key::kRelationContext`, an int64). The handlers find
+the context again by that id (`RelationContexts::Find(message)`). The contexts of the latest 64 menu builds are kept; a message with the id of a dropped context (a menu that was open for a very long time)
+is ignored with a note in the log: open the menu again. There are no pointers in the messages: whatever they would point to belongs to a menu, which can be deleted before the message is handled.
+
+The tree of the contained relations is set in the context by the menu when the answer of the server arrives (`SetRoot`). A click that is faster than the menu (it is built in a thread of its own) asks the server itself.
+Test: `senryu/src/tests/kits/tracker/RelationContextTest.cpp` (standalone, on Haiku).
+
 ## 6. Plugins (SENSEI)
 
 A plugin is a Haiku application with `B_MULTIPLE_LAUNCH | B_BACKGROUND_APP` and these resources:
