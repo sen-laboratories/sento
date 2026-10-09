@@ -160,6 +160,15 @@ context, kept separate from normal relations. Association works; the context par
 Entities are files whose MIME type is below `entity/` (Book, Movie, Person, ...). Their attributes follow the naming rules below, with
 established names (`dc:`, `schema:`, `foaf:`) wherever they exist: **no attributes invented per file type**.
 
+### 3.6 Dependencies
+
+A **dependency** (`relation/x-vnd.sen-labs.relation.dependency`) relates two things the way the packages of Haiku are related. The **kind** is the property `SEN:REL:Kind` (`DependencyKind` in
+the core ontology): the kinds of the relations of Haiku packages (`.PackageInfo`) `provides`, `requires`, `supplements`, `conflicts`, `freshens`, `replaces`, and `uses`, a loose dependency, which they do not have (the source makes use of
+the target without needing it). The label of the relation says it the way of the kind ("provides"), and the opposite direction says it the other way ("provided by"; `SEN:inverseProperties` of the add command).
+`Kind` is the same in both directions. The ontologies relate to their types with `provides` (read-only: `SEN:REL:readonly`).
+
+The kinds correspond to other vocabularies: Debian and RPM have Depends/Requires, Recommends, Suggests, Enhances/Supplements, Conflicts, Replaces/Obsoletes, Provides; SPDX has `dependsOn` and its variants.
+
 ## 4. Names: three layers, three conventions
 
 Names serve different purposes and are therefore written differently.
@@ -370,6 +379,19 @@ This is what `ResolveSelfRelationsWithPlugin` does (the name says self, the mech
 4. the server maps the aliases and `_to`/`_item` to the real names (`TransformPluginResult`), adds a unique id to each node and returns the result.
 
 Rules for plugins: use the shared constants, never literals; a plugin writes no files itself.
+
+### Navigators: opening the target of a relation
+
+A navigator is the application that opens the target of a relation (the preferred application of the relation type, a plugin with the feature `navigate`). `PdfNavigator` gives the place in a PDF to the
+viewer that is installed (Toji, BePDF), `ReferenceNavigator` is the one of generic references, of dependencies and of what a type contains (its attributes): what the target is decides how it is opened. A type of the MIME
+database is shown in FileTypes; an attribute of a type opens in the dialog of that attribute.
+
+FileTypes is a single launch application, so there is one instance, and it is not asked to quit. The navigator finds out which one is installed by the signature:
+
+* the **FileTypes of SEN** (`sen::kFileTypesSignature`, `application/x-vnd.sen-labs.FileTypes`) is sent `sen::cmd::kOpenMimeAttribute` with the type (`SEN:mimeType`) and the attribute (`SEN:attr:name`) and decides what to do:
+  it selects the type, closes the dialog of any other attribute (the only kind of dialog that can be open: types of applications have a window of their own) and opens a new one for the attribute;
+* the **FileTypes of Haiku** is started with `-type` if it is not running (and an attribute is then opened by scripting it like a person would: "Item n of View listview attr of Window w", with
+  the window found by the list it has), or only brought to the front if it is running.
 
 ## 7. Code conventions
 

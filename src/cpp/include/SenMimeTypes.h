@@ -10,6 +10,11 @@
  */
 namespace sen {
 
+/** Signature of the FileTypes application of SEN (it understands sen::cmd::kOpenMimeAttribute). Stock Haiku has its own. */
+inline constexpr char kFileTypesSignature[] = "application/x-vnd.sen-labs.FileTypes";
+/** Signature of the FileTypes application of Haiku. */
+inline constexpr char kHaikuFileTypesSignature[] = "application/x-vnd.Haiku-FileTypes";
+
 /** Signature of the SEN server application. */
 inline constexpr char kServerSignature[] = "application/x-vnd.sen-labs.sen-server";
 

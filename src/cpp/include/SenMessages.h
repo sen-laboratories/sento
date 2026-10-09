@@ -70,6 +70,11 @@ inline constexpr uint32_t kOpenRelationTarget     = 'STot';
 inline constexpr uint32_t kOpenRelationView       = 'STrv';
 inline constexpr uint32_t kOpenRelationTargetView = 'STtv';
 
+// ---- applications that manage the types (our FileTypes, see sen::kFileTypesSignature)
+/** Open an attribute of a MIME type: the type that has it (kMimeType) and the name of the attribute (kAttributeName). The application
+ *  decides what to do: the one of SEN selects the type, closes the dialog of any other attribute and opens one for this. */
+inline constexpr uint32_t kOpenMimeAttribute      = 'SOma';
+
 // ---- replies
 inline constexpr uint32_t kReplyInfo      = 'SCri';
 inline constexpr uint32_t kReplyStatus    = 'SCrs';
@@ -156,6 +161,10 @@ inline constexpr char kIdToRefMap[]         = "SEN:idToRef";
 /** message: the name to show for each target (by SEN:ID), next to kIdToRefMap: the title of the file (dc:title), the short
  *  description of a MIME type, else the name of the file */
 inline constexpr char kIdToNameMap[]        = "SEN:idToName";
+/** string, with kOpenMimeAttribute: the MIME type that has the attribute */
+inline constexpr char kMimeType[]           = "SEN:mimeType";
+/** string, with kOpenMimeAttribute: the name of the attribute (SEN:attr:name) */
+inline constexpr char kAttributeName[]      = "SEN:attr:name";
 /** message, with add: properties of the opposite direction that replace the ones it gets from the relation (e.g. its own label) */
 inline constexpr char kInverseProperties[]  = "SEN:inverseProperties";
 /** bool, with remove, update and removeAll: also changes the relations that are read-only (for the installer of ontologies) */

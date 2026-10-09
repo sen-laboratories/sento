@@ -68,6 +68,8 @@ inline constexpr char kRelationSourceRef[] = "SEN:REL:SRC";
 inline constexpr char kRelationTargetRef[] = "SEN:REL:TRG";
 /** Label of a particular relation (also the file name of a relation file), and a key of the relation config. */
 inline constexpr char kRelationLabel[] = "SEN:REL:Label";
+/** string, property of a relation: the kind of a dependency (provides, requires, uses, ...), see DependencyKind in the core ontology */
+inline constexpr char kRelationKind[]  = "SEN:REL:Kind";
 /** Resource and attribute that hold the configuration of a relation type (see namespace sen::conf). */
 inline constexpr char kRelationConfig[] = "SEN:REL:CONFIG";
 /** Resource of a relation type with the vector icon of its relation folder. */
