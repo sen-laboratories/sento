@@ -167,6 +167,9 @@ inline constexpr char kMimeType[]           = "SEN:mimeType";
 inline constexpr char kAttributeName[]      = "SEN:attr:name";
 /** message, with add: properties of the opposite direction that replace the ones it gets from the relation (e.g. its own label) */
 inline constexpr char kInverseProperties[]  = "SEN:inverseProperties";
+/** bool, with removeAll: only stale relations are removed: those that are read-only (what the installer of ontologies made) and those whose
+ *  target is gone (its file was replaced), not the relations that users made to files that exist; it implies kOverride */
+inline constexpr char kStaleOnly[]          = "SEN:staleOnly";
 /** bool, with remove, update and removeAll: also changes the relations that are read-only (for the installer of ontologies) */
 inline constexpr char kOverride[]           = "SEN:override";
 

@@ -165,7 +165,7 @@ established names (`dc:`, `schema:`, `foaf:`) wherever they exist: **no attribut
 A **dependency** (`relation/x-vnd.sen-labs.relation.dependency`) relates two things the way the packages of Haiku are related. The **kind** is the property `SEN:REL:Kind` (`DependencyKind` in
 the core ontology): the kinds of the relations of Haiku packages (`.PackageInfo`) `provides`, `requires`, `supplements`, `conflicts`, `freshens`, `replaces`, and `uses`, a loose dependency, which they do not have (the source makes use of
 the target without needing it). The label of the relation says it the way of the kind ("provides"), and the opposite direction says it the other way ("provided by"; `SEN:inverseProperties` of the add command).
-`Kind` is the same in both directions. The ontologies relate to their types with `provides` (read-only: `SEN:REL:readonly`).
+`Kind` is the same in both directions. The ontologies relate to their types with the kind `provides`, which the label says as "defines" (and "defined by" from the type); the relations are read-only (`SEN:REL:readonly`).
 
 The kinds correspond to other vocabularies: Debian and RPM have Depends/Requires, Recommends, Suggests, Enhances/Supplements, Conflicts, Replaces/Obsoletes, Provides; SPDX has `dependsOn` and its variants.
 
