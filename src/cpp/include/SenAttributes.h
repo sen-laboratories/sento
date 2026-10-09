@@ -51,6 +51,9 @@ inline constexpr char kToPath[] = "SEN:TO:PATH";
 
 /** Prefix of the attributes that hold relations (`SEN:REL:<relation type without "relation/">`) and relation properties. */
 inline constexpr char kRelationPrefix[] = "SEN:REL:";
+/** bool, field of the attribute info (META:ATTR_INFO) of a MIME type, one entry per attribute like the fields of Haiku: the attribute is
+ *  indexed so that it can be queried. A SEN extension, hence not in the "attr:" namespace of Haiku. */
+inline constexpr char kAttrInfoSearchable[] = "SEN:searchable";
 /** bool, property of a relation: it cannot be changed or removed by users (the relations of the ontologies to their types) */
 inline constexpr char kRelationReadOnly[] = "SEN:REL:readonly";
 inline constexpr size_t kRelationPrefixLength = sizeof(kRelationPrefix) - 1;
