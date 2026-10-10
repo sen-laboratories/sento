@@ -168,6 +168,7 @@ inline constexpr char kAttributeName[]      = "SEN:attr:name";
 /** int64: the context of the relation menus of Tracker (its configs, the result of the server) that an item belongs to: the item message carries
  *  this id, not a copy of the data (see RelationContext in Tracker) */
 inline constexpr char kRelationContext[]    = "SEN:relationContext";
+inline constexpr char kRelationNode[]       = "SEN:relationNode";	// ref of a file in a view of contained relations (a bookmark)
 /** message, with add: properties of the opposite direction that replace the ones it gets from the relation (e.g. its own label) */
 inline constexpr char kInverseProperties[]  = "SEN:inverseProperties";
 /** bool, with removeAll: only stale relations are removed: those that are read-only (what the installer of ontologies made) and those whose
