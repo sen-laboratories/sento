@@ -5,6 +5,19 @@ SPDX-FileCopyrightText: 2026 SEN Labs e.U.
 
 # SEN user guide
 
+## Relating files with Option+drag
+
+Hold **Option** while you drag files onto another file or folder, and let go: instead of copying, moving or opening anything, a menu
+with the relations that can be created between the files opens at the pointer. Choose one and SEN creates it (in both directions, for
+most relations), or press Esc or click outside the menu to cancel. The files stay where they are.
+
+- **Several files:** select the files to relate and drag them. If you drop them on a file that is part of a selection, all the files of
+  that selection are the target: the relation is created between every dragged file and every target file.
+- **Which relations are offered** depends on the kinds of the files: only relations that fit all files on both sides are shown. A label
+  (classification) and a file are related by an association, two files by the other relations.
+- Files in the Trash and the Desktop folder itself have no relations. Dropping files on themselves does nothing.
+- If a relation could not be created (for example because it is read-only), a message says how many failed and why.
+
 ## Relations in folders
 
 A relation connects a file with another file: a book with its author, a PDF bookmark with a page, an ontology with the types it provides.
