@@ -11,7 +11,8 @@ Hold the **Command** key (the Apple key on a Mac keyboard, Alt on a PC one) whil
 with the relations that can be created between the files opens at the pointer. Choose one and SEN creates it (in both directions, for
 most relations), or press Esc or click outside the menu to cancel. The files stay where they are.
 
-- **A label:** hold **Shift** while you choose the relation in the menu, and a small window asks for a label for the relation (it can be
+- **A label:** hold **Shift** while you drop the files (it is remembered, so you can let go and pick from the menu) or while you choose the
+  relation in the menu, and a small window asks for a label for the relation (it can be
   left empty). Cancel (or Esc) creates nothing. The opposite direction keeps the label of its own that the relation defines, if it has one.
 - **Several files:** select the files to relate and drag them. If you drop them on a file that is part of a selection, all the files of
   that selection are the target: the relation is created between every dragged file and every target file.
