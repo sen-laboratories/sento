@@ -5,9 +5,25 @@ SPDX-FileCopyrightText: 2026 SEN Labs e.U.
 
 # SEN user guide
 
+## The SEN item in the Deskbar
+
+The SEN server puts its knot into the Deskbar when it starts. **Clicking** it opens a window with all the objects that SEN knows: the files that have
+a SEN:ID, as a flat list. The menu (secondary mouse button) has:
+
+- **Context**: the contexts that are set up (for now the one you choose is only remembered).
+- one menu for every kind of classification (**Labels**, **Topics**, **Projects**...): *Show all* opens the list of them, and choosing one of them
+  shows the files that it classifies.
+- **Info**: the overview of SEN as a tree: the objects on every volume, the types and relations that are installed with the number of files of each.
+- **Check**: looks for inconsistencies (the same SEN:ID on several files, files of types that are not installed, volumes without an index).
+- **Settings**: the key of the SEN mode of dragging (Command, Option, Control or Shift) and the use of Akita instead of Tracker (the latter takes
+  effect when the system is started the next time).
+- **About** and **Quit**. Quitting asks first: without the server, copies of files keep the SEN:ID of the original, which breaks the lookup by ID.
+
+The same information is on the command line: `sen info`, `sen types` and `sen check` (see the README of sen-core).
+
 ## Relating files with Command+drag
 
-Hold the **Command** key (the Apple key on a Mac keyboard, Alt on a PC one) while you drag files onto another file or folder, and let go: instead of copying, moving or opening anything, a menu
+Hold the **Command** key (the Apple key on a Mac keyboard, Alt on a PC one; another key can be chosen in the Settings of the SEN item in the Deskbar) while you drag files onto another file or folder, and let go: instead of copying, moving or opening anything, a menu
 with the relations that can be created between the files opens at the pointer. Choose one and SEN creates it (in both directions, for
 most relations), or press Esc or click outside the menu to cancel. The files stay where they are.
 

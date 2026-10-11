@@ -80,6 +80,24 @@ inline constexpr uint32_t kReplyInfo      = 'SCri';
 inline constexpr uint32_t kReplyStatus    = 'SCrs';
 inline constexpr uint32_t kReplyRelations = 'SCre';
 
+// ---- the Deskbar menu of SEN (messages of the item in the Deskbar to the server, which shows the windows)
+/** show the window with the overview of SEN: objects, types and relations */
+inline constexpr uint32_t kUiShowInfo     = 'SUin';
+/** show the window that checks for inconsistencies */
+inline constexpr uint32_t kUiShowCheck    = 'SUck';
+inline constexpr uint32_t kUiShowSettings = 'SUse';
+inline constexpr uint32_t kUiShowAbout    = 'SUab';
+/** open the query with all SEN objects (the files with a SEN:ID): the knowledge graph as a flat list */
+inline constexpr uint32_t kUiOpenObjects  = 'SUob';
+/** open the query with the entities of a classification type (kType) */
+inline constexpr uint32_t kUiOpenClassification = 'SUcl';
+/** open the query with the files that are classified by an entity (refs: the file of the entity) */
+inline constexpr uint32_t kUiOpenClassified = 'SUcd';
+/** make a context the current one (kContext: its name) */
+inline constexpr uint32_t kUiSetContext   = 'SUcx';
+/** the user wants to quit SEN: asks first, as copies of files get no new SEN:ID without the server */
+inline constexpr uint32_t kUiRequestQuit  = 'SUqt';
+
 }	// namespace cmd
 
 namespace key {
@@ -114,6 +132,12 @@ inline constexpr char kConfigPath[]            = "SEN:configPath";
 inline constexpr char kClassificationPath[]    = "SEN:classificationPath";
 inline constexpr char kClassificationPathRef[] = "SEN:classificationPathRef";
 inline constexpr char kContextPath[]           = "SEN:contextPath";
+/** int32 in the settings: the modifier key of the SEN mode of a drag (B_COMMAND_KEY, B_OPTION_KEY, B_CONTROL_KEY or B_SHIFT_KEY) */
+inline constexpr char kModifierKey[]           = "SEN:modifierKey";
+/** bool in the settings: Akita is used as the file manager instead of Tracker */
+inline constexpr char kUseAkita[]              = "SEN:useAkita";
+/** string in the settings: the name of the current context (global if there is none) */
+inline constexpr char kCurrentContext[]        = "SEN:currentContext";
 inline constexpr char kContextPathRef[]        = "SEN:contextPathRef";
 
 // ---- relations
@@ -216,6 +240,10 @@ namespace config {
 inline constexpr char kClassificationsDir[] = "classifications";
 inline constexpr char kContextsDir[]        = "contexts";
 inline constexpr char kContextGlobal[]      = "global";
+/** the file with the settings of SEN in its settings folder (~/config/settings/sen), a flattened message */
+inline constexpr char kSettingsFile[]       = "sen.settings";
+/** the folder with the query files that the Deskbar menu opens */
+inline constexpr char kQueriesDir[]         = "queries";
 }
 
 /**
