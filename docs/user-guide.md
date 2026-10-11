@@ -5,9 +5,9 @@ SPDX-FileCopyrightText: 2026 SEN Labs e.U.
 
 # SEN user guide
 
-## Relating files with Option+drag
+## Relating files with Command+drag
 
-Hold **Option** while you drag files onto another file or folder, and let go: instead of copying, moving or opening anything, a menu
+Hold the **Command** key (the Apple key on a Mac keyboard, Alt on a PC one) while you drag files onto another file or folder, and let go: instead of copying, moving or opening anything, a menu
 with the relations that can be created between the files opens at the pointer. Choose one and SEN creates it (in both directions, for
 most relations), or press Esc or click outside the menu to cancel. The files stay where they are.
 
