@@ -11,7 +11,13 @@
  * @brief The plugin protocol of SENSEI: features, commands, message fields.
  *
  * A plugin is an application that carries the plugin type (sen::mime::kPlugin) and one boolean attribute per supported
- * feature, `SEN:plugin:<feature>`. The server finds plugins with a BQuery for the type, the feature and the file type.
+ * feature, `SEN:plugin:<feature>`.
+ *
+ * The signature of a plugin starts with kSignaturePrefix, followed by the vendor and the name of the plugin, separated by dots:
+ * `application/x-vnd.sen-plugin.sen-labs.pdf-extractor`. The server finds plugins with a query on `BEOS:APP_SIG` for
+ * kSignaturePattern: that attribute is indexed on every volume, also on those of installed packages (packagefs can only
+ * query a few attributes, and `META:TYPE` is not among them). The candidates are then checked by their plugin type and by the
+ * feature attributes.
  */
 
 #pragma GCC diagnostic push
@@ -27,6 +33,11 @@ inline constexpr uint32_t kNavigate = 'SEnv';
 /** a plugin's reply */
 inline constexpr uint32_t kResult   = 'SErs';
 }
+
+/** The signature of every plugin starts with this, then comes `<vendor>.<name>` (e.g. `sen-labs.pdf-extractor`). */
+inline constexpr char kSignaturePrefix[] = "application/x-vnd.sen-plugin.";
+/** The pattern of a query for the signatures of all plugins. */
+inline constexpr char kSignaturePattern[] = "application/x-vnd.sen-plugin.*";
 
 /** Prefix of the feature attributes of a plugin: `SEN:plugin:extract` and so on. */
 inline constexpr char kFeatureAttrPrefix[] = "SEN:plugin";

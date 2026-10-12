@@ -12,8 +12,8 @@ does not yet follow a rule, the text says **Target** (what it will be) and **Tod
 - **The file system is the single source of truth.** Everything SEN knows about a file is in the attributes of that file (and of
   the MIME database for types). There is no SEN database. Applications are *visitors*: they exchange state through attributes.
 - **Loose coupling through messages and queries.** `sen_server` is the only process that touches relation data; Tracker/Akita,
-  applications and plugins talk to it with `BMessage`s. Plugins are found at runtime with a `BQuery` for the plugin file type and
-  its feature attributes: there is no plugin registry.
+  applications and plugins talk to it with `BMessage`s. Plugins are found at runtime with a `BQuery` for their signature
+  (`application/x-vnd.sen-plugin.*`) and a check of their feature attributes: there is no plugin registry.
 - **Relations are native.** A relation is a typed, labelled link between two files (entities). It is stored with the source file,
   and the other end is found by query.
 - **Standards first.** Names, selectors and identifiers come from established vocabularies (Dublin Core, schema.org, W3C Web
@@ -348,12 +348,13 @@ Test: `senryu/src/tests/kits/tracker/RelationContextTest.cpp` (standalone, on Ha
 
 A plugin is a Haiku application with `B_MULTIPLE_LAUNCH | B_BACKGROUND_APP` and these resources:
 
+- the signature `application/x-vnd.sen-plugin.<vendor>.<name>` (`sensei::kSignaturePrefix`), e.g. `application/x-vnd.sen-plugin.sen-labs.pdf-extractor`. It is how the server finds plugins (below). The name is what the plugin does, like the folder of the plugin in `sensei/plugins`.
 - the plugin type `application/x-vnd.sen-labs.plugin` (as the attribute `META:TYPE`, the semantic type).
-- feature flags, one int32 attribute per feature, prefix `SEN:plugin` (`sensei::kFeatureAttrPrefix`): `SEN:plugin:extract`, `:enrich`, `:identify`, `:navigate` (and `search`). The flags are not indexed (BFS cannot index 16 bit values at all, so keep them 32 bit); a query needs only one indexed attribute, so the plugin type `META:TYPE` comes first.
+- feature flags, one int32 attribute per feature, prefix `SEN:plugin` (`sensei::kFeatureAttrPrefix`): `SEN:plugin:extract`, `:enrich`, `:identify`, `:navigate` (and `search`). The flags are not indexed (BFS cannot index 16 bit values at all, so keep them 32 bit).
 - `file_types`: the MIME types it can handle.
 - optional `SEN:type_mapping` (short alias to relation type, `SEN:default` is the default type) and `SEN:attr_mapping` (short property key to attribute name): they only keep messages small.
 
-The server finds plugins with a `BQuery` for the plugin type (`META:TYPE`, indexed) on **all mounted volumes** (`sen::QueryAllVolumes`), with the feature flag in the same predicate, and checks the supported file type, every time (`sen::FindPlugins`, `GetPluginsForTypeAndFeature`).
+The server finds plugins with a `BQuery` for the signature pattern (`BEOS:APP_SIG==application/x-vnd.sen-plugin.*`, `sensei::kSignaturePattern`) on **all mounted volumes** (`sen::QueryAllVolumes`). `BEOS:APP_SIG` is the one attribute of the plugin that is indexed everywhere: the files of installed packages are on packagefs, which answers queries for only `name`, `size`, `last_modified` and `BEOS:APP_SIG` (it has no other indices and cannot create any), so a query for `META:TYPE` would not find a packaged plugin. The candidates are then checked for the plugin type and the feature flag, which are read from their attributes, and for the supported file type, every time (`sen::FindPlugins`, `GetPluginsForTypeAndFeature`).
 
 ### Extractors look *inside* a file, and return normal and contained relations
 
