@@ -10,14 +10,18 @@ SPDX-FileCopyrightText: 2026 SEN Labs e.U.
 The SEN server puts its knot into the Deskbar when it starts. **Clicking** it opens a window with all the objects that SEN knows: the files that have
 a SEN:ID, as a flat list. The menu (secondary mouse button) has:
 
-- **Context**: the contexts that are set up (for now the one you choose is only remembered).
+- **Context**: the contexts that are set up, the folders of `~/config/settings/sen/contexts`, as Tracker shows folders in a menu (icon and name, a menu for each folder).
 - one menu for every kind of classification (**Labels**, **Topics**, **Projects**...): *Show all* opens the list of them, and choosing one of them
   shows the files that it classifies.
 - **Info**: the overview of SEN as a tree: the objects on every volume, the types and relations that are installed with the number of files of each.
 - **Check**: looks for inconsistencies (the same SEN:ID on several files, files of types that are not installed, volumes without an index).
+- **Ontologies** (above Settings, they are configuration): the ontologies that are installed, a file for each with its icon, name and version in parentheses
+  (choosing one shows it in its folder). *Show all* opens the folder `~/config/settings/sen/ontologies`, which shows the version, description, author and schema of each ontology
+  as its columns (in Akita), and *Update* has the ontologies of the packages installed now, which is otherwise done when the server starts and when a package comes or goes.
 - **Settings**: the key of the SEN mode of dragging (Command, Option, Control or Shift) and the use of Akita instead of Tracker (the latter takes
   effect when the system is started the next time).
-- **About** and **Quit**. Quitting asks first: without the server, copies of files keep the SEN:ID of the original, which breaks the lookup by ID.
+- **About**, **Restart** and **Quit**. Restart quits the server and starts it again (it is the way to apply what a new version of the server brings). Quitting asks first: without the
+  server, copies of files keep the SEN:ID of the original, which breaks the lookup by ID. It stays off until you start it again (`sen start`, or the next login).
 
 The same information is on the command line: `sen info`, `sen types` and `sen check` (see the README of sen-core).
 

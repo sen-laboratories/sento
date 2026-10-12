@@ -97,6 +97,14 @@ inline constexpr uint32_t kUiOpenClassified = 'SUcd';
 inline constexpr uint32_t kUiSetContext   = 'SUcx';
 /** the user wants to quit SEN: asks first, as copies of files get no new SEN:ID without the server */
 inline constexpr uint32_t kUiRequestQuit  = 'SUqt';
+/** restart the server: it quits and is started again (by the launch daemon, as a service, or by a command of its own if it was started by hand) */
+inline constexpr uint32_t kUiRequestRestart = 'SUrs';
+/** open the folder with the ontologies (a file for each, with the attributes of the ontology) in Tracker */
+inline constexpr uint32_t kUiOpenOntologies = 'SUon';
+/** show an ontology in Tracker, in its folder, selected (refs: its file) */
+inline constexpr uint32_t kUiOpenOntology = 'SUoo';
+/** have the installer of the ontologies (sen_oni) bring them up to date with the packages now, without waiting for a package to change */
+inline constexpr uint32_t kUiUpdateOntologies = 'SUou';
 
 }	// namespace cmd
 
@@ -244,6 +252,8 @@ inline constexpr char kContextGlobal[]      = "global";
 inline constexpr char kSettingsFile[]       = "sen.settings";
 /** the folder with the query files that the Deskbar menu opens */
 inline constexpr char kQueriesDir[]         = "queries";
+/** the folder of the settings of SEN with a file for each installed ontology (the attributes of the ontology, the relations to its types) */
+inline constexpr char kOntologiesDir[]      = "ontologies";
 }
 
 /**
