@@ -103,6 +103,8 @@ inline constexpr uint32_t kUiRequestRestart = 'SUrs';
 inline constexpr uint32_t kUiOpenOntologies = 'SUon';
 /** show an ontology in Tracker, in its folder, selected (refs: its file) */
 inline constexpr uint32_t kUiOpenOntology = 'SUoo';
+/** show a type of an ontology in FileTypes (kType: the MIME type), at one of its attributes if there is kAttributeName */
+inline constexpr uint32_t kUiOpenType = 'SUot';
 /** have the installer of the ontologies (sen_oni) bring them up to date with the packages now, without waiting for a package to change */
 inline constexpr uint32_t kUiUpdateOntologies = 'SUou';
 
