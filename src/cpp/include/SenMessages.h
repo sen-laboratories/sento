@@ -144,7 +144,7 @@ inline constexpr char kClassificationPathRef[] = "SEN:classificationPathRef";
 inline constexpr char kContextPath[]           = "SEN:contextPath";
 /** int32 in the settings: the modifier key of the SEN mode of a drag (B_COMMAND_KEY, B_OPTION_KEY, B_CONTROL_KEY or B_SHIFT_KEY) */
 inline constexpr char kModifierKey[]           = "SEN:modifierKey";
-/** bool in the settings: Akita is used as the file manager instead of Tracker */
+/** bool in the settings: no longer used (the file ~/config/settings/launch/akita says whether Akita is used instead of Tracker, see the command akita) */
 inline constexpr char kUseAkita[]              = "SEN:useAkita";
 /** bool in the settings: the FileTypes of SEN (sen::kFileTypesSignature) is used where SEN shows a type, if it is installed; default true */
 inline constexpr char kUseSenFileTypes[]       = "SEN:useFileTypes";
