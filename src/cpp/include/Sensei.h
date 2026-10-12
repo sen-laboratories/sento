@@ -78,6 +78,11 @@ inline constexpr char kType[]   = "_type";
  * Set by the plugin to a custom value or to kToSelf to let SEN resolve it from the source.
  */
 inline constexpr char kItemId[] = "_itemId";
+/**
+ * Result of the feature `identify`: the semantic type of the file (`text/x-python`), the value that a plugin has set as the attribute META:TYPE of the file.
+ * A plugin that identifies a file also returns it in its reply under this name.
+ */
+inline constexpr char kSemanticType[] = "META:TYPE";
 /** shortcut for the relation target id: a `SEN:ID` or one of the placeholders below */
 inline constexpr char kTo[]     = "_to";
 

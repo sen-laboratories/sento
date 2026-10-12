@@ -356,6 +356,12 @@ A plugin is a Haiku application with `B_MULTIPLE_LAUNCH | B_BACKGROUND_APP` and 
 
 The server finds plugins with a `BQuery` for the signature pattern (`BEOS:APP_SIG==application/x-vnd.sen-plugin.*`, `sensei::kSignaturePattern`) on **all mounted volumes** (`sen::QueryAllVolumes`). `BEOS:APP_SIG` is the one attribute of the plugin that is indexed everywhere: the files of installed packages are on packagefs, which answers queries for only `name`, `size`, `last_modified` and `BEOS:APP_SIG` (it has no other indices and cannot create any), so a query for `META:TYPE` would not find a packaged plugin. The candidates are then checked for the plugin type and the feature flag, which are read from their attributes, and for the supported file type, every time (`sen::FindPlugins`, `GetPluginsForTypeAndFeature`).
 
+### Identifiers set the semantic type
+
+A plugin with the feature `identify` finds out what a file is and sets its **semantic type**, the attribute `META:TYPE` (`text/x-python`, `document/scientific-paper`), which says more than the Haiku type. It
+makes sure that the file has its Haiku type (`BEOS:TYPE`) first: Haiku takes a file with `META:TYPE` and without `BEOS:TYPE` for an entry of the MIME database. The type is returned in the reply as `sensei::key::kSemanticType`. The source code
+extractor of sensei is an example: Haiku gives every source file `text/x-source-code`, the plugin names the language and then reads the references with the scanner of that language.
+
 ### Extractors look *inside* a file, and return normal and contained relations
 
 An extractor reads a file's content and may find **both** kinds of relation:
