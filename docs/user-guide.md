@@ -12,16 +12,16 @@ a SEN:ID, as a flat list. The menu (secondary mouse button) has:
 
 - **Context**: the contexts that are set up (the folders of `~/config/settings/sen/contexts`, with their icon), the current one marked: choosing one makes it the current one.
   A new context ("New related... Context" in the file manager) is a folder there, with the type of a context.
-- one menu for every kind of classification (**Labels**, **Topics**, **Projects**...): *Show all* opens the list of them, and choosing one of them
-  shows the files that it classifies.
+- one menu for every kind of classification (**Labels**, **Topics**, **Projects**...): choosing the menu itself opens the list of them, and choosing one of
+  its entries shows the files that it classifies. (As in the menus of the file manager, every menu can be chosen itself.)
 - **Info**: the overview of SEN as a tree: the objects on every volume, the types and relations that are installed with the number of files of each.
 - **Check**: looks for inconsistencies (the same SEN:ID on several files, files of types that are not installed, volumes without an index).
 - **Ontologies** (above Settings, they are configuration): the ontologies that are installed, each with its icon. An ontology opens down to its types (the entities, relations,
-  classifications...), and a type to its attributes: choosing a type or an attribute shows it in FileTypes, *Show* shows the ontology itself in its folder. *Show all* opens the folder
-  `~/config/settings/sen/ontologies`, which shows the version, description, author and schema of each ontology as its columns (in Akita), and *Update* has the ontologies of the packages
+  classifications...), and a type to its attributes: choosing a type or an attribute shows it in FileTypes (the one of SEN, package `sen_filetypes`, if it is installed
+  and not switched off in the Settings), choosing an ontology shows it in its folder. Choosing *Ontologies* itself opens the folder `~/config/settings/sen/ontologies`, which shows the version, description, author and schema of each ontology as its columns (in Akita), and *Update* has the ontologies of the packages
   installed now, which is otherwise done when the server starts and when a package comes or goes.
-- **Settings**: the key of the SEN mode of dragging (Command, Option, Control or Shift) and the use of Akita instead of Tracker (the latter takes
-  effect when the system is started the next time).
+- **Settings**: the key of the SEN mode of dragging (Command, Option, Control or Shift), the use of Akita instead of Tracker (this takes
+  effect when the system is started the next time) and the use of the FileTypes of SEN instead of the one of Haiku.
 - **About**, **Restart** and **Quit**. Restart quits the server and starts it again (it is the way to apply what a new version of the server brings). Quitting asks first: without the
   server, copies of files keep the SEN:ID of the original, which breaks the lookup by ID. It stays off until you start it again (`sen start`, or the next login).
 

@@ -146,6 +146,8 @@ inline constexpr char kContextPath[]           = "SEN:contextPath";
 inline constexpr char kModifierKey[]           = "SEN:modifierKey";
 /** bool in the settings: Akita is used as the file manager instead of Tracker */
 inline constexpr char kUseAkita[]              = "SEN:useAkita";
+/** bool in the settings: the FileTypes of SEN (sen::kFileTypesSignature) is used where SEN shows a type, if it is installed; default true */
+inline constexpr char kUseSenFileTypes[]       = "SEN:useFileTypes";
 /** string in the settings: the name of the current context (global if there is none) */
 inline constexpr char kCurrentContext[]        = "SEN:currentContext";
 inline constexpr char kContextPathRef[]        = "SEN:contextPathRef";

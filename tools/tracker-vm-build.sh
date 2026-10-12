@@ -12,11 +12,17 @@
 # The copy goes to /Develop/haiku-senryu in the VM (the big volume), so the next build is incremental.
 # Needs in the VM: jam nasm bison flex gawk git mkisofs makeinfo zip unzip xorriso mtools python3.10 (pkgman install -y xorriso mtools).
 #
+# Another part of the tree is built with BUILD_DIR, BUILD_TARGET and BUILD_RESULT (default: src/kits/tracker, Tracker, the libtracker.so of the result), e.g.
+#   BUILD_DIR=src/preferences/filetypes BUILD_TARGET=FileTypes BUILD_RESULT=preferences/filetypes/FileTypes tracker-vm-build.sh <worktree>
+#
 # Settings: SEN_VM_PORT, SEN_VM_USER, SEN_VM_HOST as in sen-vm.sh; HAIKU_REVISION (default hrev60209: the VM has no git history).
 set -e
 TREE=${1:?usage: tracker-vm-build.sh <senryu-worktree>}
 PORT=${SEN_VM_PORT:-2222}; USER=${SEN_VM_USER:-user}; HOST=${SEN_VM_HOST:-localhost}
 REVISION=${HAIKU_REVISION:-hrev60209}
+BUILD_DIR=${BUILD_DIR:-src/kits/tracker}
+BUILD_TARGET=${BUILD_TARGET:-Tracker}
+BUILD_RESULT=${BUILD_RESULT:-kits/tracker/libtracker.so}
 SSH="ssh -o ServerAliveInterval=5 -o ServerAliveCountMax=3 -p $PORT $USER@$HOST"
 
 # the clock of the VM drifts (after a restart it can be hours off): files with a time in the future or the past confuse jam
@@ -37,8 +43,8 @@ export PATH=\$HOME/config/non-packaged/bin:\$PATH
 export HAIKU_REVISION=$REVISION
 cd /Develop/haiku-senryu
 [ -f generated/build/BuildConfig ] || ./configure --use-gcc-pipe > /tmp/tracker-configure.log 2>&1
-cd src/kits/tracker
-jam -q -j\${NUM_PROC:-4} Tracker > /tmp/tracker-build.log 2>&1
+cd $BUILD_DIR
+jam -q -j\${NUM_PROC:-4} $BUILD_TARGET > /tmp/tracker-build.log 2>&1
 echo "jam exit \$?" >> /tmp/tracker-build.log
 touch /tmp/tracker-build.done
 SCRIPT
@@ -51,4 +57,4 @@ while [ $i -lt 360 ]; do
 	sleep 10; i=$((i+1))
 	$SSH 'test -f /tmp/tracker-build.done' </dev/null 2>/dev/null && break
 done
-$SSH 'grep -E "^\.\.\.failed|error:|jam exit" /tmp/tracker-build.log | head -20; ls -la /Develop/haiku-senryu/generated/objects/haiku/x86_64/release/kits/tracker/libtracker.so' </dev/null
+$SSH 'grep -E "^\.\.\.failed|error:|jam exit" /tmp/tracker-build.log | head -20; ls -la /Develop/haiku-senryu/generated/objects/haiku/x86_64/release/$BUILD_RESULT' </dev/null
