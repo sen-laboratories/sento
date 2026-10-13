@@ -163,7 +163,7 @@ of the ontologies and not for the associations themselves), so that relations ca
 only sends its message). A context is applied while it is the current one (`SEN:currentContext`), whatever its attribute says, except the global one.
 
 **Deleting.** The file manager asks before it deletes a file that lists targets in `SEN:TO` (`TrackerSenRelations::ConfirmDeletion`): since relations are bidirectional, that is every file that is part of a
-relation. It names the targets that exist, and removes the relations of the file with `kRelationsRemoveAll` (both sides) if the user agrees; relations to targets that are gone are removed without a
+relation. It only says that the file has relations (a button, `ShowRelationsInTracker`, opens the folder of all its relations), and removes the relations of the file with `kRelationsRemoveAll` (both sides) if the user agrees; relations to targets that are gone are removed without a
 question, read-only relations (the ontologies') stay. Meta relations (`SEN:META`) are not asked about: they are one-way, the file that is classified holds them. A deleted classification entity
 therefore leaves associations behind in the files that had it (they point nowhere and are ignored).
 

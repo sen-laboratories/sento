@@ -45,7 +45,7 @@ most relations), or press Esc or click outside the menu to cancel. The files sta
 
 ## Deleting files that have relations
 
-When you delete a file (Move to Trash, or Delete) that has relations, Akita says which files it is related to, and asks whether you really want to delete it. If you do,
+When you delete a file (Move to Trash, or Delete) that has relations, Akita says that it still has relations and asks whether you really want to delete it (the button *Show in Tracker* opens the folder with its relations). If you do,
 the relations of the file are removed on both sides together with it, so that no other file keeps a link to a file that is gone. (Relations that point to files that are
 already gone are removed without asking. The relations of the ontologies are read-only and stay. Labels and the like that are put on a file go with the file anyway.)
 
