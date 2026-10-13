@@ -130,6 +130,8 @@ inline constexpr char kAction[]         = "SEN:action";
 inline constexpr char kFilter[]         = "SEN:filter";
 inline constexpr char kContext[]        = "SEN:context";
 inline constexpr char kName[]           = "SEN:name";
+/** bool: the Shift key was held when a menu item was chosen (the Deskbar menu tells the server: it makes a classification sticky or not) */
+inline constexpr char kShift[]          = "SEN:shift";
 inline constexpr char kType[]           = "SEN:type";
 inline constexpr char kCount[]          = "SEN:count";
 /** bool: also return the properties of relations */

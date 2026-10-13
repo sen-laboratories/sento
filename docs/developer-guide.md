@@ -159,8 +159,8 @@ context, kept separate from normal relations. Association works; the context par
 `BEOS:TYPE == "classification/*"` and a look at the attribute: the server creates the index `BEOS:TYPE` on the volumes that lack it, see `EnsureIndices`). What the file manager makes is put into
 the sticky classifications: it sends `sen::cmd::kClassificationApplySticky` (`refs`) for a new file (Tracker: `BPoseView::NewFileFromTemplate`), and the server relates each file to each sticky
 classification by an association (`RelationSticky.cpp`). A relation that is added lists the sticky classifications in its properties (`sen::key::kClassifications`, SEN:IDs, not for the relations
-of the ontologies and not for the associations themselves), so that relations can be filtered by context later. Of the contexts only the current one counts (the setting
-`SEN:currentContext`).
+of the ontologies and not for the associations themselves), so that relations can be filtered by context later. The user sets the attribute with Shift+click in the Deskbar menu (the Deskbar view tells the server how the key was held, `sen::key::kShift`, since the menu item
+only sends its message). A context is applied while it is the current one (`SEN:currentContext`), whatever its attribute says, except the global one.
 
 **Deleting.** The file manager asks before it deletes a file that lists targets in `SEN:TO` (`TrackerSenRelations::ConfirmDeletion`): since relations are bidirectional, that is every file that is part of a
 relation. It names the targets that exist, and removes the relations of the file with `kRelationsRemoveAll` (both sides) if the user agrees; relations to targets that are gone are removed without a

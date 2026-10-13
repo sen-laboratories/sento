@@ -51,9 +51,10 @@ already gone are removed without asking. The relations of the ontologies are rea
 
 ## Sticky classifications
 
-Labels, topics, projects and the other classifications have the attribute **Sticky** (shown in the attributes of the file and in FileTypes as an attribute of the type
-*classification*). What you make while a classification is sticky is put into it automatically: a new file (*New* in a folder, a new file for a relation) is labelled with it,
-and a relation that you make lists it, so that you can filter by it later. Of the *contexts* only the current one counts (choose it in the Context menu of the SEN item).
+What you make while a classification is **sticky** is put into it automatically: a new file (*New* in a folder, a new file for a relation) is labelled with it, and a relation
+that you make lists it, so that you can filter by it later. In the menu of the SEN item, **Shift+click** a label, topic, collection... to make it sticky (it gets a check mark)
+and Shift+click it again to let it go; a plain click shows its files as before. The **current context** (choose it in the Context menu) sticks by being the current one, the
+global context does not (it would be everything).
 
 ## New objects from the ontologies
 
