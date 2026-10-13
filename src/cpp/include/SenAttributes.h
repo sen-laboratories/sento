@@ -44,6 +44,12 @@ inline constexpr char kTo[] = "SEN:TO";
 /** Same for the targets of meta relations (classification and context). */
 inline constexpr char kMeta[] = "SEN:META";
 
+/**
+ * bool, an attribute of the classification supertype (labels, topics, projects, contexts...): what is made new is put into this classification
+ * automatically, and so are the relations that are made (their property sen::key::kClassifications). Of the contexts only the current one counts.
+ */
+inline constexpr char kSticky[] = "SEN:sticky";
+
 /** A target given as a static path: the most fragile way to name a target. */
 inline constexpr char kToPath[] = "SEN:TO:PATH";
 

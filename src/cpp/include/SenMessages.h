@@ -49,6 +49,8 @@ inline constexpr uint32_t kClassificationAdd  = 'SZad';
 inline constexpr uint32_t kClassificationGet  = 'SZge';
 /** find classifications, optionally filtered by context(s), type(s) and/or names */
 inline constexpr uint32_t kClassificationFind = 'SZfi';
+/** Put the files (refs) into all sticky classifications (see attr::kSticky): the file manager sends it for a file that it has made. */
+inline constexpr uint32_t kClassificationApplySticky = 'SZas';
 
 // ---- relations
 inline constexpr uint32_t kRelationsGet                 = 'SRge';
@@ -171,6 +173,8 @@ inline constexpr char kRelationProperties[] = "SEN:relationProperties";
  * two files; it is the same for a relation and its opposite direction.
  */
 inline constexpr char kRelationId[]         = "SEN:REL:relationId";
+/** in the properties of a relation: the SEN:IDs of the sticky classifications of the time when it was made (a string field, one value each) */
+inline constexpr char kClassifications[]    = "SEN:classifications";
 /** in the properties of a relation: bool, the target does not exist (any more); a dangling relation */
 inline constexpr char kTargetMissing[]      = "SEN:REL:missing";
 /** remove: bool, remove all relations of the type to the target, not only one */

@@ -155,6 +155,18 @@ reverse query, except for links between two classification entities, which stay 
 `GetCompatibleTargetTypes` and `SEN_ASSOC_RELATION_TYPE`. Contexts bind files to a global context. **Target:** `SEN:META` as described in 3.1, one handling for classification and
 context, kept separate from normal relations. Association works; the context part is unfinished and must be completed.
 
+**Sticky classifications.** The classification supertype has the bool attribute `SEN:sticky` (`sen::attr::kSticky`; BFS cannot index a bool, so the sticky ones are found by a query for
+`BEOS:TYPE == "classification/*"` and a look at the attribute: the server creates the index `BEOS:TYPE` on the volumes that lack it, see `EnsureIndices`). What the file manager makes is put into
+the sticky classifications: it sends `sen::cmd::kClassificationApplySticky` (`refs`) for a new file (Tracker: `BPoseView::NewFileFromTemplate`), and the server relates each file to each sticky
+classification by an association (`RelationSticky.cpp`). A relation that is added lists the sticky classifications in its properties (`sen::key::kClassifications`, SEN:IDs, not for the relations
+of the ontologies and not for the associations themselves), so that relations can be filtered by context later. Of the contexts only the current one counts (the setting
+`SEN:currentContext`).
+
+**Deleting.** The file manager asks before it deletes a file that lists targets in `SEN:TO` (`TrackerSenRelations::ConfirmDeletion`): since relations are bidirectional, that is every file that is part of a
+relation. It names the targets that exist, and removes the relations of the file with `kRelationsRemoveAll` (both sides) if the user agrees; relations to targets that are gone are removed without a
+question, read-only relations (the ontologies') stay. Meta relations (`SEN:META`) are not asked about: they are one-way, the file that is classified holds them. A deleted classification entity
+therefore leaves associations behind in the files that had it (they point nowhere and are ignored).
+
 ### 3.5 Entities
 
 Entities are files whose MIME type is below `entity/` (Book, Movie, Person, ...). Their attributes follow the naming rules below, with

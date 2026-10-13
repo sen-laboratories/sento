@@ -43,6 +43,23 @@ most relations), or press Esc or click outside the menu to cancel. The files sta
 - Files in the Trash and the Desktop folder itself have no relations. Dropping files on themselves does nothing.
 - If a relation could not be created (for example because it is read-only), a message says how many failed and why.
 
+## Deleting files that have relations
+
+When you delete a file (Move to Trash, or Delete) that has relations, Akita says which files it is related to, and asks whether you really want to delete it. If you do,
+the relations of the file are removed on both sides together with it, so that no other file keeps a link to a file that is gone. (Relations that point to files that are
+already gone are removed without asking. The relations of the ontologies are read-only and stay. Labels and the like that are put on a file go with the file anyway.)
+
+## Sticky classifications
+
+Labels, topics, projects and the other classifications have the attribute **Sticky** (shown in the attributes of the file and in FileTypes as an attribute of the type
+*classification*). What you make while a classification is sticky is put into it automatically: a new file (*New* in a folder, a new file for a relation) is labelled with it,
+and a relation that you make lists it, so that you can filter by it later. Of the *contexts* only the current one counts (choose it in the Context menu of the SEN item).
+
+## New objects from the ontologies
+
+An ontology that you install brings its entities (Book, Person...) to the **New** menu of Akita: they are templates in the folder *Tracker New Templates*, a submenu for each
+ontology. You can make an object of a new type at once; templates that you delete or change are left alone, and removing the ontology removes only those that it made.
+
 ## Relations in folders
 
 A relation connects a file with another file: a book with its author, a PDF bookmark with a page, an ontology with the types it provides.
