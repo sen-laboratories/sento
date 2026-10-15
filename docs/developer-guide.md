@@ -152,7 +152,7 @@ Classification (labels, topics, collections, concepts) and context (a project, d
 the type `relation/x-vnd.sen-labs.relation.association` to special entities of the `classification/` supertype. They are **unidirectional**
 (`SEN:bidir = false`): a label file would otherwise hold a link to every labelled file. The inverse ("what has this label") is resolved by
 reverse query, except for links between two classification entities, which stay bidirectional. Handled in code, see
-`GetCompatibleTargetTypes` and `SEN_ASSOC_RELATION_TYPE`. Contexts bind files to a global context. **Target:** `SEN:META` as described in 3.1, one handling for classification and
+`GetCompatibleTargetTypes` and `SEN_ASSOC_RELATION_TYPE`. Contexts bind files to a context (they are not nested: there is only the default one, which is there from the start). **Target:** `SEN:META` as described in 3.1, one handling for classification and
 context, kept separate from normal relations. Association works; the context part is unfinished and must be completed.
 
 **Sticky classifications.** The classification supertype has the bool attribute `SEN:sticky` (`sen::attr::kSticky`; BFS cannot index a bool, so the sticky ones are found by a query for
@@ -160,7 +160,7 @@ context, kept separate from normal relations. Association works; the context par
 the sticky classifications: it sends `sen::cmd::kClassificationApplySticky` (`refs`) for a new file (Tracker: `BPoseView::NewFileFromTemplate`), and the server relates each file to each sticky
 classification by an association (`RelationSticky.cpp`). A relation that is added lists the sticky classifications in its properties (`sen::key::kClassifications`, SEN:IDs, not for the relations
 of the ontologies and not for the associations themselves), so that relations can be filtered by context later. The user sets the attribute with Shift+click in the Deskbar menu (the Deskbar view tells the server how the key was held, `sen::key::kShift`, since the menu item
-only sends its message). Contexts are handled alike (the menu clears the attribute of the other contexts when one is chosen or locked; the global one never sticks).
+only sends its message). Contexts are handled alike (the menu clears the attribute of the other contexts when one is chosen or locked; the default one never sticks).
 
 **Deleting.** The file manager asks before it deletes a file that lists targets in `SEN:TO` (`TrackerSenRelations::ConfirmDeletion`): since relations are bidirectional, that is every file that is part of a
 relation. It only says that the file has relations (a button, `ShowRelationsInTracker`, opens the folder of all its relations), and removes the relations of the file with `kRelationsRemoveAll` (both sides) if the user agrees; relations to targets that are gone are removed without a

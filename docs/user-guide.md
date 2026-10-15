@@ -54,7 +54,7 @@ already gone are removed without asking. The relations of the ontologies are rea
 What you make while a classification is **sticky** is put into it automatically: a new file (*New* in a folder, a new file for a relation) is labelled with it, and a relation
 that you make lists it, so that you can filter by it later. In the menu of the SEN item, **Shift+click** a label, topic, collection... (or a context in the Context menu) to make it
 sticky: it is shown in **bold**. Shift+click it again to let it go; a plain click shows the files of a label as before. Only one context is sticky: choosing another context
-(plain click) lets the sticky one go, and Shift+click on a context makes it the current one, too. The global context cannot be sticky (it would be everything).
+(plain click) lets the sticky one go, and Shift+click on a context makes it the current one, too. The default context cannot be sticky (it would be everything).
 Choosing the *Context* item itself opens the folder of the contexts.
 
 ## New objects from the ontologies

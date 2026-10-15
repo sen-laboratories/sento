@@ -70,6 +70,8 @@ inline constexpr uint32_t kRelationsRemoveAll           = 'SRra';
 // ---- Tracker integration
 inline constexpr uint32_t kOpenRelationTarget     = 'STot';
 inline constexpr uint32_t kOpenRelationView       = 'STrv';
+/** open a folder with all outgoing relations of a file in one list, of all types (refs: the file): "Show all Relations" in the Open related menu */
+inline constexpr uint32_t kOpenAllRelationsView   = 'STra';
 /** the server asks the file manager (Akita) to open the folder of the relations of one type of a file (refs: the file, SEN:relationType): what a
  *  classification chosen in the menu of SEN shows, the files that have it. Answered with sen::key::kResult; a Tracker without SEN does not know it. */
 inline constexpr uint32_t kOpenRelationsOfType    = 'STro';
@@ -262,7 +264,10 @@ inline constexpr char kExcludeSourceTypes[] = "SEN:excludeSourceTypes";
 namespace config {
 inline constexpr char kClassificationsDir[] = "classifications";
 inline constexpr char kContextsDir[]        = "contexts";
-inline constexpr char kContextGlobal[]      = "global";
+/** the context that is there at first and when none was chosen: contexts are not nested, it is only the default one (it was called "global" before) */
+inline constexpr char kContextDefault[]     = "default";
+/** the old name of the default context: its folder is renamed when the server starts */
+inline constexpr char kContextGlobalLegacy[] = "global";
 /** the file with the settings of SEN in its settings folder (~/config/settings/sen), a flattened message */
 inline constexpr char kSettingsFile[]       = "sen.settings";
 /** the folder with the query files that the Deskbar menu opens */
