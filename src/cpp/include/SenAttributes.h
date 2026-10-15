@@ -45,9 +45,9 @@ inline constexpr char kTo[] = "SEN:TO";
 inline constexpr char kMeta[] = "SEN:META";
 
 /**
- * bool, an attribute of the classification supertype (labels, topics, collections...): what is made new is put into the classification automatically,
- * and so are the relations that are made (their property sen::key::kClassifications). The user sets it with Shift+click on the classification in
- * the menu of SEN (check mark). The current context sticks by being the current one, this attribute is not looked at for contexts.
+ * bool, an attribute of the classification supertype (labels, topics, collections, contexts...): what is made new is put into the classification
+ * automatically, and so are the relations that are made (their property sen::key::kClassifications). The user sets it with Shift+click on the
+ * classification or context in the menu of SEN (shown in bold). Only one context is sticky: choosing another one clears the others.
  */
 inline constexpr char kSticky[] = "SEN:sticky";
 

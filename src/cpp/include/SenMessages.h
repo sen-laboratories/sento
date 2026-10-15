@@ -101,6 +101,8 @@ inline constexpr uint32_t kUiSetContext   = 'SUcx';
 inline constexpr uint32_t kUiRequestQuit  = 'SUqt';
 /** restart the server: it quits and is started again (by the launch daemon, as a service, or by a command of its own if it was started by hand) */
 inline constexpr uint32_t kUiRequestRestart = 'SUrs';
+/** open the folder with the contexts (the Context item of the Deskbar menu itself) */
+inline constexpr uint32_t kUiOpenContexts = 'SUoc';
 /** open the folder with the ontologies (a file for each, with the attributes of the ontology) in Tracker */
 inline constexpr uint32_t kUiOpenOntologies = 'SUon';
 /** show an ontology in Tracker, in its folder, selected (refs: its file) */
@@ -130,7 +132,7 @@ inline constexpr char kAction[]         = "SEN:action";
 inline constexpr char kFilter[]         = "SEN:filter";
 inline constexpr char kContext[]        = "SEN:context";
 inline constexpr char kName[]           = "SEN:name";
-/** bool: the Shift key was held when a menu item was chosen (the Deskbar menu tells the server: it makes a classification sticky or not) */
+/** bool: the Shift key was held when a menu item was chosen (the Deskbar menu tells the server: it makes a classification or a context sticky or not) */
 inline constexpr char kShift[]          = "SEN:shift";
 inline constexpr char kType[]           = "SEN:type";
 inline constexpr char kCount[]          = "SEN:count";

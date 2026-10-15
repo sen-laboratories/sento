@@ -10,7 +10,7 @@ SPDX-FileCopyrightText: 2026 SEN Labs e.U.
 The SEN server puts its knot into the Deskbar when it starts. **Clicking** it opens a window with all the objects that SEN knows: the files that have
 a SEN:ID, as a flat list. The menu (secondary mouse button) has:
 
-- **Context**: the contexts that are set up (the folders of `~/config/settings/sen/contexts`, with their icon), the current one marked: choosing one makes it the current one.
+- **Context** (choosing the item itself opens the folder of the contexts): the contexts that are set up (the folders of `~/config/settings/sen/contexts`, with their icon), the current one marked: choosing one makes it the current one.
   A new context ("New related... Context" in the file manager) is a folder there, with the type of a context.
 - one menu for every kind of classification (**Labels**, **Topics**, **Projects**...): choosing the menu itself opens the list of them, and choosing one of
   its entries shows the files that it classifies. (As in the menus of the file manager, every menu can be chosen itself.)
@@ -21,7 +21,7 @@ a SEN:ID, as a flat list. The menu (secondary mouse button) has:
   and not switched off in the Settings), choosing an ontology shows it in its folder. Choosing *Ontologies* itself opens the folder `~/config/settings/sen/ontologies`, which shows the version, description, author and schema of each ontology as its columns (in Akita), and *Update* has the ontologies of the packages
   installed now, which is otherwise done when the server starts and when a package comes or goes.
 - **Settings**: the key of the SEN mode of dragging (Command, Option, Control or Shift), the use of Akita instead of Tracker (this takes
-  effect at the next login: it is a file of the user for the launch daemon, which the command `akita` writes; `akita start` and `akita stop` switch at once) and the use of the FileTypes of SEN instead of the one of Haiku.
+  effect at the next login: it is a file of the user for the launch daemon, which the command `akita` writes; `akita start` and `akita stop` switch at once) and the use of the FileTypes of SEN instead of the one of Haiku (also in the Preferences menu of the Deskbar: a link of its own in `~/config/settings/deskbar/menu/Preferences` takes the place of the one of Haiku).
 - **About**, **Restart** and **Quit**. Restart quits the server and starts it again (it is the way to apply what a new version of the server brings). Quitting asks first: without the
   server, copies of files keep the SEN:ID of the original, which breaks the lookup by ID. It stays off until you start it again (`sen start`, or the next login).
 
@@ -52,9 +52,10 @@ already gone are removed without asking. The relations of the ontologies are rea
 ## Sticky classifications
 
 What you make while a classification is **sticky** is put into it automatically: a new file (*New* in a folder, a new file for a relation) is labelled with it, and a relation
-that you make lists it, so that you can filter by it later. In the menu of the SEN item, **Shift+click** a label, topic, collection... to make it sticky (it gets a check mark)
-and Shift+click it again to let it go; a plain click shows its files as before. The **current context** (choose it in the Context menu) sticks by being the current one, the
-global context does not (it would be everything).
+that you make lists it, so that you can filter by it later. In the menu of the SEN item, **Shift+click** a label, topic, collection... (or a context in the Context menu) to make it
+sticky: it is shown in **bold**. Shift+click it again to let it go; a plain click shows the files of a label as before. Only one context is sticky: choosing another context
+(plain click) lets the sticky one go, and Shift+click on a context makes it the current one, too. The global context cannot be sticky (it would be everything).
+Choosing the *Context* item itself opens the folder of the contexts.
 
 ## New objects from the ontologies
 
