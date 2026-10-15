@@ -257,6 +257,13 @@ inline constexpr char kSelf[]          = "SEN:self";
 inline constexpr char kSourceTypes[]        = "SEN:sourceTypes";
 /** strings: the relation cannot start at files of these types (same kind of types); this wins over kSourceTypes */
 inline constexpr char kExcludeSourceTypes[] = "SEN:excludeSourceTypes";
+/**
+ * strings: the relation can end only at files of these types (same kind of types). Without it a relation that is stored at both ends (kBidirectional) ends at
+ * the files that it can start at (kSourceTypes), and one that is not at any file.
+ */
+inline constexpr char kTargetTypes[]        = "SEN:targetTypes";
+/** strings: the relation cannot end at files of these types; this wins over kTargetTypes */
+inline constexpr char kExcludeTargetTypes[] = "SEN:excludeTargetTypes";
 
 }	// namespace conf
 
