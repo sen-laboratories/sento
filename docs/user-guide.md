@@ -13,7 +13,7 @@ a SEN:ID, as a flat list. The menu (secondary mouse button) has:
 - **Context** (choosing the item itself opens the folder of the contexts): the contexts that are set up (the folders of `~/config/settings/sen/contexts`, with their icon), the current one marked: choosing one makes it the current one.
   A new context ("New related... Context" in the file manager) is a folder there, with the type of a context.
 - one menu for every kind of classification (**Labels**, **Topics**, **Projects**...): choosing the menu itself opens the list of them, and choosing one of
-  its entries shows the files that it classifies. (As in the menus of the file manager, every menu can be chosen itself.)
+  its entries opens a window with the files that have it (in Akita: the relations of the classification, with the files as the other end; in another file manager a query). (As in the menus of the file manager, every menu can be chosen itself.)
 - **Info**: the overview of SEN as a tree: the objects on every volume, the types and relations that are installed with the number of files of each.
 - **Check**: looks for inconsistencies (the same SEN:ID on several files, files of types that are not installed, volumes without an index).
 - **Ontologies** (above Settings, they are configuration): the ontologies that are installed, each with its icon. An ontology opens down to its types (the entities, relations,
