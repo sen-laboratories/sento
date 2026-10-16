@@ -178,3 +178,12 @@ Open:
 4. Akita: the Attributes menu from the registry (along the conformance chain), then the menus of relations as a tree; FileTypes of SEN: a view of the registry.
 5. Ontologies: people (after the review of the trees), then the others; the cleaning of the MIME database of SEN's types.
 6. macOS: the same schema generates the UTI declarations.
+
+### Status (2026-10-17)
+
+* Step 1 (paper): schema, generator, `types/org.sen-labs.{paper,document}`, SSSOM mappings, `sen_oni` (types are compiled for the registry, the MIME types that an ontology no
+  longer provides are removed), Paperboy writes `org.sen-labs.paper`.
+* Step 2: `SenTypes.h` with `Find`, `Ancestors`, `ConformsTo`, `Descendants`, `ForFormat`, `OfOntology`, `Attributes`, mappings (`sen-core/tests/vm/types.sh`).
+  `RelationTypes` is not there yet.
+* Step 4: the SEN menu of the ontologies lists the types of the registry with their attributes; Akita's Attributes menu has a menu for the `META:TYPE` of the files that is in
+  the registry. FileTypes does not show the registry yet; the entries are information only.
