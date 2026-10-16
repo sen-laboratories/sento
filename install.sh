@@ -4,6 +4,8 @@
 #
 # Installs the SEN development headers to the writable (non-packaged) headers folder of the user.
 USER_INCLUDES=$(findpaths -e B_FIND_PATH_HEADERS_DIRECTORY | grep /config/non-packaged | head -1)
+# (the folder is not there on a system that never had non-packaged headers: it is made)
+[ -n "$USER_INCLUDES" ] || USER_INCLUDES="$(finddir B_USER_NONPACKAGED_DEVELOP_DIRECTORY)/headers"
 
 echo Installing SEN development headers into $USER_INCLUDES
 
