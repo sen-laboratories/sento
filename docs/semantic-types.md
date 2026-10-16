@@ -4,8 +4,9 @@ SPDX-FileCopyrightText: 2026 SEN Labs e.U.
 -->
 # Semantic types: one scheme for Haiku and macOS (draft spec)
 
-Status: **draft for review**, nothing of it is implemented. It replaces the use of the MIME database for what SEN means by a type (entities, relations, classifications,
-the scientific paper...). Decisions so far (2026-10-16): identifiers are UTI-style, the types live in a SEN registry of their own, and this document comes first.
+Status: **agreed in principle, nothing of it is implemented**. It replaces the use of the MIME database for what SEN means by a type (entities, relations,
+classifications, the scientific paper...). Decisions (2026-10-16): identifiers are UTI-style, the types live in a SEN registry of their own, the LinkML schema is the single
+source of truth, mappings to other vocabularies are SSSOM, the first type to be done is the scientific paper. See section 8 for what is decided and what is open.
 
 ## 1. Why
 
@@ -17,24 +18,38 @@ the scientific paper...). Decisions so far (2026-10-16): identifiers are UTI-sty
 
 ## 2. Two layers
 
-| Layer | Haiku | macOS | Says | Who owns it |
-|-------|-------|-------|------|-------------|
-| **Format** | `BEOS:TYPE` (MIME) | the UTI of the file (`public.pdf`) | how to open it, what its bytes are | the system, the file format |
-| **Meaning** | `META:TYPE` (attribute, already there, indexed) | an extended attribute with the same name | what it is *for* SEN: a scientific paper, a friend relationship, a person | the ontologies of SEN |
+* **Layer 1: Syntax (format)**: the technical nature of a file, what its bytes are and how a program opens it.
+* **Layer 2: Semantics (meaning)**: what the file embodies, what it is *for* in the life of the person: a scientific paper, a person, a friendship.
 
-A file has both. `BEOS:TYPE` stays coarse and is not changed to say what a file means: a scientific paper is `application/pdf` (or `application/epub+zip`) with
-`META:TYPE = org.sen-labs.paper`. Files that exist only for SEN (a person, a label, the file of a relation in a relation folder) have a coarse `BEOS:TYPE` of the
-supertype of their kind: `entity/...`, `classification/...`, `relation/personal`, `relation/organisational` (the few that the file manager needs for icons and
-"open with"), and the real type in `META:TYPE`.
+| Layer | Haiku | macOS | Owned by |
+|-------|-------|-------|----------|
+| **1 Syntax** | `BEOS:TYPE` (MIME type): `application/pdf` | the UTI of the file: `public.pdf` | the system, the file formats |
+| **2 Semantics** | `META:TYPE` (attribute, indexed): `org.sen-labs.paper` | an extended attribute of the same name | the ontologies of SEN |
 
-`META:TYPE` holds one identifier, the most specific one that is known. Everything it conforms to follows from the registry (section 4), it is not written to the file.
+A file has both. A scientific paper is `application/pdf` (or `application/epub+zip`) in layer 1 and `org.sen-labs.paper` in layer 2; the PDF viewer works with the first, SEN
+with the second. `META:TYPE` holds one identifier, the most specific one that is known; what it conforms to follows from the registry (section 4) and is not written to the file.
+
+**MIME types stay where they are enough.** Layer 1 is MIME, and so is what the system and the file manager need of files that exist only for SEN: the supertypes
+`entity/`, `classification/`, `relation/` and `meta/` and the few coarse types below them that give such a file an icon, columns and an application (`relation/personal`,
+`relation/organisational`, `entity/person` while it is a file of its own). Code that only needs to know "is this a relation / a classification / an entity?" keeps checking the
+supertype of `BEOS:TYPE` as it does now, with no registry. What is **not** put in the MIME database any more is a *meaning*: there is no `document/scientific-paper` entry, and
+no entry for each kind of friendship.
+
+**What stays native on Haiku, and what is new.** SEN is a *Semantic Extension* of the system, so the system keeps its own parts: files, BFS attributes and indexes (also for
+`META:TYPE`), MIME types for formats and file types, queries, Tracker and the Deskbar, packages, and the preferred application of a format. What SEN adds is the layer of
+meaning and a registry for it. The registry is a read-only file that a package brings, not a second database that has to be kept in step with the MIME database; and nothing
+in the system depends on it: a Haiku without SEN sees ordinary files, with an attribute `META:TYPE` that it does not know.
 
 ## 3. Identifiers
 
-* `org.sen-labs.<name>` for what SEN defines; dots separate the parts of a name only, **the tree is not in the name** (conformance says it): `org.sen-labs.relation.friend`
-  conforms to `org.sen-labs.relation.personal`, but nothing may be derived from the spelling. Names are lower case, `[a-z0-9-]`, parts separated by dots.
-* What exists elsewhere is used as it is: `public.pdf`, `public.document`, `public.plain-text`, `public.source-code` (macOS names; the registry maps them to the
-  MIME types on Haiku, section 6). An ontology of another author uses its own domain (`com.example.invoice`).
+* `org.sen-labs.<name>` for what SEN defines (`org.sen-labs.paper`, `org.sen-labs.person`, `org.sen-labs.relation.friend`); parts are separated by dots, the names are lower case
+  `[a-z0-9-]`. **The tree is not in the name**: conformance says it, nothing may be derived from the spelling.
+* **Terms of an established vocabulary** (schema.org, FOAF, REL, SKOS, Dublin Core) are not given an identifier in somebody else's namespace: a name such as `org.schema.ScholarlyArticle`
+  would be read as the official UTI of schema.org, which it is not. They are SEN's own identifiers that carry the established prefix, `org.sen-labs.<prefix>.<Term>`
+  (`org.sen-labs.schema.ScholarlyArticle`, `org.sen-labs.foaf.Person`, `org.sen-labs.rel.friendOf`), and **say what they mean by a mapping** to the term itself (section 6): the
+  prefix is the one that the attribute names use already (`schema:`, `foaf:`, `dc:`). SEN's own ontologies use their name instead of a prefix (`org.sen-labs.people.close-friend`).
+  A SEN term is used where the established one is not fine enough; where one is, the established term is the type and no own one is made.
+* What exists elsewhere in the system is used as it is: `public.pdf`, `public.document`... (macOS names; the registry maps them to the MIME types on Haiku, section 6).
 * Roots (examples): `org.sen-labs.entity`, `org.sen-labs.relation`, `org.sen-labs.classification`, `org.sen-labs.document`.
 
 Examples (draft; the trees are for review):
@@ -111,44 +126,55 @@ a short description and an icon; **no entry for a meaning**.
   and `META:TYPE`.
 * **Classification.** Labels, topics... are types below `org.sen-labs.classification` (BEOS:TYPE `classification/...` as now for the file).
 
-## 6. Mapping of other systems
+## 6. Mappings
 
-A table in the registry maps the identifiers of other systems to the format layer: `public.pdf` = `application/pdf`, `public.plain-text` = `text/plain`,
-`public.source-code` = `text/x-source-code` and so on, so that an ontology written with UTIs (for macOS) finds its files on Haiku and the other way round. The
-file extensions of a type stay with the format (MIME database, `UTTypeTagSpecification` on macOS).
+How a SEN type and a term of another vocabulary or system are related is data, not code, and is written as **SSSOM** (Simple Standard for Sharing Ontological Mappings): a table of
+`subject_id`, `predicate_id`, `object_id`, `mapping_justification` (why: lexical match, manual curation...), `confidence`, and the provenance of the mapping. The predicates are
+those of SKOS (`skos:exactMatch`, `closeMatch`, `broadMatch`, `narrowMatch`, `relatedMatch`), so that "how close" is part of the mapping. It is used for
+
+* the formats: `public.pdf` -> `application/pdf`, `public.plain-text` -> `text/plain`, `public.source-code` -> `text/x-source-code` (so that an ontology written with UTIs
+  finds its files on Haiku and the other way round);
+* the established vocabularies: `org.sen-labs.schema.ScholarlyArticle` -> `https://schema.org/ScholarlyArticle` (exact), `org.sen-labs.people.close-friend` -> `rel:closeFriendOf`
+  (exact), `org.sen-labs.people.superior` -> `rel:employerOf` (close);
+* the types and attributes of ontologies of other authors that are merged with ours (the idea of the `sumo` repository: collect, unify, apply with the provenance of each mapping);
+* the changes of a type over time: when an ontology renames or splits a type, the old identifier is mapped to the new with `skos:exactMatch` / `broadMatch`, which is the
+  only versioning of types that is needed (open question 6 of the first draft).
+
+The registry carries the mappings of an ontology (generated from the SSSOM file next to the schema); the file extensions of a type stay with the format (MIME database on Haiku,
+`UTTypeTagSpecification` on macOS).
 
 ## 7. Migration
 
-A tool (`sen_oni --migrate`, later part of `sen_oni --update`) with a table old type -> new:
+None for files that exist only as tests. The definitions are migrated (the schemas, the ontologies); the MIME database of a user is cleaned of everything that came from SEN, its
+ontologies and its plugins (the installer knows what it installed: the types of the ontology placeholders), and the new packages bring the registry instead. A tool that retypes
+existing files (`BEOS:TYPE` of the old entities to `entity/person` + `META:TYPE`, the renaming of the `SEN:REL:` attributes) is only written when a release is out that people
+have data in. Until then the Haiku People files (`application/x-person`) are the old type of a person: the registry names it as a broader match of `org.sen-labs.person` so that
+both are found.
 
-1. a file with `BEOS:TYPE = entity/x-vnd.sen-labs.entity.person` gets `META:TYPE = org.sen-labs.person` and `BEOS:TYPE = entity/person`; a file with
-   `document/scientific-paper` as `BEOS:TYPE`/`META:TYPE` gets `META:TYPE = org.sen-labs.paper` and the BEOS:TYPE of its format (guessed from the content if it is not
-   a format); the Haiku People files (`application/x-person`) become persons (their attributes are kept; the old type is deprecated: the new type conforms to a
-   registry entry that names it, so both are found until the files are migrated);
-2. the attributes `SEN:REL:relation/...` and the relation entries in `SEN:TO`/`SEN:META` keep their ids; the relation **type** inside a stored relation is the
-   key of the attribute, which is renamed (`SEN:REL:x-vnd.sen-labs.relation.person.friend` -> `SEN:REL:org.sen-labs.relation.friend`) on the file and its opposite
-   side; the transaction logic of the server (AttrSnapshot) is reused;
-3. the MIME types of the ontologies that are replaced are uninstalled, those of the format layer stay.
+## 8. Decisions and open questions
 
-Until migrated, the registry lists the old MIME types as aliases of the new identifiers (`aliases`), so that a file that is not migrated yet is still understood.
+Decided (2026-10-16):
 
-## 8. Open questions
+2. **BEOS:TYPE of files that exist for SEN only:** one coarse type for each kind (`relation/personal`, `relation/organisational`, `entity/person`...): icons and default columns for
+   free.
+3. **Plugins with the same best match:** the most specific `META:TYPE` / format match wins. If two or more are equally specific, the user is asked once and the answer is
+   stored, for that file or for the type, like the preferred application of a format.
+4. **Depth of menus:** not limited for now (a submenu is the established paradigm on Haiku; macOS can look at it later).
+5. **Aliases and mappings of other vocabularies:** SSSOM, section 6.
+6. **Versions of types:** no scheme of its own, the mappings (`skos:exactMatch`, `broadMatch`...) say how an old type relates to the new one.
 
-1. **Trees.** The trees above are a first proposal (work relations a child of personal or of their own root? Where do `knows`, `acquaintance` belong?). To be decided
-   by reviewing the people ontology as the first one.
-2. **BEOS:TYPE of files of SEN.** `relation/personal` and `relation/organisational` as coarse types for the file of a relation in a relation folder (icons, columns), `entity/person`...
-   or a single `application/x-vnd.sen-labs.entity` for everything that exists for SEN only? The first gives icons and default columns for free.
-3. **Order of plugins** for one file (the rule above), including `extract` and `identify`: which one writes the `META:TYPE` when several can.
-4. **Depth** of the submenus of relations (3 levels?) and what a type with a long list of children does in a menu (the idea of the user for the overflow).
-5. **Aliases of other vocabularies** on the types (`schema:ScholarlyArticle`, `foaf:Person`) for export and for the web: in the registry as `exact_mappings` of the schema.
-6. The **version** of the registry format and of the types (a type of the user that conforms to a type that changed).
+Open:
+
+1. **The trees of the people ontology**, which should stay close to the established ontologies of people (FOAF, REL) and fit the registry without much work: to be discussed with the
+   first people types, after the paper.
 
 ## 9. Steps
 
-1. Review of this spec, trees of the people ontology and the paper (this document).
-2. `SenTypes.h` (reader of the registry, tests with the registry of the people and papers ontologies), generator output (`data/sen/types/<ontology>`), `Find`, `ConformsTo`,
-   `Attributes`, `RelationTypes` first.
-3. Server: relation types and configs from the registry (the MIME database as a fallback for old ontologies); queries by descendants; the migration table.
-4. Akita: menus (tree of relation types), the Attributes menu, icons; FileTypes of SEN: view of the registry.
-5. Ontologies: people and papers first, then the others; `sen_oni --migrate`.
+1. **Scientific paper** as the first type of this design: no MIME type, `META:TYPE = org.sen-labs.paper` (with the mapping to `schema:ScholarlyArticle`) on the PDF and EPUB files
+   that Paperboy identified; the schema of the papers ontology as the single source, with the attributes it has now.
+2. `SenTypes.h` (reader of the registry; tests with the registry of the papers ontology), the generator output (`data/sen/types/<ontology>` and the SSSOM mappings): `Find`,
+   `ConformsTo`, `Attributes`, `RelationTypes` first.
+3. Server: relation types and configs from the registry; queries by descendants; the choice of plugins (specific match, asking the user).
+4. Akita: the Attributes menu from the registry (along the conformance chain), then the menus of relations as a tree; FileTypes of SEN: a view of the registry.
+5. Ontologies: people (after the review of the trees), then the others; the cleaning of the MIME database of SEN's types.
 6. macOS: the same schema generates the UTI declarations.
