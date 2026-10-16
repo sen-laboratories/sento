@@ -264,6 +264,8 @@ inline constexpr char kExcludeSourceTypes[] = "SEN:excludeSourceTypes";
 inline constexpr char kTargetTypes[]        = "SEN:targetTypes";
 /** strings: the relation cannot end at files of these types; this wins over kTargetTypes */
 inline constexpr char kExcludeTargetTypes[] = "SEN:excludeTargetTypes";
+/** string: the name of the group of relations that this one belongs to (Personal, Family, Professional...): the menus of relations show the group as a submenu */
+inline constexpr char kGroup[]              = "SEN:group";
 
 }	// namespace conf
 
