@@ -195,7 +195,7 @@ Types: dates `B_TIME_TYPE`, counts `B_INT32_TYPE`, structured data a flattened `
 (`META:ATTR_INFO`, with translated public names) so Tracker shows them as columns; make an index per volume only for what is queried
 (`create-sen-indices.sh`). Only the **first** predicate of a query needs an index.
 
-`META:TYPE` is the **semantic** type of a file (e.g. `document/scientific-paper`), set by `identify` plugins; Haiku itself only knows the
+`META:TYPE` is the **semantic** type of a file (e.g. `org.sen-labs.paper`), set by `identify` plugins; Haiku itself only knows the
 technical MIME type (`application/pdf`). Do not use it for anything else.
 
 ### 4.1 Messages and replies
@@ -370,7 +370,7 @@ The server finds plugins with a `BQuery` for the signature pattern (`BEOS:APP_SI
 
 ### Identifiers set the semantic type
 
-A plugin with the feature `identify` finds out what a file is and sets its **semantic type**, the attribute `META:TYPE` (`text/x-python`, `document/scientific-paper`), which says more than the Haiku type. It
+A plugin with the feature `identify` finds out what a file is and sets its **semantic type**, the attribute `META:TYPE` (`text/x-python`, `org.sen-labs.paper`), which says more than the Haiku type. It
 makes sure that the file has its Haiku type (`BEOS:TYPE`) first: Haiku takes a file with `META:TYPE` and without `BEOS:TYPE` for an entry of the MIME database. The type is returned in the reply as `sensei::key::kSemanticType`. The source code
 extractor of sensei is an example: Haiku gives every source file `text/x-source-code`, the plugin names the language and then reads the references with the scanner of that language.
 

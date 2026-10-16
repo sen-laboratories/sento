@@ -21,7 +21,7 @@ namespace attr {
 inline constexpr char kPrefix[] = "SEN:";
 
 /**
- * Semantic type of a file, e.g. `document/scientific-paper`, set by identify plugins.
+ * Semantic type of a file, e.g. `org.sen-labs.paper`, set by identify plugins.
  * Haiku itself only knows the technical MIME type (`application/pdf`).
  */
 inline constexpr char kType[] = "META:TYPE";
