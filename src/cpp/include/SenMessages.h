@@ -100,8 +100,10 @@ inline constexpr uint32_t kUiOpenObjects  = 'SUob';
 inline constexpr uint32_t kUiOpenClassification = 'SUcl';
 /** open the query with the files that are classified by an entity (refs: the file of the entity) */
 inline constexpr uint32_t kUiOpenClassified = 'SUcd';
-/** open the query with the SEN plugins that are installed (kPluginSignature: only the plugin with this signature) */
+/** open the query with the SEN plugins that are installed */
 inline constexpr uint32_t kUiOpenPlugins = 'SUpl';
+/** show the About window of a plugin: it is started with B_ABOUT_REQUESTED (kPluginSignature: its signature) */
+inline constexpr uint32_t kUiShowPluginAbout = 'SUpa';
 /** make a context the current one (kContext: its name) */
 inline constexpr uint32_t kUiSetContext   = 'SUcx';
 /** the user wants to quit SEN: asks first, as copies of files get no new SEN:ID without the server */
