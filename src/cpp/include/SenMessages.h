@@ -70,7 +70,7 @@ inline constexpr uint32_t kRelationsRemoveAll           = 'SRra';
 // ---- Tracker integration
 inline constexpr uint32_t kOpenRelationTarget     = 'STot';
 inline constexpr uint32_t kOpenRelationView       = 'STrv';
-/** open a folder with all outgoing relations of a file in one list, of all types (refs: the file): "Show all Relations" in the Open related menu */
+/** open a folder with all outgoing relations of a file in one list, of all types (refs: the file): "Open related..." itself */
 inline constexpr uint32_t kOpenAllRelationsView   = 'STra';
 /** the server asks the file manager (Akita) to open the folder of the relations of one type of a file (refs: the file, SEN:relationType): what a
  *  classification chosen in the menu of SEN shows, the files that have it. Answered with sen::key::kResult; a Tracker without SEN does not know it. */
