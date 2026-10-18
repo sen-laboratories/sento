@@ -100,6 +100,8 @@ inline constexpr uint32_t kUiOpenObjects  = 'SUob';
 inline constexpr uint32_t kUiOpenClassification = 'SUcl';
 /** open the query with the files that are classified by an entity (refs: the file of the entity) */
 inline constexpr uint32_t kUiOpenClassified = 'SUcd';
+/** open the query with the SEN plugins that are installed (kPluginSignature: only the plugin with this signature) */
+inline constexpr uint32_t kUiOpenPlugins = 'SUpl';
 /** make a context the current one (kContext: its name) */
 inline constexpr uint32_t kUiSetContext   = 'SUcx';
 /** the user wants to quit SEN: asks first, as copies of files get no new SEN:ID without the server */
@@ -140,6 +142,8 @@ inline constexpr char kName[]           = "SEN:name";
 /** bool: the Shift key was held when a menu item was chosen (the Deskbar menu tells the server: it makes a classification or a context sticky or not) */
 inline constexpr char kShift[]          = "SEN:shift";
 inline constexpr char kType[]           = "SEN:type";
+/** string: the application signature of a plugin */
+inline constexpr char kPluginSignature[] = "SEN:pluginSignature";
 inline constexpr char kCount[]          = "SEN:count";
 /** bool: also return the properties of relations */
 inline constexpr char kWithProperties[] = "SEN:withProperties";
