@@ -165,7 +165,7 @@ ShowAbout(int32 firstYear = 2024, const char* holder = "SEN Labs e.U.")
 		<< "\nA plugin of SEN, the Semantic Extensions Native for Haiku (MIT license).";
 
 	float spacing = be_control_look->DefaultLabelSpacing();
-	float textWidth = be_plain_font->StringWidth("M") * 42;
+	float textWidth = be_plain_font->StringWidth("M") * 30;
 
 	BTextView* view = new BTextView(BRect(0, 0, textWidth, 100), "text", BRect(0, 0, textWidth, 100), B_FOLLOW_NONE, B_WILL_DRAW);
 	view->SetViewUIColor(B_PANEL_BACKGROUND_COLOR);
@@ -177,7 +177,7 @@ ShowAbout(int32 firstYear = 2024, const char* holder = "SEN Labs e.U.")
 
 	// the name: large and bold; the empty line after it is just a small gap
 	BFont titleFont(be_bold_font);
-	titleFont.SetSize(be_plain_font->Size() * 2);
+	titleFont.SetSize(be_plain_font->Size() * 1.4);
 	view->SetFontAndColor(0, titleEnd, &titleFont, B_FONT_ALL);
 	BFont gapFont(be_plain_font);
 	gapFont.SetSize(be_plain_font->Size() * 0.6);
@@ -196,10 +196,10 @@ ShowAbout(int32 firstYear = 2024, const char* holder = "SEN Labs e.U.")
 	BLayoutBuilder::Group<>(window, B_HORIZONTAL, 0)
 		.Add(new AboutStripeView())
 		.AddGroup(B_VERTICAL, spacing)
-			.SetInsets(spacing * 2)
+			.SetInsets(spacing * 1.5)
 			.AddGroup(B_HORIZONTAL)
 				.AddGlue()
-				.Add(new AboutLogoView(logo, logo != NULL ? 200 : 1))
+				.Add(new AboutLogoView(logo, logo != NULL ? 96 : 1))
 				.AddGlue()
 			.End()
 			.Add(view)
