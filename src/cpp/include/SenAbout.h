@@ -10,7 +10,7 @@
  *
  * A plugin is an application that does its work from the command line and has no window. The SEN menu asks for its About window with the usual
  * B_ABOUT_REQUESTED message (it starts the plugin with it), and the plugin shows what its application resource says: the name, the version and the
- * description, with its logo. The look is that of the About window of Toji: a stripe, the logo scaled to the room it has, the text, OK. The
+ * description, with its logo. The look is that of BAlert and of the About window of Haiku: a dark stripe with the logo across its edge, the text, OK. The
  * application quits when the window is closed.
  *
  * The logo is a picture that the package of the plugin brings: `<data>/sen/plugins/<signature>/logo.jpg` (the data folders of the system and the user,
@@ -42,61 +42,59 @@
 
 namespace sen {
 
-/** the grey stripe on the left of the window, as in the About window of Toji */
+/**
+ * The dark stripe on the left of the window with the logo on its edge, as in BAlert and BAboutWindow of Haiku: the logo sits across the division between the
+ * dark and the light part, near the top. The picture is scaled to the height that it is given (it has no transparency: it is shown as a card).
+ */
 class AboutStripeView : public BView {
 public:
-	AboutStripeView()
+	AboutStripeView(BBitmap* logo, float height)
 		:
-		BView("stripe", B_WILL_DRAW)
+		BView("stripe", B_WILL_DRAW),
+		fLogo(logo),
+		fLogoWidth(0),
+		fLogoHeight(height),
+		fStripeWidth(floorf(5 * be_control_look->DefaultLabelSpacing()))
 	{
-		float width = floorf(2 * be_control_look->DefaultLabelSpacing());
+		float width = fStripeWidth;
+		if (fLogo != NULL) {
+			if (fLogo->Bounds().Height() > 0)
+				fLogoWidth = floorf(height * (fLogo->Bounds().Width() + 1) / (fLogo->Bounds().Height() + 1));
+			// (from the half of the stripe to the right of the logo, and some room)
+			width = kLogoLeft + fLogoWidth + 2 * be_control_look->DefaultLabelSpacing();
+		}
 		SetViewUIColor(B_PANEL_BACKGROUND_COLOR);
-		SetExplicitMinSize(BSize(width, B_SIZE_UNSET));
-		SetExplicitMaxSize(BSize(width, B_SIZE_UNSET));
+		SetExplicitMinSize(BSize(width, fLogo != NULL ? kLogoTop + fLogoHeight + kLogoTop : B_SIZE_UNSET));
+		SetExplicitMaxSize(BSize(width, B_SIZE_UNLIMITED));
+		SetExplicitPreferredSize(BSize(width, B_SIZE_UNSET));
 	}
+
+	virtual ~AboutStripeView() { delete fLogo; }
 
 	virtual void
 	Draw(BRect)
 	{
+		BRect stripe = Bounds();
+		stripe.right = fStripeWidth;
 		SetHighColor(tint_color(ViewColor(), B_DARKEN_1_TINT));
-		FillRect(Bounds());
-	}
-};
-
-
-/** the logo, scaled to the room it has (a picture, shown as a card) */
-class AboutLogoView : public BView {
-public:
-	AboutLogoView(BBitmap* logo, float height)
-		:
-		BView("logo", B_WILL_DRAW),
-		fLogo(logo)
-	{
-		float width = height;
-		if (fLogo != NULL && fLogo->Bounds().Height() > 0)
-			width = floorf(height * (fLogo->Bounds().Width() + 1) / (fLogo->Bounds().Height() + 1));
-		SetViewUIColor(B_PANEL_BACKGROUND_COLOR);
-		SetExplicitMinSize(BSize(width, height));
-		SetExplicitMaxSize(BSize(width, height));
-		SetExplicitPreferredSize(BSize(width, height));
-	}
-
-	virtual ~AboutLogoView() { delete fLogo; }
-
-	virtual void
-	Draw(BRect)
-	{
+		FillRect(stripe);
 		if (fLogo == NULL)
 			return;
-		BRect bounds = Bounds();
+		BRect to(kLogoLeft, kLogoTop, kLogoLeft + fLogoWidth - 1, kLogoTop + fLogoHeight - 1);
 		SetDrawingMode(B_OP_COPY);
-		DrawBitmap(fLogo, fLogo->Bounds(), bounds, B_FILTER_BITMAP_BILINEAR);
+		DrawBitmap(fLogo, fLogo->Bounds(), to, B_FILTER_BITMAP_BILINEAR);
 		SetHighColor(tint_color(ViewColor(), B_DARKEN_2_TINT));
-		StrokeRect(bounds);
+		StrokeRect(to);
 	}
 
 private:
+	static constexpr float	kLogoLeft = 15;		// (the stripe ends at 30 or more: the logo is across its edge)
+	static constexpr float	kLogoTop = 10;
+
 	BBitmap*	fLogo;
+	float		fLogoWidth;
+	float		fLogoHeight;
+	float		fStripeWidth;
 };
 
 
@@ -165,7 +163,7 @@ ShowAbout(int32 firstYear = 2024, const char* holder = "SEN Labs e.U.")
 		<< "\nA plugin of SEN, the Semantic Extensions Native for Haiku (MIT license).";
 
 	float spacing = be_control_look->DefaultLabelSpacing();
-	float textWidth = be_plain_font->StringWidth("M") * 30;
+	float textWidth = be_plain_font->StringWidth("M") * 32;
 
 	BTextView* view = new BTextView(BRect(0, 0, textWidth, 100), "text", BRect(0, 0, textWidth, 100), B_FOLLOW_NONE, B_WILL_DRAW);
 	view->SetViewUIColor(B_PANEL_BACKGROUND_COLOR);
@@ -194,14 +192,9 @@ ShowAbout(int32 firstYear = 2024, const char* holder = "SEN Labs e.U.")
 	ok->MakeDefault(true);
 
 	BLayoutBuilder::Group<>(window, B_HORIZONTAL, 0)
-		.Add(new AboutStripeView())
+		.Add(new AboutStripeView(logo, 128))
 		.AddGroup(B_VERTICAL, spacing)
-			.SetInsets(spacing * 1.5)
-			.AddGroup(B_HORIZONTAL)
-				.AddGlue()
-				.Add(new AboutLogoView(logo, logo != NULL ? 96 : 1))
-				.AddGlue()
-			.End()
+			.SetInsets(0, spacing * 1.5, spacing * 1.5, spacing * 1.5)
 			.Add(view)
 			.AddGroup(B_HORIZONTAL)
 				.AddGlue()
