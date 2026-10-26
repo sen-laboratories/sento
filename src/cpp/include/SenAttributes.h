@@ -50,6 +50,8 @@ inline constexpr char kMeta[] = "SEN:META";
  * classification or context in the menu of SEN (shown in bold). Only one context is sticky: choosing another one clears the others.
  */
 inline constexpr char kSticky[] = "SEN:sticky";
+/** string on a query file: the MIME type whose attributes are the columns of the query (the file manager shows them instead of the usual ones) */
+inline constexpr char kColumnsType[] = "SEN:columnsType";
 
 /** A target given as a static path: the most fragile way to name a target. */
 inline constexpr char kToPath[] = "SEN:TO:PATH";

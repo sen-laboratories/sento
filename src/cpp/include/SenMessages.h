@@ -70,7 +70,7 @@ inline constexpr uint32_t kRelationsRemoveAll           = 'SRra';
 // ---- Tracker integration
 inline constexpr uint32_t kOpenRelationTarget     = 'STot';
 inline constexpr uint32_t kOpenRelationView       = 'STrv';
-/** open a folder with all outgoing relations of a file in one list, of all types (refs: the file): "Show all Relations" in the Open related menu */
+/** open a folder with all outgoing relations of a file in one list, of all types (refs: the file): "Open related..." itself */
 inline constexpr uint32_t kOpenAllRelationsView   = 'STra';
 /** the server asks the file manager (Akita) to open the folder of the relations of one type of a file (refs: the file, SEN:relationType): what a
  *  classification chosen in the menu of SEN shows, the files that have it. Answered with sen::key::kResult; a Tracker without SEN does not know it. */
@@ -100,6 +100,10 @@ inline constexpr uint32_t kUiOpenObjects  = 'SUob';
 inline constexpr uint32_t kUiOpenClassification = 'SUcl';
 /** open the query with the files that are classified by an entity (refs: the file of the entity) */
 inline constexpr uint32_t kUiOpenClassified = 'SUcd';
+/** open the query with the SEN plugins that are installed */
+inline constexpr uint32_t kUiOpenPlugins = 'SUpl';
+/** show the About window of a plugin: it is started with B_ABOUT_REQUESTED (kPluginSignature: its signature) */
+inline constexpr uint32_t kUiShowPluginAbout = 'SUpa';
 /** make a context the current one (kContext: its name) */
 inline constexpr uint32_t kUiSetContext   = 'SUcx';
 /** the user wants to quit SEN: asks first, as copies of files get no new SEN:ID without the server */
@@ -140,6 +144,8 @@ inline constexpr char kName[]           = "SEN:name";
 /** bool: the Shift key was held when a menu item was chosen (the Deskbar menu tells the server: it makes a classification or a context sticky or not) */
 inline constexpr char kShift[]          = "SEN:shift";
 inline constexpr char kType[]           = "SEN:type";
+/** string: the application signature of a plugin */
+inline constexpr char kPluginSignature[] = "SEN:pluginSignature";
 inline constexpr char kCount[]          = "SEN:count";
 /** bool: also return the properties of relations */
 inline constexpr char kWithProperties[] = "SEN:withProperties";

@@ -30,7 +30,7 @@ login (`akita start` switches at once, `akita disable` goes back). More ontologi
 | `sen_filetypes` | FileTypes with searchable attributes and a view of the types of the ontologies |
 
 **Relations as folders.** *Open related...* shows the relations of a file as a window of files that stand for the other ends, with the details of the relation as columns; changing a
-column, deleting a file or dropping a file into the window changes the relation. *Show all Relations* lists all outgoing relations in one window. Command+drag relates files
+column, deleting a file or dropping a file into the window changes the relation. *Open related...* itself lists all outgoing relations in one window. Command+drag relates files
 (Shift asks for a label). Deleting a file that has relations asks first and removes them with it.
 
 **Classifications and contexts.** Labels, topics, collections, concepts and contexts; *Associate with...* classifies, a classification opens as the query of the files that have it, and a

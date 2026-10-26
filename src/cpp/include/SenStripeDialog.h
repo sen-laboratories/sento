@@ -1,0 +1,275 @@
+/*
+ * SPDX-License-Identifier: MIT
+ * SPDX-FileCopyrightText: 2026 SEN Labs e.U.
+ */
+#pragma once
+
+/**
+ * @file SenStripeDialog.h
+ * @brief The dialog with the dark stripe, as BAlert and BAboutWindow of Haiku have it (header only, Haiku only).
+ *
+ * The window is a dark band on the left, with a picture (the icon or logo) across its edge, and the content on the light panel on the right. The metrics are
+ * those of BAlert (src/kits/interface/Alert.cpp, TAlertView): the stripe is five label spacings wide, the picture is drawn at three spacings from the left, so it
+ * sits across the division of the dark and the light part. Below that, the picture is level with the first line of the text: both are a margin (two spacings) from
+ * the top of the window, which BAlert does not need to care about with an icon of 32 pixels. The
+ * colour of the stripe is a tint of the panel colour (B_DARKEN_1_TINT), so that it follows the colours that people have chosen.
+ *
+ *   - StripeDialog: the window. Its content area is a vertical layout that any view can be added to; with `quitApplication` the application that was started to
+ *     show the dialog (a plugin) quits when it is closed.
+ *   - AboutDialog: a StripeDialog with the name, version, description and copyright, and the OK button.
+ *   - LoadDialogImage(): a picture of a file, scaled down to the height that it is shown in (a box filter: pictures of a few hundred pixels shown at 128 are
+ *     not drawn with the bilinear filter of the app server, which skips most of their pixels).
+ *
+ *     AboutDialog* about = new AboutDialog("SEN Paperboy", "0.1.0", "What it does", "Copyright ...", LoadDialogImage(path, 128));
+ *     about->ShowCentered();
+ */
+
+#include <Application.h>
+#include <Bitmap.h>
+#include <Button.h>
+#include <ControlLook.h>
+#include <GroupLayout.h>
+#include <LayoutBuilder.h>
+#include <Message.h>
+#include <String.h>
+#include <TextView.h>
+#include <TranslationUtils.h>
+#include <View.h>
+#include <Window.h>
+
+#include <math.h>
+#include <string.h>
+
+namespace sen {
+
+/**
+ * A copy of the picture that is scaled to the height, with the width that keeps its proportions, by averaging the pixels that a new pixel covers.
+ * @return a new bitmap (B_RGBA32, opaque if the picture has no transparency), or NULL
+ */
+inline BBitmap*
+ScaleDown(const BBitmap* source, float height)
+{
+	if (source == NULL || !source->IsValid())
+		return NULL;
+	color_space space = source->ColorSpace();
+	int32 sourceWidth = source->Bounds().IntegerWidth() + 1, sourceHeight = source->Bounds().IntegerHeight() + 1;
+	int32 targetHeight = (int32) height;
+	if ((space != B_RGB32 && space != B_RGBA32) || targetHeight <= 0 || targetHeight >= sourceHeight) {
+		// (not a picture that can be scaled down here, or not bigger than it is shown)
+		return new BBitmap(source);
+	}
+	int32 targetWidth = (int32) floorf(sourceWidth * (float) targetHeight / sourceHeight + 0.5f);
+	if (targetWidth < 1)
+		targetWidth = 1;
+
+	BBitmap* target = new BBitmap(BRect(0, 0, targetWidth - 1, targetHeight - 1), B_RGBA32);
+	if (!target->IsValid()) {
+		delete target;
+		return NULL;
+	}
+	const bool hasAlpha = space == B_RGBA32;
+	const uint8* from = (const uint8*) source->Bits();
+	uint8* to = (uint8*) target->Bits();
+	for (int32 y = 0; y < targetHeight; y++) {
+		int32 y0 = y * sourceHeight / targetHeight, y1 = (y + 1) * sourceHeight / targetHeight;
+		if (y1 <= y0)
+			y1 = y0 + 1;
+		for (int32 x = 0; x < targetWidth; x++) {
+			int32 x0 = x * sourceWidth / targetWidth, x1 = (x + 1) * sourceWidth / targetWidth;
+			if (x1 <= x0)
+				x1 = x0 + 1;
+			uint32 blue = 0, green = 0, red = 0, alpha = 0, count = 0;
+			for (int32 sy = y0; sy < y1; sy++) {
+				const uint8* pixel = from + sy * source->BytesPerRow() + x0 * 4;
+				for (int32 sx = x0; sx < x1; sx++, pixel += 4) {
+					blue += pixel[0];
+					green += pixel[1];
+					red += pixel[2];
+					alpha += hasAlpha ? pixel[3] : 255;
+					count++;
+				}
+			}
+			uint8* out = to + y * target->BytesPerRow() + x * 4;
+			out[0] = blue / count;
+			out[1] = green / count;
+			out[2] = red / count;
+			out[3] = alpha / count;
+		}
+	}
+	return target;
+}
+
+
+/** The picture of a file (JPEG, PNG,... whatever the translators read), scaled down to the height it is shown in; NULL if there is none. */
+inline BBitmap*
+LoadDialogImage(const char* path, float height)
+{
+	BBitmap* image = BTranslationUtils::GetBitmap(path);
+	if (image == NULL)
+		return NULL;
+	BBitmap* scaled = ScaleDown(image, height);
+	delete image;
+	return scaled;
+}
+
+
+/**
+ * The distance of the content of the dialog to the edges of the window above, right and below, and of the picture on the stripe to the top: the same, so that the
+ * top of the picture and the top of the first line of the text are on one line.
+ */
+inline float
+DialogMargin()
+{
+	return be_control_look->DefaultLabelSpacing() * 2;
+}
+
+
+/** The dark stripe with the picture across its edge. */
+class StripeView : public BView {
+public:
+	/** @param picture the icon or logo, drawn as it is (it is taken over); NULL for a stripe without one */
+	StripeView(BBitmap* picture)
+		:
+		BView("stripe", B_WILL_DRAW),
+		fPicture(picture)
+	{
+		float spacing = be_control_look->DefaultLabelSpacing();
+		SetViewUIColor(B_PANEL_BACKGROUND_COLOR);
+		// (three spacings from the left to the picture, as TAlertView has it; above it the margin of the content, to be level with the text)
+		float width = fPicture != NULL ? spacing * 3 + fPicture->Bounds().Width() + 1 + spacing * 2 : spacing * 5;
+		float height = fPicture != NULL ? DialogMargin() + fPicture->Bounds().Height() + 1 + DialogMargin() : 0;
+		SetExplicitMinSize(BSize(width, height));
+		SetExplicitMaxSize(BSize(width, B_SIZE_UNLIMITED));
+		SetExplicitPreferredSize(BSize(width, height));
+	}
+
+	virtual ~StripeView() { delete fPicture; }
+
+	virtual void
+	Draw(BRect)
+	{
+		float spacing = be_control_look->DefaultLabelSpacing();
+		BRect stripe = Bounds();
+		stripe.right = 5 * spacing;
+		SetHighColor(tint_color(ViewColor(), B_DARKEN_1_TINT));
+		FillRect(stripe);
+		if (fPicture == NULL)
+			return;
+		BPoint at(spacing * 3, DialogMargin());
+		SetDrawingMode(B_OP_ALPHA);
+		SetBlendingMode(B_PIXEL_ALPHA, B_ALPHA_OVERLAY);
+		DrawBitmap(fPicture, at);
+		// (a picture of a file is a card: a thin edge keeps it from running into the panel)
+		SetDrawingMode(B_OP_COPY);
+		SetHighColor(tint_color(ViewColor(), B_DARKEN_2_TINT));
+		StrokeRect(BRect(at.x, at.y, at.x + fPicture->Bounds().Width(), at.y + fPicture->Bounds().Height()));
+	}
+
+private:
+	BBitmap*	fPicture;
+};
+
+
+/** A window with the stripe on the left and a content area on the right. */
+class StripeDialog : public BWindow {
+public:
+	/**
+	 * @param title the title of the window
+	 * @param picture the icon or logo on the stripe (taken over), NULL for none
+	 * @param quitApplication the application quits when the window is closed (a program that has no other window than this one)
+	 */
+	StripeDialog(const char* title, BBitmap* picture, bool quitApplication = false)
+		:
+		BWindow(BRect(0, 0, 100, 100), title, B_TITLED_WINDOW_LOOK, B_NORMAL_WINDOW_FEEL,
+			B_NOT_ZOOMABLE | B_NOT_RESIZABLE | B_ASYNCHRONOUS_CONTROLS | B_AUTO_UPDATE_SIZE_LIMITS | B_CLOSE_ON_ESCAPE),
+		fContent(NULL),
+		fQuitApplication(quitApplication)
+	{
+		BLayoutBuilder::Group<>(this, B_HORIZONTAL, 0)
+			.Add(new StripeView(picture))
+			.AddGroup(B_VERTICAL, B_USE_DEFAULT_SPACING)
+				.GetLayout(&fContent)
+				.SetInsets(0, DialogMargin(), DialogMargin(), DialogMargin())
+			.End();
+	}
+
+	/** The vertical layout on the right of the stripe: add the views of the dialog to it. */
+	BGroupLayout* ContentLayout() { return fContent; }
+
+	void
+	ShowCentered()
+	{
+		CenterOnScreen();
+		Show();
+	}
+
+	virtual bool
+	QuitRequested()
+	{
+		if (fQuitApplication)
+			be_app->PostMessage(B_QUIT_REQUESTED);
+		return true;
+	}
+
+private:
+	BGroupLayout*	fContent;
+	bool			fQuitApplication;
+};
+
+
+/** The About dialog: the name, the version, the description and the copyright, and OK. */
+class AboutDialog : public StripeDialog {
+public:
+	/**
+	 * @param name the name of the program (the title of the window is "About <name>")
+	 * @param version e.g. "0.1.0"; empty for none
+	 * @param description what it is, in a few lines; may be empty
+	 * @param copyright the lines of the copyright and the license; may be empty
+	 * @param logo the picture for the stripe (taken over), NULL for none
+	 */
+	AboutDialog(const char* name, const char* version, const char* description, const char* copyright, BBitmap* logo,
+			bool quitApplication = false)
+		:
+		StripeDialog((BString("About ") << name).String(), logo, quitApplication)
+	{
+		BString text(name);
+		text << "\n";
+		int32 nameEnd = text.Length();
+		text << "\n";
+		if (version != NULL && version[0] != '\0')
+			text << "Version " << version << "\n";
+		if (description != NULL && description[0] != '\0')
+			text << "\n" << description << "\n";
+		if (copyright != NULL && copyright[0] != '\0')
+			text << "\n" << copyright;
+
+		float textWidth = be_plain_font->StringWidth("M") * 34;
+		BTextView* view = new BTextView(BRect(0, 0, textWidth, 100), "text", BRect(0, 0, textWidth, 100), B_FOLLOW_NONE, B_WILL_DRAW);
+		view->SetViewUIColor(B_PANEL_BACKGROUND_COLOR);
+		view->SetWordWrap(true);
+		view->MakeEditable(false);
+		view->MakeSelectable(false);
+		view->SetStylable(true);
+		view->SetText(text.String());
+
+		// the name: large and bold (as in BAboutWindow); the empty line after it is just a small gap
+		BFont nameFont(be_bold_font);
+		nameFont.SetSize(be_plain_font->Size() * 1.6);
+		view->SetFontAndColor(0, nameEnd, &nameFont, B_FONT_ALL);
+		BFont gapFont(be_plain_font);
+		gapFont.SetSize(be_plain_font->Size() * 0.6);
+		view->SetFontAndColor(nameEnd, nameEnd + 1, &gapFont, B_FONT_ALL);
+
+		float textHeight = view->TextHeight(0, view->CountLines() - 1);
+		view->SetExplicitMinSize(BSize(textWidth, textHeight));
+		view->SetExplicitMaxSize(BSize(textWidth, textHeight));
+
+		BButton* ok = new BButton("ok", "OK", new BMessage(B_QUIT_REQUESTED));
+		ok->MakeDefault(true);
+
+		ContentLayout()->AddView(view);
+		BLayoutBuilder::Group<>(ContentLayout()).AddGroup(B_HORIZONTAL, 0).AddGlue().Add(ok).End();
+	}
+};
+
+}	// namespace sen
