@@ -17,23 +17,23 @@ Your files remain exactly what they are — standard files on standard BFS volum
 
 Self-relations allow you to navigate "inside" a document, following internal references and outlines, like in a PDF document:
 
-![Document self relations](https://raw.githubusercontent.com/sen-laboratories/sen-core/v1.0.0-beta.1/images/screenshots/document-self-relations.png)
+<img src="https://raw.githubusercontent.com/sen-laboratories/sen-core/v1.0.0-beta.1/images/screenshots/document-self-relations.png" alt="Document self relations" width="760">
 
 This 1.0 beta is **feature-complete and self-contained**. It represents my vision of BFS-native relational computing. At the same time, this is only the first step on a bigger journey, which will continue with SEN 2.0 "Gnosis", which is currently being worked on at a much quicker pace, now that the foundation has been laid.
 
 SEN uses the native MIME based FileTypes for representing semantic Entities and Relations, which are packaged, versioned and managed with native Haiku packagefs as Ontologies.
 
-![SEN Ontologies](https://raw.githubusercontent.com/sen-laboratories/sen-core/v1.0.0-beta.1/images/screenshots/sen-ontology-menu.png)
+<img src="https://raw.githubusercontent.com/sen-laboratories/sen-core/v1.0.0-beta.1/images/screenshots/sen-ontology-menu.png" alt="SEN Ontologies" width="420">
 
 ## Plugins
 
 SEN implements plugins as standard Haiku applications that are discovered dynamically by their application signature (`application/x-vnd.sen-plugin.*`), the plugin type in `META:TYPE` and feature flags like `extract`, `enrich`, `navigate`, etc.
 
-![SEN plugins](https://raw.githubusercontent.com/sen-laboratories/sen-core/v1.0.0-beta.1/images/screenshots/sen-plugins.png)
+<img src="https://raw.githubusercontent.com/sen-laboratories/sen-core/v1.0.0-beta.1/images/screenshots/sen-plugins.png" alt="SEN plugins" width="680">
 
 This allows for an easy to extend, loosely coupled, native system of plugins to handle relation extraction, navigation and semantic enrichment (Book files via OpenLibrary metadata, papers via OpenAlex, etc.), where metadata is consistently stored *only* in standard extended attributes using well established terminology from schema.org, Dublin Core, FOAF, etc.
 
-![Document relations](https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.1/docs/images/beta1/document-relations.png)
+<img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.1/docs/images/beta1/document-relations.png" alt="Document relations" width="720">
 
 This works for Entities as well as Relations, which can be opened just like any other folder. These "materialized" relations are represented as normal files with the specific Relation FileType, so relation properties from the file's attributes are intuitively displayed as properties in Tracker's Detail columns.
 
@@ -83,7 +83,7 @@ pkgman install sen_ontology_people sen_ontology_books sen_ontology_papers \
 
 The **SEN Knot** in the Deskbar tray serves as the central cockpit for relational computing on Haiku:
 
-![SEN Deskbar Knot](https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.1/docs/images/beta1/menu-sen.png)
+<img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.1/docs/images/beta1/menu-sen.png" alt="SEN Deskbar Knot" width="200">
 
 ```
 [ SEN Deskbar Knot ]
