@@ -123,7 +123,7 @@ In SEN, opening a relation does not open a directory on disk; it opens a **relat
 
 ### 2. SENSEI Plugins
 
-SEN understands document structure natively through background SENSEI plugins: (SENSEI stands for "Structure Extraction, Navigation, Search, Enrichment, and Identification")
+SEN understands document structure natively through background SENSEI plugins: (SENSEI stands for "Semantic Extraction, Navigation, Search, Enrichment and Identification")
 
 * **BERT, the Book Enrichment Tool** (`sen_plugin_book_enricher`): searches OpenLibrary for metadata as provided by the file's attributes, and retrieves the full metadata including the book cover, which is stored as a thumbnail image.
 * **Code Graphs (`sen_plugin_sourcecode_extractor`):** Automatically maps dependency and `#include` trees across **C/C++, Python, Go, Rust, Java, JavaScript, and TypeScript**, surfacing connected modules in dedicated relation menus.
@@ -157,10 +157,10 @@ SEN 1.0 is designed to be a complete, stable, self-contained realization of BFS 
   In 2.0, we will fully decouple file container formats from semantic meaning. A file's MIME type will reflect its byte format (`application/pdf`, `text/markdown`), while its ontological meaning will be governed by a unified identifier (`META:TYPE`) mapped across an extensible taxonomy tree.
 * **Cross-Platform Parity:**  
   The 2.0 type engine will share identical semantics with our experimental macOS implementation, enabling true cross-platform relational consistency.
-* **Akita 2.0 Rework:**  
-  A major overhaul of Akita's spatial rendering engine to support fluid graph-navigation transitions alongside classic list and icon views.
-* **Automated Data Migration:**  
-  Because 1.0 strictly preserves all relations as native BFS attributes, automated migration scripts will be provided when 2.0 arrives to translate 1.0 schemas effortlessly.
+* **Akita 2.0:**  
+  A larger rework of Akita, going its own way beyond the stock Tracker, including some kind of graph view alongside the list and icon views.
+* **Migration:**  
+  Relations and metadata are native BFS attributes of your files. Where a new release changes them, a migration is provided between official releases (not for previews and betas).
 
 ---
 
