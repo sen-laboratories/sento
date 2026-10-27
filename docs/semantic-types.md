@@ -187,3 +187,7 @@ Open:
   `RelationTypes` is not there yet.
 * Step 4: the SEN menu of the ontologies lists the types of the registry with their attributes; Akita's Attributes menu has a menu for the `META:TYPE` of the files that is in
   the registry. FileTypes does not show the registry yet; the entries are information only.
+  Open (step 4, FileTypes of SEN): the entries of semantic types in the SEN menu (`SemanticTypeItem`, sen-core `DeskbarView.cpp`) have no message yet, since the MIME-based
+  deep link (`kUiOpenType` with the type and an attribute, to FileTypes of SEN, `kOpenMimeAttribute`) finds nothing for a type that is not in the MIME database. FileTypes
+  of SEN has to list the semantic types of the registry (tree, description, formats, conformance) and open the dialog of an attribute from the registry (with Searchable
+  creating the index); then those entries send the same message with the identifier of the type (`org.sen-labs.paper`).
