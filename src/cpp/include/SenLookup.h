@@ -4,15 +4,15 @@
  */
 #pragma once
 
+#include <string.h>
+
 #include <string>
 #include <vector>
 
 #include <Entry.h>
-#include <FindDirectory.h>
 #include <MimeType.h>
 #include <Node.h>
 #include <NodeInfo.h>
-#include <Path.h>
 #include <Query.h>
 #include <String.h>
 #include <Volume.h>
@@ -117,25 +117,28 @@ TypeOf(BNode& node)
 }
 
 /**
- * @brief The type that a file stands for when it is in the MIME database of the user, else empty.
+ * @brief The type that a file stands for when it is the file of a type, else empty.
  *
- * The file of a type (`~/config/settings/mime_db/entity/x-vnd.sen-labs.entity.book`) is no file of its own type: it has the attributes of the type, and
- * is known by where it is. Its type is its path in the database ("entity/x-vnd.sen-labs.entity.book").
+ * The file of a type (the one that holds the attributes of `entity/x-vnd.sen-labs.entity.book`) is no file of its own type: it has the type
+ * as its `META:TYPE` and is named like the subtype ("x-vnd.sen-labs.entity.book"). So a file stands for the type of its `META:TYPE` when that is
+ * an installed type, and the file is named like its subtype. (The other files of that type, the books, have names of their own.) The type system
+ * says what is installed and what the supertype is, the folder of the MIME database is not looked at.
  */
 inline std::string
 TypeOfDatabaseEntry(const entry_ref& ref)
 {
-	BPath settings, path(&ref);
-	if (find_directory(B_USER_SETTINGS_DIRECTORY, &settings) != B_OK || settings.Append("mime_db") != B_OK || path.InitCheck() != B_OK)
+	BNode node(&ref);
+	BString type;
+	if (node.InitCheck() != B_OK || node.ReadAttrString(attr::kType, &type) != B_OK || type.IsEmpty())
 		return std::string();
 
-	const std::string database = std::string(settings.Path()) + "/";
-	const std::string location = path.Path();
-	if (location.compare(0, database.length(), database) != 0)
+	BMimeType mime(type.String());
+	BMimeType supertype;
+	if (!mime.IsValid() || mime.IsSupertypeOnly() || !mime.IsInstalled() || mime.GetSupertype(&supertype) != B_OK || supertype.Type() == NULL)
 		return std::string();
 
-	const std::string type = location.substr(database.length());
-	return type.find('/') == std::string::npos ? std::string() : type;	// (a supertype is a folder, a type is in it)
+	const std::string subtype = std::string(type.String()).substr(strlen(supertype.Type()) + 1);
+	return subtype == ref.name ? std::string(type.String()) : std::string();
 }
 
 /** @brief The name of a type for people (its short description: "Music album"); the type itself if it has none. */
