@@ -92,7 +92,7 @@ TEST(FilteredKeepsWhatIsWanted)
 	CHECK(graph.Filtered(true, false).IndexOf("E") < 0);
 }
 
-TEST(LayoutIsTheSameEveryTimeAndInsideTheArea)
+TEST(LayoutIsTheSameEveryTime)
 {
 	auto make = [] {
 		Graph graph;
@@ -103,13 +103,12 @@ TEST(LayoutIsTheSameEveryTimeAndInsideTheArea)
 		return graph;
 	};
 	Graph first = make(), second = make();
-	first.Layout(800, 600);
-	second.Layout(800, 600);
+	first.Layout();
+	second.Layout();
 	for (size_t i = 0; i < first.Nodes().size(); i++) {
 		CHECK(first.Nodes()[i].x == second.Nodes()[i].x);
 		CHECK(first.Nodes()[i].y == second.Nodes()[i].y);
-		CHECK(first.Nodes()[i].x >= 10 && first.Nodes()[i].x <= 790);
-		CHECK(first.Nodes()[i].y >= 10 && first.Nodes()[i].y <= 590);
+		CHECK(first.Nodes()[i].x >= 0 && first.Nodes()[i].y >= 0);
 	}
 	CHECK_EQ(first.Nodes()[1].degree, 3);	// n1: its parent n0 and its children n2 and n3
 }
@@ -141,6 +140,51 @@ TEST(ConnectedNodesAreCloserThanOthers)
 			CHECK(Distance(graph, i, j) > 1.0f);
 }
 
+TEST(SeparatePartsAreLaidOutByThemselvesAndDoNotLookLikeAFrame)
+{
+	// twelve stars of different sizes that have nothing to do with each other (the types that the ontologies define)
+	Graph graph;
+	std::vector<std::vector<int>> stars;
+	int total = 0;
+	for (int s = 0; s < 12; s++) {
+		const int leaves = 3 + (s * 5) % 9;
+		const std::string hub = "hub" + std::to_string(s);
+		graph.AddNode(hub, hub, "ontology");
+		for (int l = 0; l < leaves; l++) {
+			graph.AddNode(hub + "." + std::to_string(l), "leaf", "type");
+			graph.AddEdge(hub, hub + "." + std::to_string(l), "defines", "dependency");
+		}
+		total += leaves + 1;
+	}
+	graph.Layout();
+
+	float left, top, right, bottom;
+	graph.Bounds(&left, &top, &right, &bottom);
+	const float width = right - left, height = bottom - top;
+	CHECK(width / height < 3.0f && height / width < 3.0f);
+
+	// no node is on top of another, and a star holds together: its leaves are near their hub
+	for (size_t i = 0; i < graph.Nodes().size(); i++)
+		for (size_t j = i + 1; j < graph.Nodes().size(); j++)
+			CHECK(Distance(graph, static_cast<int>(i), static_cast<int>(j)) > 3.0f);
+	for (const Edge& edge : graph.Edges())
+		CHECK(Distance(graph, edge.from, edge.to) < 0.5f * std::max(width, height));
+
+	// the nodes of a star are closer to each other than to those of the next star
+	float inside = 0, between = 0;
+	int insideCount = 0, betweenCount = 0;
+	for (const Edge& edge : graph.Edges()) {
+		inside += Distance(graph, edge.from, edge.to);
+		insideCount++;
+	}
+	for (int s = 0; s + 1 < 12; s++) {
+		between += Distance(graph, graph.IndexOf("hub" + std::to_string(s)), graph.IndexOf("hub" + std::to_string(s + 1)));
+		betweenCount++;
+	}
+	CHECK(inside / insideCount < between / betweenCount);
+	(void)total;
+}
+
 TEST(OneNodeAndNoNode)
 {
 	Graph empty;
@@ -150,7 +194,7 @@ TEST(OneNodeAndNoNode)
 	one.AddNode("A", "Anna", "person");
 	one.Layout();
 	CHECK_EQ(one.Nodes()[0].degree, 0);
-	CHECK(one.Nodes()[0].x > 0);
+	CHECK(one.Nodes()[0].x >= 0);
 }
 
 TEST(TheSvgHasWhatIsInTheGraph)
@@ -180,6 +224,12 @@ TEST(TheSvgHasWhatIsInTheGraph)
 	SvgOptions plain;
 	plain.nodeLabels = false;
 	plain.edgeLabels = false;
+	SvgOptions dark;
+	dark.dark = true;
+	const std::string night = graph.ToSvg(dark);
+	CHECK(night.find("#16181d") != std::string::npos);	// the dark background
+	CHECK(svg.find("#16181d") == std::string::npos);
+	CHECK(svg.find("#ffffff") != std::string::npos);
 	const std::string small = graph.ToSvg(plain);
 	CHECK(small.find("reads") == std::string::npos);
 	CHECK(small.find(">Ben</text>") == std::string::npos);

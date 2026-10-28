@@ -51,16 +51,16 @@ struct Rgb {
 	uint8_t	r, g, b;
 };
 
-/** A colour for a group, always the same one for the same name (a hue out of a hash). */
+/** A colour for a group, always the same one for the same name (a hue out of a hash); a bit lighter on a dark background. */
 inline Rgb
-GroupColor(const std::string& group)
+GroupColor(const std::string& group, bool dark = false)
 {
 	uint32_t hash = 2166136261u;
 	for (unsigned char c : group) {
 		hash ^= c;
 		hash *= 16777619u;
 	}
-	const float hue = (hash % 360) / 60.0f, saturation = 0.55f, lightness = 0.58f;
+	const float hue = (hash % 360) / 60.0f, saturation = dark ? 0.6f : 0.55f, lightness = dark ? 0.64f : 0.56f;
 	const float chroma = (1 - std::fabs(2 * lightness - 1)) * saturation;
 	const float second = chroma * (1 - std::fabs(std::fmod(hue, 2.0f) - 1));
 	float r = 0, g = 0, b = 0;
@@ -76,6 +76,33 @@ GroupColor(const std::string& group)
 	return Rgb{static_cast<uint8_t>((r + match) * 255), static_cast<uint8_t>((g + match) * 255), static_cast<uint8_t>((b + match) * 255)};
 }
 
+/** The colours of the graph, light or dark: the same for a view and for the SVG. */
+struct Palette {
+	Rgb	background;
+	Rgb	text;		///< names of the nodes
+	Rgb	edgeText;	///< labels of the edges
+	Rgb	edge;
+	Rgb	metaEdge;
+	Rgb	emphasis;	///< the edges of the selected node, the ring of a selected node
+};
+
+inline Palette
+PaletteFor(bool dark)
+{
+	if (dark)
+		return Palette{{0x16, 0x18, 0x1d}, {0xe8, 0xea, 0xee}, {0x9a, 0xa1, 0xad}, {0x6c, 0x73, 0x80}, {0x3b, 0x40, 0x4a}, {0xff, 0xff, 0xff}};
+	return Palette{{0xff, 0xff, 0xff}, {0x22, 0x22, 0x22}, {0x66, 0x66, 0x66}, {0x8a, 0x8a, 0x8a}, {0xd0, 0xd0, 0xd0}, {0x00, 0x00, 0x00}};
+}
+
+/** "#rrggbb" */
+inline std::string
+Hex(const Rgb& color)
+{
+	char buffer[8];
+	snprintf(buffer, sizeof(buffer), "#%02x%02x%02x", color.r, color.g, color.b);
+	return buffer;
+}
+
 /** The size (radius) of a node: more edges, bigger. */
 inline float
 NodeRadius(int degree)
@@ -87,6 +114,7 @@ NodeRadius(int degree)
 struct SvgOptions {
 	bool	nodeLabels = true;
 	bool	edgeLabels = true;
+	bool	dark = false;
 	float	margin = 50;
 };
 
@@ -184,10 +212,11 @@ public:
 	Graph Connected(bool withMeta) const { return Filtered(withMeta, false); }
 
 	/**
-	 * Place the nodes (x and y of each, in the area of width times height, which is made for the number of nodes when it is not given) and count the
-	 * degrees. The same graph always gets the same layout.
+	 * Place the nodes (x and y of each, from 0 on) and count the degrees. Every connected part of the graph is laid out by itself (the nodes push each
+	 * other away, the edges pull their ends together), then the parts are put next to each other, the biggest first: the many small parts of a graph
+	 * of ontologies and documents do not push each other around, and each is as readable as if it was alone. The same graph always gets the same layout.
 	 */
-	void Layout(float width = 0, float height = 0, int iterations = 0)
+	void Layout(int iterations = 0)
 	{
 		const int count = static_cast<int>(fNodes.size());
 		for (Node& node : fNodes)
@@ -199,62 +228,90 @@ public:
 		if (count == 0)
 			return;
 
-		if (width <= 0)
-			width = std::max(420.0f, 75.0f * std::sqrt(static_cast<float>(count)));
-		if (height <= 0)
-			height = width;
-		if (iterations <= 0)
-			iterations = std::max(60, std::min(300, static_cast<int>(4.0e7 / (static_cast<double>(count) * count + 1))));
+		// the connected parts
+		std::vector<int> parent(count);
+		for (int i = 0; i < count; i++)
+			parent[i] = i;
+		auto root = [&parent](int i) {
+			while (parent[i] != i) {
+				parent[i] = parent[parent[i]];
+				i = parent[i];
+			}
+			return i;
+		};
+		for (const Edge& edge : fList)
+			parent[root(edge.from)] = root(edge.to);
 
-		// start on a spiral (it is the same every time, and no two nodes are in one place)
+		std::vector<std::vector<int>> parts;
+		std::unordered_map<int, int> partOf;
 		for (int i = 0; i < count; i++) {
-			const float radius = std::sqrt((i + 0.5f) / count) * 0.45f * std::min(width, height);
-			const float angle = i * 2.39996323f;
-			fNodes[i].x = width / 2 + radius * std::cos(angle);
-			fNodes[i].y = height / 2 + radius * std::sin(angle);
+			const int r = root(i);
+			if (partOf.find(r) == partOf.end()) {
+				partOf[r] = static_cast<int>(parts.size());
+				parts.emplace_back();
+			}
+			parts[partOf[r]].push_back(i);
 		}
-		if (count == 1)
-			return;
+		std::stable_sort(parts.begin(), parts.end(), [](const std::vector<int>& a, const std::vector<int>& b) { return a.size() > b.size(); });
 
-		const float k = 0.75f * std::sqrt(width * height / count);
-		const float gravity = 0.6f * k / (std::min(width, height) / 2);
-		float temperature = std::min(width, height) / 8;
-		const float cooling = temperature / (iterations + 1);
-		std::vector<float> dx(count), dy(count);
+		// each part by itself
+		struct Placed {
+			std::vector<int>	members;
+			float				width, height;
+		};
+		std::vector<Placed> placed;
+		std::unordered_map<int, int> localIndex;
+		std::vector<std::vector<std::pair<int, int>>> partEdges(parts.size());
+		std::vector<int> partIndex(count);
+		for (size_t p = 0; p < parts.size(); p++) {
+			for (size_t j = 0; j < parts[p].size(); j++) {
+				partIndex[parts[p][j]] = static_cast<int>(p);
+				localIndex[parts[p][j]] = static_cast<int>(j);
+			}
+		}
+		for (const Edge& edge : fList)
+			partEdges[partIndex[edge.from]].push_back(std::make_pair(localIndex[edge.from], localIndex[edge.to]));
 
-		for (int step = 0; step < iterations; step++) {
-			std::fill(dx.begin(), dx.end(), 0.0f);
-			std::fill(dy.begin(), dy.end(), 0.0f);
+		for (size_t p = 0; p < parts.size(); p++) {
+			Placed part;
+			part.members = parts[p];
+			const int m = static_cast<int>(parts[p].size());
+			std::vector<float> x(m, 0.0f), y(m, 0.0f);
+			ForceLayout(&x, &y, partEdges[p], iterations);
+			float left = x[0], right = x[0], top = y[0], bottom = y[0];
+			for (int j = 0; j < m; j++) {
+				left = std::min(left, x[j]);
+				right = std::max(right, x[j]);
+				top = std::min(top, y[j]);
+				bottom = std::max(bottom, y[j]);
+			}
+			for (int j = 0; j < m; j++) {
+				fNodes[part.members[j]].x = x[j] - left;
+				fNodes[part.members[j]].y = y[j] - top;
+			}
+			part.width = right - left;
+			part.height = bottom - top;
+			placed.push_back(part);
+		}
 
-			for (int i = 0; i < count; i++) {
-				for (int j = i + 1; j < count; j++) {
-					const float deltaX = fNodes[i].x - fNodes[j].x, deltaY = fNodes[i].y - fNodes[j].y;
-					const float distance2 = std::max(deltaX * deltaX + deltaY * deltaY, 0.01f);
-					const float push = k * k / distance2;	// k^2 / d, as a factor of the vector
-					dx[i] += deltaX * push;
-					dy[i] += deltaY * push;
-					dx[j] -= deltaX * push;
-					dy[j] -= deltaY * push;
-				}
+		// the parts in rows, the biggest first, in a field that is wider than high
+		double area = 0;
+		for (const Placed& part : placed)
+			area += static_cast<double>(part.width + gap) * (part.height + gap);
+		float rowWidth = std::max(static_cast<float>(std::sqrt(area) * 1.5), placed[0].width);
+		float x = 0, y = 0, rowHeight = 0;
+		for (const Placed& part : placed) {
+			if (x > 0 && x + part.width > rowWidth) {
+				x = 0;
+				y += rowHeight + gap;
+				rowHeight = 0;
 			}
-			for (const Edge& edge : fList) {
-				const float deltaX = fNodes[edge.from].x - fNodes[edge.to].x, deltaY = fNodes[edge.from].y - fNodes[edge.to].y;
-				const float distance = std::max(std::sqrt(deltaX * deltaX + deltaY * deltaY), 0.1f);
-				const float pull = distance / k;	// d^2 / k, as a factor of the vector
-				dx[edge.from] -= deltaX * pull;
-				dy[edge.from] -= deltaY * pull;
-				dx[edge.to] += deltaX * pull;
-				dy[edge.to] += deltaY * pull;
+			for (int index : part.members) {
+				fNodes[index].x += x;
+				fNodes[index].y += y;
 			}
-			for (int i = 0; i < count; i++) {
-				dx[i] -= (fNodes[i].x - width / 2) * gravity;
-				dy[i] -= (fNodes[i].y - height / 2) * gravity;
-				const float length = std::max(std::sqrt(dx[i] * dx[i] + dy[i] * dy[i]), 0.0001f);
-				const float move = std::min(length, temperature) / length;
-				fNodes[i].x = std::min(std::max(fNodes[i].x + dx[i] * move, 10.0f), width - 10);
-				fNodes[i].y = std::min(std::max(fNodes[i].y + dy[i] * move, 10.0f), height - 10);
-			}
-			temperature -= cooling;
+			x += part.width + gap;
+			rowHeight = std::max(rowHeight, part.height);
 		}
 	}
 
@@ -280,6 +337,8 @@ public:
 	{
 		float left, top, right, bottom;
 		Bounds(&left, &top, &right, &bottom);
+		const Palette palette = PaletteFor(options.dark);
+		const std::string backgroundHex = Hex(palette.background), edgeHex = Hex(palette.edge), metaHex = Hex(palette.metaEdge);
 		const float margin = options.margin;
 		const float width = right - left + 2 * margin, height = bottom - top + 2 * margin;
 		const float offsetX = margin - left, offsetY = margin - top;
@@ -290,8 +349,8 @@ public:
 			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%.0f\" height=\"%.0f\" viewBox=\"0 0 %.0f %.0f\" "
 			"font-family=\"sans-serif\">\n<title>SEN: objects and relations</title>\n"
 			"<defs><marker id=\"arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto\">"
-			"<path d=\"M 0 0 L 10 5 L 0 10 z\" fill=\"#8a8a8a\"/></marker></defs>\n<rect width=\"100%%\" height=\"100%%\" fill=\"#ffffff\"/>\n",
-			width, height, width, height);
+			"<path d=\"M 0 0 L 10 5 L 0 10 z\" fill=\"%s\"/></marker></defs>\n<rect width=\"100%%\" height=\"100%%\" fill=\"%s\"/>\n",
+			width, height, width, height, edgeHex.c_str(), backgroundHex.c_str());
 		svg += buffer;
 
 		for (const Edge& edge : fList) {
@@ -306,7 +365,7 @@ public:
 			snprintf(buffer, sizeof(buffer),
 				"<line x1=\"%.1f\" y1=\"%.1f\" x2=\"%.1f\" y2=\"%.1f\" stroke=\"%s\" stroke-width=\"%.1f\"%s%s/>\n",
 				from.x + offsetX + deltaX * startR, from.y + offsetY + deltaY * startR, to.x + offsetX - deltaX * endR, to.y + offsetY - deltaY * endR,
-				edge.meta ? "#d0d0d0" : "#8a8a8a", edge.meta ? 1.0f : 1.4f, edge.meta ? " stroke-dasharray=\"4 3\"" : "",
+				edge.meta ? metaHex.c_str() : edgeHex.c_str(), edge.meta ? 1.0f : 1.4f, edge.meta ? " stroke-dasharray=\"4 3\"" : "",
 				edge.reciprocal ? "" : " marker-end=\"url(#arrow)\"");
 			svg += buffer;
 		}
@@ -321,17 +380,17 @@ public:
 				const Node& from = fNodes[edge.from];
 				const Node& to = fNodes[edge.to];
 				snprintf(buffer, sizeof(buffer),
-					"<text x=\"%.1f\" y=\"%.1f\" font-size=\"8\" text-anchor=\"middle\" fill=\"#666666\" stroke=\"#ffffff\" stroke-width=\"2.5\" "
-					"paint-order=\"stroke\">", (from.x + to.x) / 2 + offsetX, (from.y + to.y) / 2 + offsetY);
+					"<text x=\"%.1f\" y=\"%.1f\" font-size=\"8\" text-anchor=\"middle\" fill=\"%s\" stroke=\"%s\" stroke-width=\"2.5\" "
+					"paint-order=\"stroke\">", (from.x + to.x) / 2 + offsetX, (from.y + to.y) / 2 + offsetY, Hex(palette.edgeText).c_str(), backgroundHex.c_str());
 				svg += buffer;
 				svg += XmlEscape(label) + "</text>\n";
 			}
 		}
 
 		for (const Node& node : fNodes) {
-			const Rgb color = GroupColor(node.group);
-			snprintf(buffer, sizeof(buffer), "<circle cx=\"%.1f\" cy=\"%.1f\" r=\"%.1f\" fill=\"#%02x%02x%02x\" stroke=\"#ffffff\" stroke-width=\"1.5\">",
-				node.x + offsetX, node.y + offsetY, NodeRadius(node.degree), color.r, color.g, color.b);
+			const Rgb color = GroupColor(node.group, options.dark);
+			snprintf(buffer, sizeof(buffer), "<circle cx=\"%.1f\" cy=\"%.1f\" r=\"%.1f\" fill=\"#%02x%02x%02x\" stroke=\"%s\" stroke-width=\"1.5\">",
+				node.x + offsetX, node.y + offsetY, NodeRadius(node.degree), color.r, color.g, color.b, backgroundHex.c_str());
 			svg += buffer;
 			svg += "<title>" + XmlEscape(node.label) + (node.group.empty() ? "" : " (" + XmlEscape(node.group) + ")") + "</title></circle>\n";
 		}
@@ -339,8 +398,9 @@ public:
 		if (options.nodeLabels) {
 			for (const Node& node : fNodes) {
 				snprintf(buffer, sizeof(buffer),
-					"<text x=\"%.1f\" y=\"%.1f\" font-size=\"10\" text-anchor=\"middle\" fill=\"#222222\" stroke=\"#ffffff\" stroke-width=\"3\" "
-					"paint-order=\"stroke\">", node.x + offsetX, node.y + offsetY + NodeRadius(node.degree) + 11);
+					"<text x=\"%.1f\" y=\"%.1f\" font-size=\"10\" text-anchor=\"middle\" fill=\"%s\" stroke=\"%s\" stroke-width=\"3\" "
+					"paint-order=\"stroke\">", node.x + offsetX, node.y + offsetY + NodeRadius(node.degree) + 11, Hex(palette.text).c_str(),
+					backgroundHex.c_str());
 				svg += buffer;
 				svg += XmlEscape(node.label) + "</text>\n";
 			}
@@ -367,6 +427,72 @@ public:
 	}
 
 private:
+	static constexpr float gap = 70;
+
+	/**
+	 * The force layout of one connected part (Fruchterman and Reingold): positions of x and y are made for the edges (pairs of indices). There is no wall: a weak
+	 * pull to the middle keeps the part together, and the part is as big as its forces make it.
+	 */
+	static void ForceLayout(std::vector<float>* xs, std::vector<float>* ys, const std::vector<std::pair<int, int>>& edges, int iterations)
+	{
+		std::vector<float>& x = *xs;
+		std::vector<float>& y = *ys;
+		const int count = static_cast<int>(x.size());
+		if (count == 1)
+			return;
+		const float side = std::max(160.0f, 75.0f * std::sqrt(static_cast<float>(count)));
+		if (iterations <= 0)
+			iterations = std::max(60, std::min(300, static_cast<int>(4.0e7 / (static_cast<double>(count) * count + 1))));
+
+		// start on a spiral (it is the same every time, and no two nodes are in one place)
+		for (int i = 0; i < count; i++) {
+			const float radius = std::sqrt((i + 0.5f) / count) * 0.45f * side;
+			const float angle = i * 2.39996323f;
+			x[i] = side / 2 + radius * std::cos(angle);
+			y[i] = side / 2 + radius * std::sin(angle);
+		}
+
+		const float k = 0.75f * std::sqrt(side * side / count);
+		const float gravity = 0.8f * k / (side / 2);
+		float temperature = side / 6;
+		const float cooling = temperature / (iterations + 1);
+		std::vector<float> dx(count), dy(count);
+
+		for (int step = 0; step < iterations; step++) {
+			std::fill(dx.begin(), dx.end(), 0.0f);
+			std::fill(dy.begin(), dy.end(), 0.0f);
+			for (int i = 0; i < count; i++) {
+				for (int j = i + 1; j < count; j++) {
+					const float deltaX = x[i] - x[j], deltaY = y[i] - y[j];
+					const float distance2 = std::max(deltaX * deltaX + deltaY * deltaY, 0.01f);
+					const float push = k * k / distance2;	// k^2 / d, as a factor of the vector
+					dx[i] += deltaX * push;
+					dy[i] += deltaY * push;
+					dx[j] -= deltaX * push;
+					dy[j] -= deltaY * push;
+				}
+			}
+			for (const std::pair<int, int>& edge : edges) {
+				const float deltaX = x[edge.first] - x[edge.second], deltaY = y[edge.first] - y[edge.second];
+				const float distance = std::max(std::sqrt(deltaX * deltaX + deltaY * deltaY), 0.1f);
+				const float pull = distance / k;	// d^2 / k, as a factor of the vector
+				dx[edge.first] -= deltaX * pull;
+				dy[edge.first] -= deltaY * pull;
+				dx[edge.second] += deltaX * pull;
+				dy[edge.second] += deltaY * pull;
+			}
+			for (int i = 0; i < count; i++) {
+				dx[i] -= (x[i] - side / 2) * gravity;
+				dy[i] -= (y[i] - side / 2) * gravity;
+				const float length = std::max(std::sqrt(dx[i] * dx[i] + dy[i] * dy[i]), 0.0001f);
+				const float move = std::min(length, temperature) / length;
+				x[i] += dx[i] * move;
+				y[i] += dy[i] * move;
+			}
+			temperature -= cooling;
+		}
+	}
+
 	static uint64_t Key(int from, int to) { return (static_cast<uint64_t>(from) << 32) | static_cast<uint32_t>(to); }
 
 	std::vector<Node>					fNodes;
