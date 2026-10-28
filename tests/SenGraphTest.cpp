@@ -74,6 +74,24 @@ TEST(ConnectedKeepsWhatHasEdges)
 	CHECK_STR(noMeta.Nodes()[noMeta.Edges()[0].to].id, "B");
 }
 
+TEST(FilteredKeepsWhatIsWanted)
+{
+	Graph graph;
+	for (const char* id : {"A", "B", "C", "D", "E"})
+		graph.AddNode(id, id, "g");
+	graph.AddEdge("A", "B", "x", "t");
+	graph.AddEdge("C", "D", "in", "association", true);
+	Graph everything = graph.Filtered(true, true);
+	CHECK_EQ(everything.Nodes().size(), 5u);
+	CHECK_EQ(everything.Edges().size(), 2u);
+	Graph withoutMeta = graph.Filtered(false, true);	// C and D stay, as nodes without an edge
+	CHECK_EQ(withoutMeta.Nodes().size(), 5u);
+	CHECK_EQ(withoutMeta.Edges().size(), 1u);
+	CHECK(graph.Filtered(false, false).IndexOf("C") < 0);
+	CHECK(graph.Filtered(true, false).IndexOf("C") >= 0);
+	CHECK(graph.Filtered(true, false).IndexOf("E") < 0);
+}
+
 TEST(LayoutIsTheSameEveryTimeAndInsideTheArea)
 {
 	auto make = [] {

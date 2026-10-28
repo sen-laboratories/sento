@@ -150,8 +150,11 @@ public:
 	std::vector<Node>& Nodes() { return fNodes; }
 	const std::vector<Edge>& Edges() const { return fList; }
 
-	/** A graph without the nodes that have no edge, optionally also without the meta relations (and the nodes that only they connect). */
-	Graph Connected(bool withMeta) const
+	/**
+	 * A part of the graph: without the meta relations (classification, context) unless they are wanted, and without the nodes that have no edge
+	 * (counting the edges that are wanted) unless the unconnected ones are wanted. The positions are not taken over: Layout() it.
+	 */
+	Graph Filtered(bool withMeta, bool withUnconnected) const
 	{
 		std::vector<int> degree(fNodes.size(), 0);
 		for (const Edge& edge : fList) {
@@ -162,21 +165,23 @@ public:
 		}
 		Graph result;
 		for (size_t i = 0; i < fNodes.size(); i++) {
-			if (degree[i] > 0)
+			if (withUnconnected || degree[i] > 0)
 				result.AddNode(fNodes[i].id, fNodes[i].label, fNodes[i].group);
 		}
 		for (const Edge& edge : fList) {
 			if (edge.meta && !withMeta)
 				continue;
-			const int from = result.IndexOf(fNodes[edge.from].id), to = result.IndexOf(fNodes[edge.to].id);
 			Edge copy = edge;
-			copy.from = from;
-			copy.to = to;
+			copy.from = result.IndexOf(fNodes[edge.from].id);
+			copy.to = result.IndexOf(fNodes[edge.to].id);
 			result.fList.push_back(copy);
-			result.fEdges[Key(from, to)] = static_cast<int>(result.fList.size()) - 1;
+			result.fEdges[Key(copy.from, copy.to)] = static_cast<int>(result.fList.size()) - 1;
 		}
 		return result;
 	}
+
+	/** Without the nodes that have no edge (and optionally without the meta relations): Filtered(withMeta, false). */
+	Graph Connected(bool withMeta) const { return Filtered(withMeta, false); }
 
 	/**
 	 * Place the nodes (x and y of each, in the area of width times height, which is made for the number of nodes when it is not given) and count the
