@@ -169,8 +169,8 @@ inline constexpr char kModifierKey[]           = "SEN:modifierKey";
 inline constexpr char kUseAkita[]              = "SEN:useAkita";
 /** bool in the settings: the FileTypes of SEN (sen::kFileTypesSignature) is used where SEN shows a type, if it is installed; default true */
 inline constexpr char kUseSenFileTypes[]       = "SEN:useFileTypes";
-/** bool in the settings: the graph window is dark (true) or light (false); not there: as the colours of the system are */
-inline constexpr char kGraphDark[]              = "SEN:graphDark";
+/** bool in the settings: the windows of SEN that have a dark and a light look (the graph window, for now) are dark (true) or light (false); not there: as the colours of the system are */
+inline constexpr char kDarkMode[]               = "SEN:darkMode";
 /** string in the settings: the name of the current context (global if there is none) */
 inline constexpr char kCurrentContext[]        = "SEN:currentContext";
 inline constexpr char kContextPathRef[]        = "SEN:contextPathRef";
