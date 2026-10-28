@@ -110,12 +110,50 @@ NodeRadius(int degree)
 	return 5.0f + 2.0f * std::sqrt(static_cast<float>(std::max(degree, 0)));
 }
 
-/** What ToSvg() draws. */
+/** The size of a node when the graph is shown at a zoom: the nodes do not grow as fast as the distances do (a view and the SVG of it use this). */
+inline float
+NodeRadiusAt(int degree, float scale)
+{
+	return NodeRadius(degree) * std::min(std::max(scale, 0.7f), 1.6f);
+}
+
+/** A name as it is shown: not longer than 28 characters (UTF-8), cut with an ellipsis. */
+inline std::string
+ShownName(const std::string& name)
+{
+	const size_t limit = 28;
+	size_t characters = 0, end = 0;
+	for (size_t i = 0; i < name.size(); i++) {
+		if ((static_cast<unsigned char>(name[i]) & 0xC0) != 0x80) {
+			if (characters == limit - 1)
+				end = i;
+			characters++;
+		}
+	}
+	return characters <= limit ? name : name.substr(0, end) + "\xE2\x80\xA6";
+}
+
+/**
+ * What ToSvg() draws. By default the whole graph, in the size that it has (with a margin). Given the size, the zoom and the shift of a view, the selection and
+ * the labels that the view shows, it is the picture of that view: what is seen there is in the SVG.
+ */
 struct SvgOptions {
-	bool	nodeLabels = true;
+	bool	nodeLabels = true;		///< the names of the nodes (if nodeLabelShown is not given: of all)
 	bool	edgeLabels = true;
 	bool	dark = false;
 	float	margin = 50;
+	float	fontSize = 10;
+
+	// as a view shows the graph (all optional)
+	float	width = 0;				///< the size of the picture: 0 is the size of the graph with the margin
+	float	height = 0;
+	float	scale = 1;				///< (with the size) the positions of the nodes are x * scale + offsetX
+	float	offsetX = 0;
+	float	offsetY = 0;
+	int		selectedNode = -1;		///< emphasised with its relations, the rest is dimmed
+	int		selectedEdge = -1;
+	const std::vector<bool>*	nodeLabelShown = NULL;	///< which names are there (the view leaves out those that would lie on others)
+	const std::vector<bool>*	edgeLabelShown = NULL;
 };
 
 class Graph {
@@ -210,6 +248,45 @@ public:
 
 	/** Without the nodes that have no edge (and optionally without the meta relations): Filtered(withMeta, false). */
 	Graph Connected(bool withMeta) const { return Filtered(withMeta, false); }
+
+	/**
+	 * A part of the graph with the positions that it has now (it is not laid out again, so it looks as it does in the whole): the nodes and the edges (indices
+	 * of this graph; the nodes at the ends of the edges are in it too). A node keeps the number of edges that it has in the whole (its size).
+	 */
+	Graph Subgraph(const std::vector<int>& nodes, const std::vector<int>& edges) const
+	{
+		Graph result;
+		auto take = [&](int index) {
+			const Node& node = fNodes[index];
+			const int added = result.AddNode(node.id, node.label, node.group);
+			result.fNodes[added].x = node.x;
+			result.fNodes[added].y = node.y;
+			result.fNodes[added].degree = node.degree;
+		};
+		for (int index : nodes)
+			take(index);
+		for (int index : edges) {
+			take(fList[index].from);
+			take(fList[index].to);
+			Edge copy = fList[index];
+			copy.from = result.IndexOf(fNodes[copy.from].id);
+			copy.to = result.IndexOf(fNodes[copy.to].id);
+			result.fList.push_back(copy);
+			result.fEdges[Key(copy.from, copy.to)] = static_cast<int>(result.fList.size()) - 1;
+		}
+		return result;
+	}
+
+	/** A node with the nodes that it is directly connected to, and the edges that it has (not those between the others). */
+	Graph Neighborhood(int node) const
+	{
+		std::vector<int> nodes(1, node), edges;
+		for (size_t i = 0; i < fList.size(); i++) {
+			if (fList[i].from == node || fList[i].to == node)
+				edges.push_back(static_cast<int>(i));
+		}
+		return Subgraph(nodes, edges);
+	}
 
 	/**
 	 * Place the nodes (x and y of each, from 0 on) and count the degrees. Every connected part of the graph is laid out by itself (the nodes push each
@@ -332,78 +409,132 @@ public:
 		}
 	}
 
-	/** The graph (after Layout()) as an SVG document: the edges (with arrows for relations that are in one direction only), then the nodes, with a title each. */
+	/**
+	 * The graph (after Layout()) as an SVG document: the edges (with arrows for relations that are in one direction only), then the nodes, with a title each,
+	 * the names. With the options of a view it is the picture of the view: its selection is emphasised, what is not connected to it is dimmed.
+	 */
 	std::string ToSvg(const SvgOptions& options = SvgOptions()) const
 	{
-		float left, top, right, bottom;
-		Bounds(&left, &top, &right, &bottom);
 		const Palette palette = PaletteFor(options.dark);
 		const std::string backgroundHex = Hex(palette.background), edgeHex = Hex(palette.edge), metaHex = Hex(palette.metaEdge);
-		const float margin = options.margin;
-		const float width = right - left + 2 * margin, height = bottom - top + 2 * margin;
-		const float offsetX = margin - left, offsetY = margin - top;
+		const std::string emphasisHex = Hex(palette.emphasis);
+
+		float width = options.width, height = options.height, scale = options.scale, offsetX = options.offsetX, offsetY = options.offsetY;
+		if (width <= 0) {
+			float left, top, right, bottom;
+			Bounds(&left, &top, &right, &bottom);
+			scale = 1;
+			width = right - left + 2 * options.margin;
+			height = bottom - top + 2 * options.margin;
+			offsetX = options.margin - left;
+			offsetY = options.margin - top;
+		}
+		auto X = [&](const Node& node) { return node.x * scale + offsetX; };
+		auto Y = [&](const Node& node) { return node.y * scale + offsetY; };
+
+		// what is emphasised: the selected node and its edges, the selected edge
+		const bool selectingNode = options.selectedNode >= 0 && options.selectedNode < static_cast<int>(fNodes.size());
+		const bool selectingEdge = options.selectedEdge >= 0 && options.selectedEdge < static_cast<int>(fList.size());
+		const bool selecting = selectingNode || selectingEdge;
+		std::vector<bool> related(fNodes.size(), false);
+		if (selectingNode) {
+			related[options.selectedNode] = true;
+			for (const Edge& edge : fList) {
+				if (edge.from == options.selectedNode)
+					related[edge.to] = true;
+				else if (edge.to == options.selectedNode)
+					related[edge.from] = true;
+			}
+		}
+		if (selectingEdge) {
+			related[fList[options.selectedEdge].from] = true;
+			related[fList[options.selectedEdge].to] = true;
+		}
 
 		std::string svg;
-		char buffer[512];
+		char buffer[640];
 		snprintf(buffer, sizeof(buffer),
 			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%.0f\" height=\"%.0f\" viewBox=\"0 0 %.0f %.0f\" "
-			"font-family=\"sans-serif\">\n<title>SEN: objects and relations</title>\n"
+			"font-family=\"sans-serif\" font-size=\"%.1f\">\n<title>SEN: objects and relations</title>\n"
 			"<defs><marker id=\"arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto\">"
+			"<path d=\"M 0 0 L 10 5 L 0 10 z\" fill=\"%s\"/></marker>"
+			"<marker id=\"arrow-strong\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto\">"
 			"<path d=\"M 0 0 L 10 5 L 0 10 z\" fill=\"%s\"/></marker></defs>\n<rect width=\"100%%\" height=\"100%%\" fill=\"%s\"/>\n",
-			width, height, width, height, edgeHex.c_str(), backgroundHex.c_str());
+			width, height, width, height, options.fontSize, edgeHex.c_str(), emphasisHex.c_str(), backgroundHex.c_str());
 		svg += buffer;
 
-		for (const Edge& edge : fList) {
+		auto strong = [&](size_t index) {
+			const Edge& edge = fList[index];
+			return (selectingNode && (edge.from == options.selectedNode || edge.to == options.selectedNode))
+				|| static_cast<int>(index) == options.selectedEdge;
+		};
+
+		for (size_t index = 0; index < fList.size(); index++) {
+			const Edge& edge = fList[index];
 			const Node& from = fNodes[edge.from];
 			const Node& to = fNodes[edge.to];
-			float deltaX = to.x - from.x, deltaY = to.y - from.y;
+			const bool emphasised = strong(index), active = !selecting || emphasised;
+			float deltaX = X(to) - X(from), deltaY = Y(to) - Y(from);
 			const float length = std::max(std::sqrt(deltaX * deltaX + deltaY * deltaY), 0.01f);
 			deltaX /= length;
 			deltaY /= length;
 			// the line ends at the rim of the nodes, so that the arrow is seen
-			const float startR = NodeRadius(from.degree), endR = NodeRadius(to.degree) + (edge.reciprocal ? 0 : 1);
+			const float startR = NodeRadiusAt(from.degree, scale), endR = NodeRadiusAt(to.degree, scale) + (edge.reciprocal ? 0 : 1);
+			const std::string color = emphasised ? emphasisHex : (edge.meta ? metaHex : edgeHex);
 			snprintf(buffer, sizeof(buffer),
 				"<line x1=\"%.1f\" y1=\"%.1f\" x2=\"%.1f\" y2=\"%.1f\" stroke=\"%s\" stroke-width=\"%.1f\"%s%s/>\n",
-				from.x + offsetX + deltaX * startR, from.y + offsetY + deltaY * startR, to.x + offsetX - deltaX * endR, to.y + offsetY - deltaY * endR,
-				edge.meta ? metaHex.c_str() : edgeHex.c_str(), edge.meta ? 1.0f : 1.4f, edge.meta ? " stroke-dasharray=\"4 3\"" : "",
-				edge.reciprocal ? "" : " marker-end=\"url(#arrow)\"");
+				X(from) + deltaX * startR, Y(from) + deltaY * startR, X(to) - deltaX * endR, Y(to) - deltaY * endR, color.c_str(), emphasised ? 2.4f : 1.2f,
+				active ? "" : " opacity=\"0.2\"",
+				edge.reciprocal || length <= startR + endR + 8 ? "" : (emphasised ? " marker-end=\"url(#arrow-strong)\"" : " marker-end=\"url(#arrow)\""));
 			svg += buffer;
 		}
 
-		if (options.edgeLabels) {
-			for (const Edge& edge : fList) {
-				std::string label = edge.label;
-				if (edge.reciprocal && !edge.inverseLabel.empty() && edge.inverseLabel != edge.label)
-					label += label.empty() ? edge.inverseLabel : " / " + edge.inverseLabel;
-				if (label.empty())
-					continue;
-				const Node& from = fNodes[edge.from];
-				const Node& to = fNodes[edge.to];
-				snprintf(buffer, sizeof(buffer),
-					"<text x=\"%.1f\" y=\"%.1f\" font-size=\"8\" text-anchor=\"middle\" fill=\"%s\" stroke=\"%s\" stroke-width=\"2.5\" "
-					"paint-order=\"stroke\">", (from.x + to.x) / 2 + offsetX, (from.y + to.y) / 2 + offsetY, Hex(palette.edgeText).c_str(), backgroundHex.c_str());
-				svg += buffer;
-				svg += XmlEscape(label) + "</text>\n";
-			}
+		const float font = options.fontSize;
+		const std::string edgeTextHex = Hex(palette.edgeText), textHex = Hex(palette.text);
+
+		for (size_t index = 0; index < fList.size(); index++) {
+			const Edge& edge = fList[index];
+			const bool wanted = options.edgeLabelShown != NULL ? (index < options.edgeLabelShown->size() && (*options.edgeLabelShown)[index]) : options.edgeLabels;
+			if (!wanted)
+				continue;
+			std::string label = edge.label;
+			if (edge.reciprocal && !edge.inverseLabel.empty() && edge.inverseLabel != edge.label)
+				label += label.empty() ? edge.inverseLabel : " / " + edge.inverseLabel;
+			if (label.empty())
+				continue;
+			const Node& from = fNodes[edge.from];
+			const Node& to = fNodes[edge.to];
+			snprintf(buffer, sizeof(buffer),
+				"<text x=\"%.1f\" y=\"%.1f\" text-anchor=\"middle\" fill=\"%s\" stroke=\"%s\" stroke-width=\"3\" paint-order=\"stroke\">",
+				(X(from) + X(to)) / 2, (Y(from) + Y(to)) / 2 + font * 0.35f, strong(index) ? textHex.c_str() : edgeTextHex.c_str(), backgroundHex.c_str());
+			svg += buffer;
+			svg += XmlEscape(label) + "</text>\n";
 		}
 
-		for (const Node& node : fNodes) {
+		for (size_t index = 0; index < fNodes.size(); index++) {
+			const Node& node = fNodes[index];
+			const bool dimmed = selecting && !related[index];
+			const bool chosen = static_cast<int>(index) == options.selectedNode;
+			const float radius = NodeRadiusAt(node.degree, scale) + (chosen ? 2 : 0);
 			const Rgb color = GroupColor(node.group, options.dark);
-			snprintf(buffer, sizeof(buffer), "<circle cx=\"%.1f\" cy=\"%.1f\" r=\"%.1f\" fill=\"#%02x%02x%02x\" stroke=\"%s\" stroke-width=\"1.5\">",
-				node.x + offsetX, node.y + offsetY, NodeRadius(node.degree), color.r, color.g, color.b, backgroundHex.c_str());
+			snprintf(buffer, sizeof(buffer),
+				"<circle cx=\"%.1f\" cy=\"%.1f\" r=\"%.1f\" fill=\"#%02x%02x%02x\" stroke=\"%s\" stroke-width=\"%.1f\"%s>",
+				X(node), Y(node), radius, color.r, color.g, color.b, chosen ? emphasisHex.c_str() : backgroundHex.c_str(), chosen ? 2.0f : 1.2f,
+				dimmed ? " opacity=\"0.35\"" : "");
 			svg += buffer;
 			svg += "<title>" + XmlEscape(node.label) + (node.group.empty() ? "" : " (" + XmlEscape(node.group) + ")") + "</title></circle>\n";
 		}
 
-		if (options.nodeLabels) {
-			for (const Node& node : fNodes) {
-				snprintf(buffer, sizeof(buffer),
-					"<text x=\"%.1f\" y=\"%.1f\" font-size=\"10\" text-anchor=\"middle\" fill=\"%s\" stroke=\"%s\" stroke-width=\"3\" "
-					"paint-order=\"stroke\">", node.x + offsetX, node.y + offsetY + NodeRadius(node.degree) + 11, Hex(palette.text).c_str(),
-					backgroundHex.c_str());
-				svg += buffer;
-				svg += XmlEscape(node.label) + "</text>\n";
-			}
+		for (size_t index = 0; index < fNodes.size(); index++) {
+			const Node& node = fNodes[index];
+			const bool wanted = options.nodeLabelShown != NULL ? (index < options.nodeLabelShown->size() && (*options.nodeLabelShown)[index]) : options.nodeLabels;
+			if (!wanted)
+				continue;
+			snprintf(buffer, sizeof(buffer),
+				"<text x=\"%.1f\" y=\"%.1f\" text-anchor=\"middle\" fill=\"%s\" stroke=\"%s\" stroke-width=\"3\" paint-order=\"stroke\">",
+				X(node), Y(node) + NodeRadiusAt(node.degree, scale) + font + 2, textHex.c_str(), backgroundHex.c_str());
+			svg += buffer;
+			svg += XmlEscape(ShownName(node.label)) + "</text>\n";
 		}
 
 		svg += "</svg>\n";

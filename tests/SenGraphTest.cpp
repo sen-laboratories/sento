@@ -235,6 +235,92 @@ TEST(TheSvgHasWhatIsInTheGraph)
 	CHECK(small.find(">Ben</text>") == std::string::npos);
 }
 
+static Graph Star()
+{
+	// a - b, a - c, a - d (the node a and its three), b - c (between two of them), e - f (apart)
+	Graph graph;
+	for (const char* id : {"a", "b", "c", "d", "e", "f"})
+		graph.AddNode(id, std::string("node ") + id, "g");
+	graph.AddEdge("a", "b", "x", "t");
+	graph.AddEdge("a", "c", "x", "t");
+	graph.AddEdge("a", "d", "x", "t");
+	graph.AddEdge("b", "c", "y", "t");
+	graph.AddEdge("e", "f", "z", "t");
+	graph.Layout();
+	return graph;
+}
+
+TEST(NeighborhoodIsTheNodeItsNeighboursAndItsOwnEdges)
+{
+	Graph graph = Star();
+	Graph part = graph.Neighborhood(graph.IndexOf("a"));
+	CHECK_EQ(part.Nodes().size(), 4u);	// a, b, c, d (not e and f)
+	CHECK_EQ(part.Edges().size(), 3u);	// the three of a, not the one between b and c
+	CHECK(part.IndexOf("e") < 0);
+	// it looks as it does in the whole: the same places, the same sizes
+	for (const Node& node : part.Nodes()) {
+		const Node& whole = graph.Nodes()[graph.IndexOf(node.id)];
+		CHECK(node.x == whole.x && node.y == whole.y);
+		CHECK_EQ(node.degree, whole.degree);
+	}
+	CHECK_EQ(graph.Nodes()[graph.IndexOf("a")].degree, 3);
+}
+
+TEST(SubgraphOfAnEdgeHasItsTwoNodes)
+{
+	Graph graph = Star();
+	Graph part = graph.Subgraph({}, {3});	// the edge between b and c
+	CHECK_EQ(part.Nodes().size(), 2u);
+	CHECK_EQ(part.Edges().size(), 1u);
+}
+
+TEST(TheSvgOfAViewIsWhatTheViewShows)
+{
+	Graph graph = Star();
+	SvgOptions view;
+	view.width = 800;
+	view.height = 500;
+	view.scale = 2;
+	view.offsetX = 10;
+	view.offsetY = 20;
+	view.selectedNode = graph.IndexOf("a");
+	std::vector<bool> nodeLabels(graph.Nodes().size(), false), edgeLabels(graph.Edges().size(), false);
+	nodeLabels[graph.IndexOf("a")] = true;
+	edgeLabels[0] = true;
+	view.nodeLabelShown = &nodeLabels;
+	view.edgeLabelShown = &edgeLabels;
+
+	const std::string svg = graph.ToSvg(view);
+	CHECK(svg.find("width=\"800\" height=\"500\"") != std::string::npos);
+	CHECK(svg.find(">node a</text>") != std::string::npos);		// the name that the view shows
+	CHECK(svg.find(">node b</text>") == std::string::npos);		// the names that it does not
+	CHECK(svg.find("opacity=\"0.35\"") != std::string::npos);	// e and f are dimmed
+	CHECK(svg.find("opacity=\"0.2\"") != std::string::npos);		// and so are the lines that are not the selected ones
+	CHECK(svg.find("stroke=\"#000000\" stroke-width=\"2.4\"") != std::string::npos);	// the lines of the selected node
+	CHECK(svg.find("marker-end=\"url(#arrow-strong)\"") == std::string::npos || svg.find("arrow-strong") != std::string::npos);
+
+	// without a selection nothing is dimmed
+	SvgOptions plain;
+	plain.width = 800;
+	plain.height = 500;
+	const std::string flat = graph.ToSvg(plain);
+	CHECK(flat.find("opacity=") == std::string::npos);
+
+	// the places are those of the view: x * scale + offset
+	const Node& a = graph.Nodes()[graph.IndexOf("a")];
+	char expected[64];
+	snprintf(expected, sizeof(expected), "cx=\"%.1f\" cy=\"%.1f\"", a.x * 2 + 10, a.y * 2 + 20);
+	CHECK(svg.find(expected) != std::string::npos);
+}
+
+TEST(LongNamesAreCutLikeTheViewDoes)
+{
+	CHECK_STR(ShownName("short"), "short");
+	CHECK_STR(ShownName("0123456789012345678901234567"), "0123456789012345678901234567");	// 28: as it is
+	CHECK_STR(ShownName("01234567890123456789012345678"), std::string("012345678901234567890123456") + "\xE2\x80\xA6");	// 29: 27 and an ellipsis
+	CHECK_STR(ShownName("\xC3\xA4\xC3\xB6\xC3\xBC"), "\xC3\xA4\xC3\xB6\xC3\xBC");	// characters, not bytes
+}
+
 TEST(TheSameGroupHasTheSameColour)
 {
 	Rgb a = GroupColor("entity/x-vnd.sen-labs.entity.person"), b = GroupColor("entity/x-vnd.sen-labs.entity.person");
