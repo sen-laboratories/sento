@@ -455,7 +455,7 @@ public:
 		char buffer[640];
 		snprintf(buffer, sizeof(buffer),
 			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%.0f\" height=\"%.0f\" viewBox=\"0 0 %.0f %.0f\" "
-			"font-family=\"sans-serif\" font-size=\"%.1f\">\n<title>SEN: objects and relations</title>\n"
+			"font-family=\"sans-serif\" font-size=\"%.1f\" font-weight=\"normal\">\n<title>SEN: objects and relations</title>\n"
 			"<defs><marker id=\"arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto\">"
 			"<path d=\"M 0 0 L 10 5 L 0 10 z\" fill=\"%s\"/></marker>"
 			"<marker id=\"arrow-strong\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto\">"
@@ -492,6 +492,18 @@ public:
 		const float font = options.fontSize;
 		const std::string edgeTextHex = Hex(palette.edgeText), textHex = Hex(palette.text);
 
+		// a name on the background: the halo is a text of its own below the one that is read, so that it looks the same in every viewer
+		auto drawLabel = [&](float x, float y, const std::string& text, const std::string& color) {
+			char line[400];
+			snprintf(line, sizeof(line), "<text x=\"%.1f\" y=\"%.1f\" text-anchor=\"middle\" fill=\"%s\" stroke=\"%s\" stroke-width=\"3\" stroke-linejoin=\"round\">",
+				x, y, backgroundHex.c_str(), backgroundHex.c_str());
+			svg += line;
+			svg += XmlEscape(text) + "</text>\n";
+			snprintf(line, sizeof(line), "<text x=\"%.1f\" y=\"%.1f\" text-anchor=\"middle\" fill=\"%s\">", x, y, color.c_str());
+			svg += line;
+			svg += XmlEscape(text) + "</text>\n";
+		};
+
 		for (size_t index = 0; index < fList.size(); index++) {
 			const Edge& edge = fList[index];
 			const bool wanted = options.edgeLabelShown != NULL ? (index < options.edgeLabelShown->size() && (*options.edgeLabelShown)[index]) : options.edgeLabels;
@@ -504,11 +516,7 @@ public:
 				continue;
 			const Node& from = fNodes[edge.from];
 			const Node& to = fNodes[edge.to];
-			snprintf(buffer, sizeof(buffer),
-				"<text x=\"%.1f\" y=\"%.1f\" text-anchor=\"middle\" fill=\"%s\" stroke=\"%s\" stroke-width=\"3\" paint-order=\"stroke\">",
-				(X(from) + X(to)) / 2, (Y(from) + Y(to)) / 2 + font * 0.35f, strong(index) ? textHex.c_str() : edgeTextHex.c_str(), backgroundHex.c_str());
-			svg += buffer;
-			svg += XmlEscape(label) + "</text>\n";
+			drawLabel((X(from) + X(to)) / 2, (Y(from) + Y(to)) / 2 + font * 0.35f, label, strong(index) ? textHex : edgeTextHex);
 		}
 
 		for (size_t index = 0; index < fNodes.size(); index++) {
@@ -530,11 +538,7 @@ public:
 			const bool wanted = options.nodeLabelShown != NULL ? (index < options.nodeLabelShown->size() && (*options.nodeLabelShown)[index]) : options.nodeLabels;
 			if (!wanted)
 				continue;
-			snprintf(buffer, sizeof(buffer),
-				"<text x=\"%.1f\" y=\"%.1f\" text-anchor=\"middle\" fill=\"%s\" stroke=\"%s\" stroke-width=\"3\" paint-order=\"stroke\">",
-				X(node), Y(node) + NodeRadiusAt(node.degree, scale) + font + 2, textHex.c_str(), backgroundHex.c_str());
-			svg += buffer;
-			svg += XmlEscape(ShownName(node.label)) + "</text>\n";
+			drawLabel(X(node), Y(node) + NodeRadiusAt(node.degree, scale) + font + 2, ShownName(node.label), textHex);
 		}
 
 		svg += "</svg>\n";

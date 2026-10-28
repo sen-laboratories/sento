@@ -224,6 +224,14 @@ TEST(TheSvgHasWhatIsInTheGraph)
 	SvgOptions plain;
 	plain.nodeLabels = false;
 	plain.edgeLabels = false;
+	// the halo of a name is a text of its own below it (paint-order is not known to every viewer: the stroke would lie over the letters)
+	CHECK(svg.find("paint-order") == std::string::npos);
+	size_t names = 0;
+	for (size_t at = svg.find(">Ben</text>"); at != std::string::npos; at = svg.find(">Ben</text>", at + 1))
+		names++;
+	CHECK_EQ(names, 2u);	// the halo and the name
+	CHECK(svg.find("font-weight=\"normal\"") != std::string::npos);
+
 	SvgOptions dark;
 	dark.dark = true;
 	const std::string night = graph.ToSvg(dark);
