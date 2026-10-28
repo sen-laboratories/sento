@@ -96,6 +96,8 @@ inline constexpr uint32_t kUiShowSettings = 'SUse';
 inline constexpr uint32_t kUiShowAbout    = 'SUab';
 /** open the query with all SEN objects (the files with a SEN:ID): the knowledge graph as a flat list */
 inline constexpr uint32_t kUiOpenObjects  = 'SUob';
+/** open the graph of the objects and their relations (the Knot with the SEN key, or its menu): a window with the nodes, the relations as edges */
+inline constexpr uint32_t kUiOpenGraph          = 'SUgr';
 /** open the query with the entities of a classification type (kType) */
 inline constexpr uint32_t kUiOpenClassification = 'SUcl';
 /** open the query with the files that are classified by an entity (refs: the file of the entity) */
