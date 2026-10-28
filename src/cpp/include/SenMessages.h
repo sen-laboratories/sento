@@ -75,6 +75,8 @@ inline constexpr uint32_t kOpenAllRelationsView   = 'STra';
 /** the server asks the file manager (Akita) to open the folder of the relations of one type of a file (refs: the file, SEN:relationType): what a
  *  classification chosen in the menu of SEN shows, the files that have it. Answered with sen::key::kResult; a Tracker without SEN does not know it. */
 inline constexpr uint32_t kOpenRelationsOfType    = 'STro';
+/** ask Tracker (Akita) for the files that are selected in its active window: the reply has them as refs (none if there is no selection) */
+inline constexpr uint32_t kGetSelection           = 'STgs';
 inline constexpr uint32_t kOpenRelationTargetView = 'STtv';
 
 // ---- applications that manage the types (our FileTypes, see sen::kFileTypesSignature)
@@ -96,7 +98,7 @@ inline constexpr uint32_t kUiShowSettings = 'SUse';
 inline constexpr uint32_t kUiShowAbout    = 'SUab';
 /** open the query with all SEN objects (the files with a SEN:ID): the knowledge graph as a flat list */
 inline constexpr uint32_t kUiOpenObjects  = 'SUob';
-/** open the graph of the objects and their relations (the Knot with the SEN key, or its menu): a window with the nodes, the relations as edges */
+/** open the graph of the objects and their relations (the Knot with the SEN key, or its menu): a window with the nodes, the relations as edges; with a file (refs) the graph is centred on it, and without one on the file that is selected in Tracker */
 inline constexpr uint32_t kUiOpenGraph          = 'SUgr';
 /** open the query with the entities of a classification type (kType) */
 inline constexpr uint32_t kUiOpenClassification = 'SUcl';
