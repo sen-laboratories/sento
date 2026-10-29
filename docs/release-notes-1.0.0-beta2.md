@@ -5,7 +5,7 @@ SPDX-FileCopyrightText: 2026 SEN Labs e.U.
 
 # SEN 1.0.0 Beta 2 "Sofia" — *The Graph*
 
-> *"The human mind [...] operates by association."* — Vannevar Bush, "As We May Think", 1945
+> From files and folders to nodes and edges...
 
 Beta 1 made the knowledge graph of your files something you can *walk* through: folders as dynamic projections of relations. Beta 2 lets you *see* it.
 
@@ -88,7 +88,7 @@ SEN 2.0 "Gnosis": the unified registry of semantic types, an Akita of its own wi
 
 ## Your support is essential
 
-Please consider hitting the "Support" button in the About dialog and contribute to the ongoing development of SEN!
+Please consider hitting the "Support" button in the About dialog and contribute to the ongoing development of SEN, or simply donate right from here to [SEN Labs Liberapay](https://liberapay.com/sen-labs/).
 
 ## Feedback & Community
 
