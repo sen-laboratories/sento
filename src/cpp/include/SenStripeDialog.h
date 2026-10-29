@@ -225,7 +225,10 @@ private:
 };
 
 
-/** The About dialog: the name, the version, the description and the copyright, and OK. */
+/**
+ * The About dialog: the name, the version, the description and the copyright, and OK. A program that has more to offer (a link, a button for support) adds it with
+ * AddContent() and AddButton(), and handles the message of its button in its own MessageReceived().
+ */
 class AboutDialog : public StripeDialog {
 public:
 	/**
@@ -238,7 +241,8 @@ public:
 	AboutDialog(const char* name, const char* version, const char* description, const char* copyright, BBitmap* logo,
 			bool quitApplication = false)
 		:
-		StripeDialog((BString("About ") << name).String(), logo, quitApplication)
+		StripeDialog((BString("About ") << name).String(), logo, quitApplication),
+		fButtons(NULL)
 	{
 		BString text(name);
 		text << "\n";
@@ -276,8 +280,25 @@ public:
 		ok->MakeDefault(true);
 
 		ContentLayout()->AddView(view);
-		BLayoutBuilder::Group<>(ContentLayout()).AddGroup(B_HORIZONTAL, 0).AddGlue().Add(ok).End();
+		BLayoutBuilder::Group<>(ContentLayout()).AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING).GetLayout(&fButtons).AddGlue().Add(ok).End();
 	}
+
+	/** A view below the text (a link, for example), above the buttons. */
+	void
+	AddContent(BView* view)
+	{
+		ContentLayout()->AddView(ContentLayout()->CountItems() - 1, view);
+	}
+
+	/** A button left of OK. Its message goes to this window: handle it in MessageReceived() of a subclass. */
+	void
+	AddButton(const char* label, BMessage* message)
+	{
+		fButtons->AddView(fButtons->CountItems() - 1, new BButton(label, label, message));
+	}
+
+private:
+	BGroupLayout*	fButtons;
 };
 
 }	// namespace sen
