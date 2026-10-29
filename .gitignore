@@ -31,3 +31,4 @@
 *.out
 *.app
 docs/api/
+.DS_Store
