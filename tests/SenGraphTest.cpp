@@ -304,8 +304,16 @@ TEST(TheSvgOfAViewIsWhatTheViewShows)
 	CHECK(svg.find(">node b</text>") == std::string::npos);		// the names that it does not
 	CHECK(svg.find("opacity=\"0.35\"") != std::string::npos);	// e and f are dimmed
 	CHECK(svg.find("opacity=\"0.2\"") != std::string::npos);		// and so are the lines that are not the selected ones
-	CHECK(svg.find("stroke=\"#000000\" stroke-width=\"2.4\"") != std::string::npos);	// the lines of the selected node
+	CHECK(svg.find("stroke=\"#000000\" stroke-width=\"2.0\"") != std::string::npos);	// the lines of the selected node
 	CHECK(svg.find("marker-end=\"url(#arrow-strong)\"") == std::string::npos || svg.find("arrow-strong") != std::string::npos);
+
+	// the picture of a selection alone: the lines are plain, only the node stands out
+	SvgOptions alone = view;
+	alone.emphasiseLines = false;
+	const std::string only = graph.ToSvg(alone);
+	CHECK(only.find("stroke-width=\"2.0\"") != std::string::npos);		// (the ring of the node)
+	CHECK(only.find("stroke=\"#000000\" stroke-width=\"2.0\"/>") == std::string::npos);	// but no line
+	CHECK(only.find("opacity=") == std::string::npos);
 
 	// without a selection nothing is dimmed
 	SvgOptions plain;

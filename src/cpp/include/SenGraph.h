@@ -103,6 +103,10 @@ Hex(const Rgb& color)
 	return buffer;
 }
 
+/** The width of the lines: the others, and those of the selection. */
+inline constexpr float kLineWidth = 1.2f;
+inline constexpr float kStrongLineWidth = 2.0f;
+
 /** The size (radius) of a node: more edges, bigger. */
 inline float
 NodeRadius(int degree)
@@ -152,6 +156,7 @@ struct SvgOptions {
 	float	offsetY = 0;
 	int		selectedNode = -1;		///< emphasised with its relations, the rest is dimmed
 	int		selectedEdge = -1;
+	bool	emphasiseLines = true;	///< the lines of the selection are emphasised and the rest is dimmed (not for a picture of the selection alone: only the node stands out)
 	const std::vector<bool>*	nodeLabelShown = NULL;	///< which names are there (the view leaves out those that would lie on others)
 	const std::vector<bool>*	edgeLabelShown = NULL;
 };
@@ -435,7 +440,7 @@ public:
 		// what is emphasised: the selected node and its edges, the selected edge
 		const bool selectingNode = options.selectedNode >= 0 && options.selectedNode < static_cast<int>(fNodes.size());
 		const bool selectingEdge = options.selectedEdge >= 0 && options.selectedEdge < static_cast<int>(fList.size());
-		const bool selecting = selectingNode || selectingEdge;
+		const bool selecting = (selectingNode || selectingEdge) && options.emphasiseLines;
 		std::vector<bool> related(fNodes.size(), false);
 		if (selectingNode) {
 			related[options.selectedNode] = true;
@@ -465,8 +470,8 @@ public:
 
 		auto strong = [&](size_t index) {
 			const Edge& edge = fList[index];
-			return (selectingNode && (edge.from == options.selectedNode || edge.to == options.selectedNode))
-				|| static_cast<int>(index) == options.selectedEdge;
+			return options.emphasiseLines && ((selectingNode && (edge.from == options.selectedNode || edge.to == options.selectedNode))
+				|| static_cast<int>(index) == options.selectedEdge);
 		};
 
 		for (size_t index = 0; index < fList.size(); index++) {
@@ -483,7 +488,7 @@ public:
 			const std::string color = emphasised ? emphasisHex : (edge.meta ? metaHex : edgeHex);
 			snprintf(buffer, sizeof(buffer),
 				"<line x1=\"%.1f\" y1=\"%.1f\" x2=\"%.1f\" y2=\"%.1f\" stroke=\"%s\" stroke-width=\"%.1f\"%s%s/>\n",
-				X(from) + deltaX * startR, Y(from) + deltaY * startR, X(to) - deltaX * endR, Y(to) - deltaY * endR, color.c_str(), emphasised ? 2.4f : 1.2f,
+				X(from) + deltaX * startR, Y(from) + deltaY * startR, X(to) - deltaX * endR, Y(to) - deltaY * endR, color.c_str(), emphasised ? kStrongLineWidth : kLineWidth,
 				active ? "" : " opacity=\"0.2\"",
 				edge.reciprocal || length <= startR + endR + 8 ? "" : (emphasised ? " marker-end=\"url(#arrow-strong)\"" : " marker-end=\"url(#arrow)\""));
 			svg += buffer;
