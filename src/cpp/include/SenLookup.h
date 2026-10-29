@@ -4,11 +4,15 @@
  */
 #pragma once
 
+#include <string.h>
+
 #include <string>
 #include <vector>
 
 #include <Entry.h>
+#include <MimeType.h>
 #include <Node.h>
+#include <NodeInfo.h>
 #include <Query.h>
 #include <String.h>
 #include <Volume.h>
@@ -24,7 +28,8 @@
  * The relations are in the attributes of the files, so programs that only need to know where a relation leads (installers,
  * scripts, tools that run before the server does) can follow it themselves: the targets of a file are the ids in its `SEN:TO`
  * attributes (see SenIdList.h), and a file is found by its id with a query on `SEN:ID`. Adding, changing and removing relations
- * stays with the server, which keeps both sides of a relation consistent.
+ * stays with the server, which keeps both sides of a relation consistent. Also what a file is: its type, the type that a file of the MIME
+ * database stands for, and the name of a type in words.
  */
 namespace sen {
 namespace lookup {
@@ -92,6 +97,58 @@ Targets(const entry_ref& source, std::vector<entry_ref>* refs)
 			refs->push_back(ref);
 	}
 	return B_OK;
+}
+
+/**
+ * @brief The type of a file: its semantic type (`META:TYPE`) if it has one, else its MIME type; empty if it has none.
+ *
+ * The semantic type says what a file is for SEN (a scientific paper, an entity of a book), the MIME type what its format is (a PDF).
+ */
+inline std::string
+TypeOf(BNode& node)
+{
+	BString type;
+	if (node.InitCheck() == B_OK && node.ReadAttrString(attr::kType, &type) == B_OK && !type.IsEmpty())
+		return type.String();
+	char mime[B_MIME_TYPE_LENGTH];
+	if (node.InitCheck() == B_OK && BNodeInfo(&node).GetType(mime) == B_OK)
+		return mime;
+	return std::string();
+}
+
+/**
+ * @brief The type that a file stands for when it is the file of a type, else empty.
+ *
+ * The file of a type (the one that holds the attributes of `entity/x-vnd.sen-labs.entity.book`) is no file of its own type: it has the type
+ * as its `META:TYPE` and is named like the subtype ("x-vnd.sen-labs.entity.book"). So a file stands for the type of its `META:TYPE` when that is
+ * an installed type, and the file is named like its subtype. (The other files of that type, the books, have names of their own.) The type system
+ * says what is installed and what the supertype is, the folder of the MIME database is not looked at.
+ */
+inline std::string
+TypeOfDatabaseEntry(const entry_ref& ref)
+{
+	BNode node(&ref);
+	BString type;
+	if (node.InitCheck() != B_OK || node.ReadAttrString(attr::kType, &type) != B_OK || type.IsEmpty())
+		return std::string();
+
+	BMimeType mime(type.String());
+	BMimeType supertype;
+	if (!mime.IsValid() || mime.IsSupertypeOnly() || !mime.IsInstalled() || mime.GetSupertype(&supertype) != B_OK || supertype.Type() == NULL)
+		return std::string();
+
+	const std::string subtype = std::string(type.String()).substr(strlen(supertype.Type()) + 1);
+	return subtype == ref.name ? std::string(type.String()) : std::string();
+}
+
+/** @brief The name of a type for people (its short description: "Music album"); the type itself if it has none. */
+inline std::string
+NameOfType(const char* type)
+{
+	char shortName[B_MIME_TYPE_LENGTH];
+	if (type != NULL && type[0] != '\0' && BMimeType(type).GetShortDescription(shortName) == B_OK && shortName[0] != '\0')
+		return shortName;
+	return type != NULL ? type : "";
 }
 
 }	// namespace lookup

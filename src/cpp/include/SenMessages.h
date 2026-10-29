@@ -75,6 +75,8 @@ inline constexpr uint32_t kOpenAllRelationsView   = 'STra';
 /** the server asks the file manager (Akita) to open the folder of the relations of one type of a file (refs: the file, SEN:relationType): what a
  *  classification chosen in the menu of SEN shows, the files that have it. Answered with sen::key::kResult; a Tracker without SEN does not know it. */
 inline constexpr uint32_t kOpenRelationsOfType    = 'STro';
+/** ask Tracker (Akita) for the files that are selected in its active window: the reply has them as refs (none if there is no selection) */
+inline constexpr uint32_t kGetSelection           = 'STgs';
 inline constexpr uint32_t kOpenRelationTargetView = 'STtv';
 
 // ---- applications that manage the types (our FileTypes, see sen::kFileTypesSignature)
@@ -96,6 +98,8 @@ inline constexpr uint32_t kUiShowSettings = 'SUse';
 inline constexpr uint32_t kUiShowAbout    = 'SUab';
 /** open the query with all SEN objects (the files with a SEN:ID): the knowledge graph as a flat list */
 inline constexpr uint32_t kUiOpenObjects  = 'SUob';
+/** open the graph of the objects and their relations (the Knot with the SEN key, or its menu): a window with the nodes, the relations as edges; with a file (refs) the graph is centred on it, and without one on the file that is selected in Tracker */
+inline constexpr uint32_t kUiOpenGraph          = 'SUgr';
 /** open the query with the entities of a classification type (kType) */
 inline constexpr uint32_t kUiOpenClassification = 'SUcl';
 /** open the query with the files that are classified by an entity (refs: the file of the entity) */
@@ -165,6 +169,8 @@ inline constexpr char kModifierKey[]           = "SEN:modifierKey";
 inline constexpr char kUseAkita[]              = "SEN:useAkita";
 /** bool in the settings: the FileTypes of SEN (sen::kFileTypesSignature) is used where SEN shows a type, if it is installed; default true */
 inline constexpr char kUseSenFileTypes[]       = "SEN:useFileTypes";
+/** bool in the settings: the windows of SEN that have a dark and a light look (the graph window, for now) are dark (true) or light (false); not there: as the colours of the system are */
+inline constexpr char kDarkMode[]               = "SEN:darkMode";
 /** string in the settings: the name of the current context (global if there is none) */
 inline constexpr char kCurrentContext[]        = "SEN:currentContext";
 inline constexpr char kContextPathRef[]        = "SEN:contextPathRef";
