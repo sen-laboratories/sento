@@ -29,6 +29,7 @@
 #include <string.h>
 
 #include "SenStripeDialog.h"
+#include "SenVersion.h"
 
 namespace sen {
 
@@ -72,7 +73,7 @@ ShowAbout(int32 firstYear = 2024, const char* holder = "SEN Labs e.U.")
 	BString name(hasVersion && version.short_info[0] != '\0' ? version.short_info : info.ref.name);
 	BString number;
 	if (hasVersion)
-		number << (int) version.major << "." << (int) version.middle << "." << (int) version.minor;
+		number = VersionText(version);	// 0.1.0-beta.3: the stage and its count are in the version resource, as for the server
 	BString copyright("Copyright " B_UTF8_COPYRIGHT " ");
 	copyright << (int) firstYear << "-2026 " << holder << "\nA plugin of SEN, the Semantic Extensions Native for Haiku (MIT license).";
 
