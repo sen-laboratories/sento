@@ -52,6 +52,9 @@ connected stand by themselves, so you see at a glance what belongs together: an 
 
 - **Click** a dot: it is selected, its lines are emphasised, what is not connected to it is dimmed, and the names of its neighbours are shown. **Double-click** opens the file, as a double click in Akita does.
 - **Click a line** to select the relation, **double-click it** to open the folder of the relations of that type of the dot nearer to where you clicked (like *Open related...*: a relation is in both objects).
+- **Point at a dot or a line** and a translucent **card** appears next to it. The card of a dot has its picture, its title, the attributes that its type shows (the same as in Shoji) and the number of its relations;
+  the card of a line has the icon and the label of the relation as seen from the end that you are nearer to, the two objects and the number of targets of that end. Move the mouse onto the card, it lights up, and **a click
+  opens** the file or the folder of the relations, as a double click does. **Preview** above the graph switches the cards off.
 - **Drag** to move the graph, the **mouse wheel** zooms around the pointer (or `+` and `-`), **F** fits all of it into the window again. When you resize the window the graph is fitted again, as long as you have not zoomed or moved it.
 - **Dark** switches between a light and a dark look. It follows the colours of the system until you choose, and then the choice is remembered (the setting `SEN:darkMode` in `~/config/settings/sen/sen.settings`).
 - **Refresh** reads the objects again.

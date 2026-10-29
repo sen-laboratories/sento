@@ -18,17 +18,23 @@ lists *are* lists now, and the plugins ask you when a lookup has more than one a
 > nightly runs every day (`abi-check.sh` in the [akita](https://github.com/sen-laboratories/akita) repository), and a new build follows when a nightly breaks Akita.
 > Because SEN Core requires FileTypes, **this beta needs a Haiku nightly from hrev60299_1 on**; `pkgman update` updates Haiku too (it asks for a reboot).
 
-## A card for the selected object
+## Cards for what you point at
 
-Select a dot in the graph and a **card** appears next to it: the thumbnail or icon of the file, its title and the attributes that matter for its type. The background is translucent, so the graph shows through; it is not a window.
+Point at a dot in the graph and a **card** appears next to it: the thumbnail or icon of the file, its title and the attributes that matter for its type, and at the bottom **how many relations** it has. The background is
+translucent, so the graph shows through; it is not a window. It replaces the old little pop-up with the name and the number of relations.
 
-<img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.3/docs/images/beta3/graph-preview-dark.png" alt="The graph with the card of a selected person" width="760">
+<img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.3/docs/images/beta3/graph-card-node.png" alt="The graph with the card of a person" width="760">
 
+* **Move the mouse onto the card** (it stays while you go there) and it **lights up** a little; **click it** and the file or folder opens, just as with a double click on the dot.
 * **Which attributes** are in the card, in which order and under which labels is what the **Shoji template** of the type says (so a card and the window of Shoji show the same); a type without a template shows the viewable attributes of
   its MIME type. What a file does not have is left out, so a card is as small as it can be.
 * **Lists** are shown as simple CSV and are cut in the middle ("Family, Friends, Colle...rs, Haiku Users") when they are too long.
-* The **Preview** checkbox in the window of the graph switches it off. The card is read-only; double-click the dot to open the file.
-* The graph has a filter for **Ontologies** (off by default), like the one for classifications and objects without relations.
+* **A line (a relation) has a card as well**: the icon of the relation, its label as seen from the end that the mouse is nearer to ("cited by" at one end, "Citation" at the other), the two objects, and how many **targets**
+  that end has. Move along the line and the card follows; click it to open the folder of those relations.
+
+<img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.3/docs/images/beta3/graph-card-relation.png" alt="The card of a relation in the graph" width="760">
+
+* The **Preview** checkbox in the window of the graph switches the cards off. The graph has a filter for **Ontologies** (off by default), like the one for classifications and objects without relations.
 
 ## Shoji: an entity as a form
 
@@ -109,7 +115,6 @@ The server starts with your next session (or run `sen start`); `akita start` swi
 
 * The graph shows up to 2000 objects; with more, the status line says how many were read.
 * BFS volumes only, as in beta 1 and 2 (SEN keeps everything in extended attributes).
-* The card of the graph appears when you select an object, not when the mouse rests on it.
 * Shoji has templates for contacts and books; other types get the generated form.
 * A Haiku older than hrev60299_1 cannot be used with this beta (Akita would not load there).
 
