@@ -69,6 +69,25 @@ flowchart LR
   NAV -- "go to place: page, range, ..." --> APP
 ```
 
+### 2.1 The graph and the helpers of sento
+
+The graph window of the server (`sen-core`: `src/graph/GraphData`, `src/ui/GraphWindow`) is made of a few parts that other programs can use:
+
+- **`SenGraph.h`** (sento, plain C++, no Haiku API, tested on every platform in `tests/SenGraphTest.cpp`): `sen::graph::Graph` with the nodes (`SEN:ID`, name, group), the edges (a relation in one direction, or
+  both: the two directions of a relation are one reciprocal edge with both labels), the force layout (`Layout()`: Fruchterman and Reingold, every connected part by itself, the parts packed in rows,
+  deterministic), the filters (`Filtered()`, `Subgraph()`, `Neighborhood()`) and the SVG writer (`ToSvg()`). With `SvgOptions` the writer draws a *view*: its size, zoom and shift, the selection
+  (emphasised, the rest dimmed) and the labels that the view decided to show, so that a view and its SVG are the same picture. The palette (`PaletteFor()`, light or dark) and the sizes are shared.
+- **`SenLookup.h`** (sento, Haiku): besides the targets of relations, the functions for types: `TypeOf(node)` is the semantic type (`META:TYPE`) of a file, else its MIME type; `TypeOfDatabaseEntry(ref)` tells which type a
+  file of the MIME database stands for (such a file has no type of its own, it has its type as `META:TYPE` and is named like the subtype, and the type system says that the type is installed: the folder of the database
+  is not parsed); `NameOfType(type)` is the type in words ("Music album").
+- **`GraphData`** (sen-core) reads the graph from the disk without the relation handler: a query for `SEN:ID` on all volumes gives the nodes, the lists `SEN:TO` and `SEN:META` of each file the edges, and the labels and
+  types of the relations come from the attributes `SEN:REL:*` of the source (see 3.2). `tests/vm/graph.sh` checks it on a live system without the server.
+- **Messages.** `sen::cmd::kUiOpenGraph` (`'SUgr'`) opens the window, with `refs` it is centred on that file; without, the server asks Tracker for the selection with `sen::cmd::kGetSelection` (`'STgs'`, answered by Akita
+  with the selected files of its active window; stock Tracker does not know it). In Akita, SEN key + double click on a file sends `kUiOpenGraph`. `kOpenRelationsOfType` is what a double click on a line sends to Akita.
+- **Setting.** `sen::key::kDarkMode` (`SEN:darkMode`), a bool in `sen.settings`, for the windows of SEN that have a light and a dark look; not there means that the colours of the system decide.
+- **Testing a server next to a running one.** The Deskbar loads the knot as an add-on from the file of the server: a second server of another version would put a second image of the same classes into the Deskbar. A server that
+  is started for a test sets `SEN_NO_DESKBAR=1` and leaves the Deskbar alone.
+
 ## 3. The data model
 
 ### 3.1 Identity: `SEN:ID` and `SEN:TO`
@@ -433,6 +452,12 @@ FileTypes is a single launch application, so there is one instance, and it is no
 - File header (every source, script and resource file):
   `SPDX-License-Identifier: MIT` and `SPDX-FileCopyrightText: <years> SEN Labs e.U.`
 - Logging: `spdlog` (HaikuPorts `spdlog_devel`, links `spdlog` and `fmt`, defines `SPDLOG_COMPILED_LIB SPDLOG_FMT_EXTERNAL`) in all SEN code except the Tracker, which is part of the Haiku tree and logs with the platform's macros (`PRINT()` for traces, `ERROR()` from `TrackerSenLog.h`, which writes to the system log); no `printf`/`fprintf` logging and no macros in public headers. Sinks and levels are configuration, not code: `sen_server` reads `SEN_LOG_LEVEL` (`trace`..`off`).
+- `BMenu::SetTargetForItems()` sets the target of the items of that menu only, not those of its submenus (`BMenuItem` has no hand in it): a menu of several levels needs the target of every item (`SetTargetOfAllItems()` in the Deskbar view),
+  or the messages of the inner items go to the window of the menu and are lost without a trace.
+- A window of the server must not quit the server: the shortcut Alt+Q of every window posts `B_QUIT_REQUESTED` to the application. `SenUi::_Show()` replaces it by a close of the window. (`SenServer::QuitRequested()` takes
+  the knot away only when the server really quits.)
+- A file panel (`BFilePanel`) is in `libtracker`, the server links it. A name of a file that a program suggests should have no characters that mean something in a path or a URL: a browser opens a local SVG
+  through a page that names the file by its URL.
 - Do not touch legacy attributes of other programs (`META:*` of People, `bepdf:*`); new ones are written beside them.
 - Tests run in CI. Logic that needs no BeAPI is tested on Linux; attribute, query and message behaviour runs in a Haiku VM
   (see `haiku-agent-skills/skills/haiku-vm-workflow`).

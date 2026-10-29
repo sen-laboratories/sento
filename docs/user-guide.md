@@ -8,7 +8,7 @@ SPDX-FileCopyrightText: 2026 SEN Labs e.U.
 ## The SEN item in the Deskbar
 
 The SEN server puts its knot into the Deskbar when it starts. **Clicking** it opens a window with all the objects that SEN knows: the files that have
-a SEN:ID, as a flat list. The menu (secondary mouse button) has:
+a SEN:ID, as a flat list. With the **SEN key (Command)** held, the click opens the [graph](#the-graph) of the objects instead. The menu (secondary mouse button) has:
 
 - **Context** (choosing the item itself opens the folder of the contexts): the contexts that are set up (the folders of `~/config/settings/sen/contexts`, with their icon), the current one marked: choosing one makes it the current one.
   A new context ("New related... Context" in the file manager) is a folder there, with the type of a context.
@@ -20,12 +20,48 @@ a SEN:ID, as a flat list. The menu (secondary mouse button) has:
   classifications...), and a type to its attributes: choosing a type or an attribute shows it in FileTypes (the one of SEN, package `sen_filetypes`, if it is installed
   and not switched off in the Settings), choosing an ontology shows it in its folder. Choosing *Ontologies* itself opens the folder `~/config/settings/sen/ontologies`, which shows the version, description, author and schema of each ontology as its columns (in Akita), and *Update* has the ontologies of the packages
   installed now, which is otherwise done when the server starts and when a package comes or goes.
+- **Graph...** (below Ontologies): the [graph](#the-graph) of the objects and their relations.
 - **Settings**: the key of the SEN mode of dragging (Command, Option, Control or Shift), the use of Akita instead of Tracker (this takes
   effect at the next login: it is a file of the user for the launch daemon, which the command `akita` writes; `akita start` and `akita stop` switch at once) and the use of the FileTypes of SEN instead of the one of Haiku (also in the Preferences menu of the Deskbar: a link of its own in `~/config/settings/deskbar/menu/Preferences` takes the place of the one of Haiku).
 - **About**, **Restart** and **Quit**. Restart quits the server and starts it again (it is the way to apply what a new version of the server brings). Quitting asks first: without the
   server, copies of files keep the SEN:ID of the original, which breaks the lookup by ID. It stays off until you start it again (`sen start`, or the next login).
 
 The same information is on the command line: `sen info`, `sen types` and `sen check` (see the README of sen-core).
+
+## The graph
+
+The graph shows what SEN knows as a network: the **objects** (the files that have a SEN:ID) are its dots, the **relations** are the lines between them. Groups of objects that are
+connected stand by themselves, so you see at a glance what belongs together: an ontology with the types it defines, a book with its author, a paper with the papers it cites.
+
+![The graph of SEN in dark mode](images/beta2/graph-dark.png)
+
+**Opening it**
+
+- Hold the **SEN key (Command)** and click the knot in the Deskbar, or choose **Graph...** in its menu (below *Ontologies*).
+- In Akita, hold the SEN key and **double-click a file**: the graph opens centred on that file, which is selected. The same happens when a file is selected in Akita and you click the knot with the SEN key held.
+  (Without Akita, or with nothing selected, the graph opens as a whole.)
+
+**What you see**
+
+- The colour of a dot is its type (the entities, relation types and documents each have their own), its size grows with the number of its relations. The names of the dots with many relations are shown; the others when you zoom in or select something.
+- A relation is stored in both directions, so a line has the labels of both ("parent of / child of"). An arrow means that the relation goes only one way.
+- Not shown at first: the classifications and contexts that files are in (they would connect everything), and the objects that have no relations. Both can be switched on above the graph.
+  The window reads up to 2000 objects; if there are more, the status line says so.
+
+**Working with it**
+
+- **Click** a dot: it is selected, its lines are emphasised, what is not connected to it is dimmed, and the names of its neighbours are shown. **Double-click** opens the file, as a double click in Akita does.
+- **Click a line** to select the relation, **double-click it** to open the folder of the relations of that type of the dot nearer to where you clicked (like *Open related...*: a relation is in both objects).
+- **Drag** to move the graph, the **mouse wheel** zooms around the pointer (or `+` and `-`), **F** fits all of it into the window again. When you resize the window the graph is fitted again, as long as you have not zoomed or moved it.
+- **Dark** switches between a light and a dark look. It follows the colours of the system until you choose, and then the choice is remembered (the setting `SEN:darkMode` in `~/config/settings/sen/sen.settings`).
+- **Refresh** reads the objects again.
+- **Alt+W** closes the window; the server keeps running.
+
+**Saving it as SVG**
+
+- **Save as SVG...** saves the picture of the window as it is: its size, zoom and position, the selection emphasised, the names that you see.
+- **Save selection...** (enabled when something is selected) saves the selected dot with the dots that it is directly connected to, or the two ends of a selected line, laid out as in the graph. The name that is
+  suggested for the file has no spaces or other characters that mean something in a path or a URL.
 
 ## Relating files with Command+drag
 
@@ -69,6 +105,9 @@ ontology. You can make an object of a new type at once; templates that you delet
 A relation connects a file with another file: a book with its author, a PDF bookmark with a page, an ontology with the types it provides.
 You see a relation as a **folder of files**, like any folder: choose *Open related...* in the context menu of a file, pick the kind of relation, and
 a window opens that has one file for each relation.
+
+An **ontology** (in the folder `~/config/settings/sen/ontologies`, which the *Ontologies* item of the Deskbar menu opens) is shown as such a folder: it has the icon of a folder of relations, and double-clicking it
+in Akita opens its *Dependency* relations, that is what it defines and what it needs. In the menu *Open related... > Dependency*, choosing a type opens it in FileTypes.
 
 ### A relation file stands for the file it points to
 
