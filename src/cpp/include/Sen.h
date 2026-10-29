@@ -13,6 +13,7 @@
  *  - SenMessages.h   : commands, message fields, relation config, status codes (sen::cmd, sen::key, sen::conf, sen::status)
  *  - SenId.h         : TSID, the identifier of SEN (sen::id)
  *  - SenIdList.h     : the chunked lists of ids in SEN:TO and SEN:META (sen::idlist)
+ *  - SenVersion.h    : the version of a program as the releases are named, 1.0.0-beta.4 (sen::VersionText; include it on its own, it needs the Haiku headers)
  *  - Sensei.h        : the plugin protocol (namespace sensei)
  */
 
