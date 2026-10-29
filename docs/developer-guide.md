@@ -77,6 +77,13 @@ The graph window of the server (`sen-core`: `src/graph/GraphData`, `src/ui/Graph
   both: the two directions of a relation are one reciprocal edge with both labels), the force layout (`Layout()`: Fruchterman and Reingold, every connected part by itself, the parts packed in rows,
   deterministic), the filters (`Filtered(withMeta, withUnconnected, withOntologies)`, where a node is an ontology if its file has the ontology type `application/x-vnd.sen-labs.ontology`; `Subgraph()`, `Neighborhood()`) and the SVG writer (`ToSvg()`). With `SvgOptions` the writer draws a *view*: its size, zoom and shift, the selection
   (emphasised, the rest dimmed) and the labels that the view decided to show, so that a view and its SVG are the same picture. The palette (`PaletteFor()`, light or dark) and the sizes are shared.
+- **`SenStripeDialog.h`, `SenAbout.h`, `SenChoice.h`, `SenVersion.h`** (sento, Haiku, header only): the windows of SEN have one look, the dark stripe with a picture across its edge. `StripeDialog` is the window,
+  `AboutDialog` an About window (with `AddContent()` and `AddButton()` for a link or a button of the program), `sen::ShowAbout()` the About window of a plugin from its version resource.
+  `ChooseCandidate()` (`SenChoice.h`) is for plugins that look something up and get **more than one answer** (a book from OpenLibrary, a paper from arXiv or ResearchGate): the plugin describes each answer as a
+  `sen::Candidate` (title, subtitle, detail, source, and a `score` from 0 to 1 that says how good it is: the plugin knows what that is) and the window shows them, the best first, with the score as a bar and the source
+  on the right, and waits for the choice (the index in the caller's list, -1 for a cancel). It is made for the thread of a plugin: the window has a thread of its own and Alt+Q cancels. While it waits, the application
+  thread of the plugin does not answer messages (scripting of its windows does not work then). `tests/vm/ChoiceTest.cpp` shows it and takes `hey` commands (cancel, choose). The version of a program is
+  `sen::VersionText()` of the version resource, `1.0.0-beta.4` (see the skill *haiku-packaging-release*).
 - **`SenLookup.h`** (sento, Haiku): besides the targets of relations, the functions for types: `TypeOf(node)` is the semantic type (`META:TYPE`) of a file, else its MIME type; `TypeOfDatabaseEntry(ref)` tells which type a
   file of the MIME database stands for (such a file has no type of its own, it has its type as `META:TYPE` and is named like the subtype, and the type system says that the type is installed: the folder of the database
   is not parsed); `NameOfType(type)` is the type in words ("Music album").
