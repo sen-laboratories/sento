@@ -63,6 +63,12 @@ inline constexpr char kRelationPrefix[] = "SEN:REL:";
 /** bool, field of the attribute info (META:ATTR_INFO) of a MIME type, one entry per attribute like the fields of Haiku: the attribute is
  *  indexed so that it can be queried. A SEN extension, hence not in the "attr:" namespace of Haiku. */
 inline constexpr char kAttrInfoSearchable[] = "SEN:searchable";
+/** bool, field of the attribute info of a MIME type, one entry per attribute: the value of the attribute is a list in one string (authors, subjects), see
+ *  SenList.h. Without it a value is one value, whatever it contains. */
+inline constexpr char kAttrInfoIsList[] = "SEN:is_list";
+/** string, field of the attribute info of a MIME type, one entry per attribute: the ONE character that separates the values of a list (";"), empty for an
+ *  attribute that is no list. The values can be put in quotes to hold the separator itself. */
+inline constexpr char kAttrInfoListSeparator[] = "SEN:list_separator";
 /** bool, property of a relation: it cannot be changed or removed by users (the relations of the ontologies to their types) */
 inline constexpr char kRelationReadOnly[] = "SEN:REL:readonly";
 inline constexpr size_t kRelationPrefixLength = sizeof(kRelationPrefix) - 1;
