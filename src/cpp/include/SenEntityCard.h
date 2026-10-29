@@ -103,53 +103,56 @@ public:
 		return B_OK;
 	}
 
+	/** where the card is beside its anchor: in the middle of it, or above it (the anchor at the lower edge) or below it (at the upper edge), for a line that the card must not cover */
+	enum Align { kCentred, kAbove, kBelow };
+
+	/** What a card says can also be set by hand (a relation, a node without a file): the picture is taken over. */
+	void SetTitle(const char* title) { fTitle = title; }
+	void SetPicture(BBitmap* picture) { delete fPicture; fPicture = picture; }
+	void AddRow(const char* label, const char* value, bool isList = false)
+	{
+		Row row;
+		row.label = label;
+		row.value = value;
+		row.isList = isList;
+		fRows.push_back(row);
+	}
+	/** a line at the bottom, set off by a rule ("3 relations") */
+	void SetFooter(const char* footer) { fFooter = footer; }
+
 	/**
-	 * Draws the card next to a point of the view: on its right, or on its left if there is no room, and within @p limits.
+	 * Where the card is when it is drawn next to a point of the view: on its right, or on its left if there is no room, and within @p limits.
+	 * It is the place for the hit test of the mouse, so the view knows when the mouse is on the card.
 	 * @param anchor the point that the card belongs to (the middle of the node)
 	 * @param distance how far from the point the card starts (the radius of the node and some room)
+	 */
+	BRect
+	Frame(BView* view, BRect limits, BPoint anchor, float distance, Align align = kCentred) const
+	{
+		return _Measure(view, limits, anchor, distance, align).box;
+	}
+
+	/**
+	 * Draws the card where Frame() says.
 	 * @param dark the colours: for a dark view, or a light one
+	 * @param highlight the mouse is on the card: it lights up a little
 	 */
 	void
-	Draw(BView* view, BRect limits, BPoint anchor, float distance, bool dark) const
+	Draw(BView* view, BRect limits, BPoint anchor, float distance, bool dark, bool highlight = false, Align align = kCentred) const
 	{
-		BFont plain;
-		view->GetFont(&plain);
-		plain.SetSize(plain.Size() * 0.9f);
-		BFont bold(plain);
-		bold.SetFace(B_BOLD_FACE);
-
-		font_height height;
-		plain.GetHeight(&height);
-		const float line = ceilf(height.ascent + height.descent + height.leading) + 2;
-		const float pad = ceilf(plain.Size() * 0.7f);
-		const float letter = plain.StringWidth("M");
-
-		// the sizes of the parts
-		float labelWidth = 0, valueWidth = 0;
-		for (const Row& row : fRows) {
-			labelWidth = std::max(labelWidth, plain.StringWidth(row.label.String()));
-			valueWidth = std::max(valueWidth, plain.StringWidth(row.value.String()));
-		}
-		valueWidth = std::min(valueWidth, letter * 24);
-		const float titleWidth = std::min(bold.StringWidth(fTitle.String()), letter * 30);
-		const float gap = pad;
-		const float textWidth = std::max(titleWidth, fRows.empty() ? 0 : labelWidth + gap + valueWidth);
-		const float pictureWidth = fPicture != NULL ? fPicture->Bounds().Width() + 1 : 0;
-		const float pictureHeight = fPicture != NULL ? fPicture->Bounds().Height() + 1 : 0;
-		const float textHeight = line + (fRows.empty() ? 0 : pad / 2 + line * fRows.size());
-
-		BRect box(0, 0, pad + (pictureWidth > 0 ? pictureWidth + pad : 0) + textWidth + pad, pad + std::max(pictureHeight, textHeight) + pad);
-		box.OffsetTo(anchor.x + distance, anchor.y - box.Height() / 2);
-		if (box.right > limits.right - 4)
-			box.OffsetTo(anchor.x - distance - box.Width(), box.top);
-		box.OffsetTo(std::max(limits.left + 4, std::min(box.left, limits.right - 4 - box.Width())),
-			std::max(limits.top + 4, std::min(box.top, limits.bottom - 4 - box.Height())));
+		const Metrics m = _Measure(view, limits, anchor, distance, align);
+		const BRect box = m.box;
 
 		// colours: the background lets the graph below show through, the text is not translucent
-		const rgb_color background = dark ? _Color(0x1c, 0x1f, 0x26, 205) : _Color(0xf6, 0xf6, 0xf8, 205);
-		const rgb_color border = dark ? _Color(0x6a, 0x72, 0x80, 170) : _Color(0x30, 0x30, 0x38, 110);
+		rgb_color background = dark ? _Color(0x1c, 0x1f, 0x26, 205) : _Color(0xf6, 0xf6, 0xf8, 205);
+		rgb_color border = dark ? _Color(0x6a, 0x72, 0x80, 170) : _Color(0x30, 0x30, 0x38, 110);
 		const rgb_color text = dark ? _Color(0xe8, 0xea, 0xee, 255) : _Color(0x1c, 0x1c, 0x22, 255);
 		const rgb_color dimmed = dark ? _Color(0x9c, 0xa3, 0xaf, 255) : _Color(0x5c, 0x60, 0x6a, 255);
+		if (highlight) {
+			// a little lighter (on a dark view) or a little darker, and a stronger border, and not as see-through
+			background = dark ? _Color(0x30, 0x36, 0x44, 235) : _Color(0xe4, 0xe8, 0xf2, 235);
+			border = dark ? _Color(0x8f, 0xa3, 0xc4, 230) : _Color(0x3a, 0x5a, 0x9a, 190);
+		}
 
 		view->PushState();
 		view->SetDrawingMode(B_OP_ALPHA);
@@ -159,29 +162,40 @@ public:
 		view->SetHighColor(border);
 		view->StrokeRoundRect(box, 6, 6);
 
-		float left = box.left + pad;
+		float left = box.left + m.pad;
+		const float contentHeight = box.Height() - m.pad * 2 - m.footerHeight;
 		if (fPicture != NULL) {
-			view->DrawBitmap(fPicture, BPoint(left, box.top + (box.Height() - pictureHeight) / 2));
-			left += pictureWidth + pad;
+			view->DrawBitmap(fPicture, BPoint(left, box.top + m.pad + (contentHeight - m.pictureHeight) / 2));
+			left += m.pictureWidth + m.pad;
 		}
 
-		float baseline = box.top + pad + ceilf(height.ascent) + (box.Height() - pad * 2 - textHeight) / 2;
+		float baseline = box.top + m.pad + ceilf(m.ascent) + (contentHeight - m.textHeight) / 2;
 		BString title(fTitle);
-		bold.TruncateString(&title, B_TRUNCATE_END, textWidth);
-		view->SetFont(&bold);
+		m.bold.TruncateString(&title, B_TRUNCATE_END, m.textWidth);
+		view->SetFont(&m.bold);
 		view->SetHighColor(text);
 		view->DrawString(title.String(), BPoint(left, baseline));
 
-		view->SetFont(&plain);
-		baseline += pad / 2;
+		view->SetFont(&m.plain);
+		baseline += m.pad / 2;
 		for (const Row& row : fRows) {
-			baseline += line;
+			baseline += m.line;
 			view->SetHighColor(dimmed);
-			view->DrawString(row.label.String(), BPoint(left + labelWidth - plain.StringWidth(row.label.String()), baseline));
+			view->DrawString(row.label.String(), BPoint(left + m.labelWidth - m.plain.StringWidth(row.label.String()), baseline));
 			BString value(row.value);
-			plain.TruncateString(&value, row.isList ? B_TRUNCATE_MIDDLE : B_TRUNCATE_END, valueWidth);
+			m.plain.TruncateString(&value, row.isList ? B_TRUNCATE_MIDDLE : B_TRUNCATE_END, m.valueWidth);
 			view->SetHighColor(text);
-			view->DrawString(value.String(), BPoint(left + labelWidth + gap, baseline));
+			view->DrawString(value.String(), BPoint(left + m.labelWidth + m.gap, baseline));
+		}
+
+		if (m.footerHeight > 0) {
+			const float rule = box.bottom - m.pad - m.line - m.pad / 2;
+			view->SetHighColor(_Color(border.red, border.green, border.blue, 90));
+			view->StrokeLine(BPoint(box.left + m.pad, rule), BPoint(box.right - m.pad, rule));
+			BString footer(fFooter);
+			m.plain.TruncateString(&footer, B_TRUNCATE_END, box.Width() - m.pad * 2);
+			view->SetHighColor(dimmed);
+			view->DrawString(footer.String(), BPoint(box.left + m.pad, box.bottom - m.pad - m.descent - 1));
 		}
 		view->PopState();
 	}
@@ -196,6 +210,60 @@ private:
 		BString attribute;
 		BString label;
 	};
+
+	/** the sizes of the parts of the card, and where it is */
+	struct Metrics {
+		BFont	plain, bold;
+		float	ascent, descent, line, pad, gap;
+		float	labelWidth, valueWidth, textWidth, textHeight;
+		float	pictureWidth, pictureHeight, footerHeight;
+		BRect	box;
+	};
+
+	Metrics
+	_Measure(BView* view, BRect limits, BPoint anchor, float distance, Align align) const
+	{
+		Metrics m;
+		view->GetFont(&m.plain);
+		m.plain.SetSize(m.plain.Size() * 0.9f);
+		m.bold = m.plain;
+		m.bold.SetFace(B_BOLD_FACE);
+
+		font_height height;
+		m.plain.GetHeight(&height);
+		m.ascent = height.ascent;
+		m.descent = height.descent;
+		m.line = ceilf(height.ascent + height.descent + height.leading) + 2;
+		m.pad = ceilf(m.plain.Size() * 0.7f);
+		m.gap = m.pad;
+		const float letter = m.plain.StringWidth("M");
+
+		m.labelWidth = m.valueWidth = 0;
+		for (const Row& row : fRows) {
+			m.labelWidth = std::max(m.labelWidth, m.plain.StringWidth(row.label.String()));
+			m.valueWidth = std::max(m.valueWidth, m.plain.StringWidth(row.value.String()));
+		}
+		m.valueWidth = std::min(m.valueWidth, letter * 24);
+		const float titleWidth = std::min(m.bold.StringWidth(fTitle.String()), letter * 30);
+		const float footerWidth = std::min(m.plain.StringWidth(fFooter.String()), letter * 30);
+		m.textWidth = std::max(titleWidth, fRows.empty() ? 0 : m.labelWidth + m.gap + m.valueWidth);
+		m.pictureWidth = fPicture != NULL ? fPicture->Bounds().Width() + 1 : 0;
+		m.pictureHeight = fPicture != NULL ? fPicture->Bounds().Height() + 1 : 0;
+		m.textHeight = m.line + (fRows.empty() ? 0 : m.pad / 2 + m.line * fRows.size());
+		m.footerHeight = fFooter.IsEmpty() ? 0 : m.pad / 2 + m.line;
+
+		const float contentWidth = std::max(m.textWidth, footerWidth);
+		BRect box(0, 0, m.pad + (m.pictureWidth > 0 ? m.pictureWidth + m.pad : 0) + contentWidth + m.pad,
+			m.pad + std::max(m.pictureHeight, m.textHeight) + m.footerHeight + m.pad);
+		const float top = align == kAbove ? anchor.y - 6 - box.Height() : align == kBelow ? anchor.y + 6 : anchor.y - box.Height() / 2;
+		box.OffsetTo(anchor.x + distance, top);
+		if (box.right > limits.right - 4)
+			box.OffsetTo(anchor.x - distance - box.Width(), box.top);
+		box.OffsetTo(std::max(limits.left + 4, std::min(box.left, limits.right - 4 - box.Width())),
+			std::max(limits.top + 4, std::min(box.top, limits.bottom - 4 - box.Height())));
+		m.box = box;
+		return m;
+	}
 
 	struct Row {
 		Row() : isList(false) {}
@@ -391,6 +459,7 @@ private:
 	}
 
 	BString				fTitle;
+	BString				fFooter;
 	std::vector<Row>	fRows;
 	BBitmap*			fPicture;
 };

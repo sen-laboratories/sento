@@ -84,11 +84,13 @@ The graph window of the server (`sen-core`: `src/graph/GraphData`, `src/ui/Graph
   on the right, and waits for the choice (the index in the caller's list, -1 for a cancel). It is made for the thread of a plugin: the window has a thread of its own and Alt+Q cancels. While it waits, the application
   thread of the plugin does not answer messages (scripting of its windows does not work then). `tests/vm/ChoiceTest.cpp` shows it and takes `hey` commands (cancel, choose). The version of a program is
   `sen::VersionText()` of the version resource, `1.0.0-beta.4` (see the skill *haiku-packaging-release*).
-- **`SenEntityCard.h`** (sento, Haiku, header only): a small read-only **card of a file** that a view draws over itself with a translucent background (`B_OP_ALPHA`; Haiku has no translucent
+- **`SenEntityCard.h`** (sento, Haiku, header only): a small read-only **card** that a view draws over itself with a translucent background (`B_OP_ALPHA`; Haiku has no translucent
   windows, but a view can draw so that what is below shows through). `Load(ref)` reads the thumbnail (else the icon), the title (`dc:title` or `META:name`, else the file name) and the values that the file has; **which**
   attributes, in which order and under which labels is what the Shoji template of the MIME type says (`shoji/templates/<type>/template.view` of the data folders; the controls are named after the attributes), without
-  a template the viewable attributes of the attribute info. Lists are shown as simple CSV and cut in the middle if they are too long. `Draw(view, limits, anchor, distance, dark)` puts it beside a point (right,
-  or left if there is no room) in the colours of a dark or a light view. The graph of SEN uses it for the selected object ("Preview" in its window).
+  a template the viewable attributes of the attribute info. Lists are shown as simple CSV and cut in the middle if they are too long. A card can also be filled by hand (`SetTitle()`, `SetPicture()`, `AddRow()`): the
+  graph does that for a relation (its icon and label). `SetFooter()` adds a line at the bottom (the number of relations or targets). `Frame()` says where the card is, so that the view knows when the mouse is on it
+  (and `Draw(..., highlight)` lights it up a little), `Align` puts it above or below its anchor so that a line does not run under it. The graph of SEN shows the card of what is under the mouse ("Preview" in its window);
+  a click on the card does what a double click on the object does.
 - **List values: `SenList.h`, `SenAttrInfo.h`** (sento; the first is plain C++ and tested on every platform in `tests/SenListTest.cpp`): an attribute can hold a **list in one string** (authors, subjects, the groups of a person).
   Storage and representation are separate: the file keeps `Andy Hunt,Dave Thomas`, a program that knows it is a list shows the values one by one (Shoji does). The attribute info of the MIME type says so: `SEN:is_list`
   and the one character `SEN:list_separator` (written by the ontology installer from the schema: `is_list: true` in the annotations of the slot, the separator is `,` unless `list_separator` says otherwise; a comma
