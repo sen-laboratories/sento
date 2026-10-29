@@ -185,11 +185,12 @@ public:
 	 * @param title the title of the window
 	 * @param picture the icon or logo on the stripe (taken over), NULL for none
 	 * @param quitApplication the application quits when the window is closed (a program that has no other window than this one)
+	 * @param flags the flags of the window: a fixed size by default, a dialog with a list leaves out B_NOT_RESIZABLE and B_NOT_ZOOMABLE
 	 */
-	StripeDialog(const char* title, BBitmap* picture, bool quitApplication = false)
+	StripeDialog(const char* title, BBitmap* picture, bool quitApplication = false,
+			uint32 flags = B_NOT_ZOOMABLE | B_NOT_RESIZABLE | B_ASYNCHRONOUS_CONTROLS | B_AUTO_UPDATE_SIZE_LIMITS | B_CLOSE_ON_ESCAPE)
 		:
-		BWindow(BRect(0, 0, 100, 100), title, B_TITLED_WINDOW_LOOK, B_NORMAL_WINDOW_FEEL,
-			B_NOT_ZOOMABLE | B_NOT_RESIZABLE | B_ASYNCHRONOUS_CONTROLS | B_AUTO_UPDATE_SIZE_LIMITS | B_CLOSE_ON_ESCAPE),
+		BWindow(BRect(0, 0, 100, 100), title, B_TITLED_WINDOW_LOOK, B_NORMAL_WINDOW_FEEL, flags),
 		fContent(NULL),
 		fQuitApplication(quitApplication)
 	{
