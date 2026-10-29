@@ -45,7 +45,7 @@ connected stand by themselves, so you see at a glance what belongs together: an 
 
 - The colour of a dot is its type (the entities, relation types and documents each have their own), its size grows with the number of its relations. The names of the dots with many relations are shown; the others when you zoom in or select something.
 - A relation is stored in both directions, so a line has the labels of both ("parent of / child of"). An arrow means that the relation goes only one way.
-- Not shown at first: the classifications and contexts that files are in (they would connect everything), and the objects that have no relations. Both can be switched on above the graph.
+- Not shown at first: the classifications and contexts that files are in (they would connect everything), the objects that have no relations, and the ontologies (what defines the types: the meta level of SEN, with their relations). Each can be switched on above the graph.
   The window reads up to 2000 objects; if there are more, the status line says so.
 
 **Working with it**

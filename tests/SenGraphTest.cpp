@@ -92,6 +92,39 @@ TEST(FilteredKeepsWhatIsWanted)
 	CHECK(graph.Filtered(true, false).IndexOf("E") < 0);
 }
 
+TEST(OntologiesCanBeLeftOut)
+{
+	Graph graph;
+	graph.AddNode("P", "Person", "g");
+	graph.AddNode("Q", "Other", "g");
+	graph.AddNode("R", "Alone", "g");
+	graph.AddNode("O", "people", "ontology", true);
+	graph.AddEdge("O", "P", "defines", "dependency");
+	graph.AddEdge("P", "Q", "knows", "friend");
+
+	// everything is there by default, and the flag is kept
+	Graph everything = graph.Filtered(true, true);
+	CHECK_EQ(everything.Nodes().size(), 4u);
+	CHECK_EQ(everything.Edges().size(), 2u);
+	CHECK(everything.Nodes()[everything.IndexOf("O")].ontology);
+	CHECK(!everything.Nodes()[everything.IndexOf("P")].ontology);
+
+	// without the ontologies: the node and its relations are gone, the others stay as they are
+	Graph without = graph.Filtered(true, true, false);
+	CHECK_EQ(without.Nodes().size(), 3u);
+	CHECK(without.IndexOf("O") < 0);
+	CHECK_EQ(without.Edges().size(), 1u);
+	CHECK(without.IndexOf("P") >= 0);
+
+	// a node that was only connected to an ontology is without relations then
+	graph.AddNode("S", "Only in the ontology", "g");
+	graph.AddEdge("O", "S", "defines", "dependency");
+	CHECK(graph.Filtered(true, false, true).IndexOf("S") >= 0);
+	CHECK(graph.Filtered(true, false, false).IndexOf("S") < 0);
+	CHECK(graph.Filtered(true, true, false).IndexOf("S") >= 0);
+	CHECK(graph.Filtered(true, true, false).IndexOf("O") < 0);	// (the ontology is out even if the unconnected are wanted)
+}
+
 TEST(LayoutIsTheSameEveryTime)
 {
 	auto make = [] {
