@@ -10,8 +10,9 @@
  *
  * The window is a dark band on the left, with a picture (the icon or logo) across its edge, and the content on the light panel on the right. The metrics are
  * those of BAlert (src/kits/interface/Alert.cpp, TAlertView): the stripe is five label spacings wide, the picture is drawn at three spacings from the left, so it
- * sits across the division of the dark and the light part. Below that, the picture is level with the first line of the text: both are a margin (two spacings) from
- * the top of the window, which BAlert does not need to care about with an icon of 32 pixels. The
+ * sits across the division of the dark and the light part. The picture is not at the top but sits with its centre at a third of the height of the window, so it
+ * moves down with a window that is made taller; it never leaves the stripe (a margin, two spacings, to the top and the bottom), so in a window that is just as
+ * high as the picture it is level with the first line of the text. The
  * colour of the stripe is a tint of the panel colour (B_DARKEN_1_TINT), so that it follows the colours that people have chosen.
  *
  *   - StripeDialog: the window. Its content area is a vertical layout that any view can be added to; with `quitApplication` the application that was started to
@@ -130,12 +131,12 @@ public:
 	/** @param picture the icon or logo, drawn as it is (it is taken over); NULL for a stripe without one */
 	StripeView(BBitmap* picture)
 		:
-		BView("stripe", B_WILL_DRAW),
+		BView("stripe", B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE),
 		fPicture(picture)
 	{
 		float spacing = be_control_look->DefaultLabelSpacing();
 		SetViewUIColor(B_PANEL_BACKGROUND_COLOR);
-		// (three spacings from the left to the picture, as TAlertView has it; above it the margin of the content, to be level with the text)
+		// (three spacings from the left to the picture, as TAlertView has it; above and below it the margin of the content, so that the window is never lower than that)
 		float width = fPicture != NULL ? spacing * 3 + fPicture->Bounds().Width() + 1 + spacing * 2 : spacing * 5;
 		float height = fPicture != NULL ? DialogMargin() + fPicture->Bounds().Height() + 1 + DialogMargin() : 0;
 		SetExplicitMinSize(BSize(width, height));
@@ -155,7 +156,14 @@ public:
 		FillRect(stripe);
 		if (fPicture == NULL)
 			return;
-		BPoint at(spacing * 3, DialogMargin());
+		// the centre of the picture at a third of the height, but on the stripe
+		float pictureHeight = fPicture->Bounds().Height() + 1;
+		float top = Bounds().Height() / 3 - pictureHeight / 2;
+		if (top > Bounds().Height() - DialogMargin() - pictureHeight)
+			top = Bounds().Height() - DialogMargin() - pictureHeight;
+		if (top < DialogMargin())
+			top = DialogMargin();
+		BPoint at(spacing * 3, floorf(top));
 		SetDrawingMode(B_OP_ALPHA);
 		SetBlendingMode(B_PIXEL_ALPHA, B_ALPHA_OVERLAY);
 		DrawBitmap(fPicture, at);
