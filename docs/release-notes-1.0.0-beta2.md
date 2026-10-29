@@ -61,9 +61,10 @@ sen start       # and, to have the new Akita:  akita restart
 Your data is untouched: relations and metadata stay in the attributes of your files.
 
 > [!IMPORTANT]
-> **Akita 1.0 needs Haiku R1/beta6 up to, but not including, the nightly hrev60299.** Akita links against private classes of Haiku, and a change in the nightly of hrev60299 (`BPrivate::JobQueue`) makes an Akita that was built
-> before it fail to load, which would leave you without a file manager. The packages of Akita and SEN FileTypes therefore say which Haiku they work with, and `pkgman` refuses to install them on a newer nightly.
-> SEN 2.0 will follow the nightlies.
+> **Akita follows the Haiku nightlies.** Akita links against private classes of Haiku, which change from time to time: in the nightly hrev60299_3 `BPrivate::JobQueue` got another constructor, and an Akita built before it fails to load,
+> which would leave you without a file manager. The packages of Akita and SEN FileTypes therefore require the nightlies from there on (`haiku >= r1~beta6_hrev60299_1`) and set **no upper limit**, so `pkgman` never holds your Haiku back.
+> The packages `1.0.0~beta3-1` of both (they replace the ones that this beta came with) are built on hrev60299+11: `pkgman update` brings them together with the update of Haiku. A check against the newest nightly runs every day,
+> and a new build follows when one breaks Akita (`abi-check.sh` in the [akita](https://github.com/sen-laboratories/akita) repository).
 
 ## Quick Install
 
@@ -80,7 +81,7 @@ The server starts with your next session (or run `sen start`); `akita start` swi
 
 * The graph shows up to 2000 objects; with more, the status line says how many were read.
 * BFS volumes only, as in beta 1 (SEN keeps everything in extended attributes).
-* On a nightly after hrev60299 the Akita of this beta cannot be installed (see above). The Deskbar menu and the graph work without it, the relation windows of Akita do not.
+* Akita works with the nightlies from hrev60299_3 on only with its packages `1.0.0~beta3-1` (see above); the Akita that this beta was first published with does not load there.
 
 ## What comes next
 
