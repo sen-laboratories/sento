@@ -84,6 +84,13 @@ The graph window of the server (`sen-core`: `src/graph/GraphData`, `src/ui/Graph
   on the right, and waits for the choice (the index in the caller's list, -1 for a cancel). It is made for the thread of a plugin: the window has a thread of its own and Alt+Q cancels. While it waits, the application
   thread of the plugin does not answer messages (scripting of its windows does not work then). `tests/vm/ChoiceTest.cpp` shows it and takes `hey` commands (cancel, choose). The version of a program is
   `sen::VersionText()` of the version resource, `1.0.0-beta.4` (see the skill *haiku-packaging-release*).
+- **List values: `SenList.h`, `SenAttrInfo.h`** (sento; the first is plain C++ and tested on every platform in `tests/SenListTest.cpp`): an attribute can hold a **list in one string** (authors, subjects, the groups of a person).
+  Storage and representation are separate: the file keeps `Andy Hunt,Dave Thomas`, a program that knows it is a list shows the values one by one (Shoji does). The attribute info of the MIME type says so: `SEN:is_list`
+  and the one character `SEN:list_separator` (written by the ontology installer from the schema: `is_list: true` in the annotations of the slot, the separator is `,` unless `list_separator` says otherwise; a comma
+  is what Haiku's People uses in `META:group`); `sen::ListConfigOf(attrInfo, name)` reads it. The values are split and joined as in CSV: blanks around a value do not belong to it, a value in quotes (`"..."` or `'...'`) is
+  taken as it is (`"Hunt, Andy",Dave Thomas`), the other kind of quote is an ordinary character inside, a backslash escapes the closing quote and the backslash, empty values are no values. `sen::list::Join()` puts a value
+  in quotes only if it has to, so `Split(Join(v, c), c) == v` and plain lists look the way people always wrote them. A schema can also describe a type of the system (an `overlay: true` class, e.g. `application/x-person`
+  of People): only its attribute info is written, to the user's MIME database, where it adds to the type of the system.
 - **`SenLookup.h`** (sento, Haiku): besides the targets of relations, the functions for types: `TypeOf(node)` is the semantic type (`META:TYPE`) of a file, else its MIME type; `TypeOfDatabaseEntry(ref)` tells which type a
   file of the MIME database stands for (such a file has no type of its own, it has its type as `META:TYPE` and is named like the subtype, and the type system says that the type is installed: the folder of the database
   is not parsed); `NameOfType(type)` is the type in words ("Music album").

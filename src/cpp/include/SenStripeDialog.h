@@ -9,7 +9,7 @@
  * @brief The dialog with the dark stripe, as BAlert and BAboutWindow of Haiku have it (header only, Haiku only).
  *
  * The window is a dark band on the left, with a picture (the icon or logo) across its edge, and the content on the light panel on the right. The metrics are
- * those of BAlert (src/kits/interface/Alert.cpp, TAlertView): the stripe is five label spacings wide, the picture is drawn at three spacings from the left, so it
+ * those of BAlert (src/kits/interface/Alert.cpp, TAlertView): the stripe is five label spacings wide (for the 32 pixels of an icon; a larger picture gets a wider stripe, see StripeWidth()), the picture is drawn at three spacings from the left, so it
  * sits across the division of the dark and the light part. The picture is not at the top but sits with its centre at a third of the height of the window, so it
  * moves down with a window that is made taller; it never leaves the stripe (a margin, two spacings, to the top and the bottom), so in a window that is just as
  * high as the picture it is level with the first line of the text. The
@@ -38,6 +38,7 @@
 #include <View.h>
 #include <Window.h>
 
+#include <algorithm>
 #include <math.h>
 #include <string.h>
 
@@ -125,6 +126,36 @@ DialogMargin()
 }
 
 
+/**
+ * The width of the dark stripe for a picture of a width (0: none). Five label spacings as BAlert has it, which is right for the icon of 32 pixels: it is a bit more
+ * than the three spacings before the picture and half of it. A larger picture (the logo of a program, the cover of a book) gets a wider stripe by the same rule, so
+ * that the edge of the stripe is across the middle of the picture, and not near its left edge.
+ */
+inline float
+StripeWidth(float pictureWidth)
+{
+	const float spacing = be_control_look->DefaultLabelSpacing();
+	return std::max(spacing * 5, spacing * 3 + pictureWidth / 2);
+}
+
+
+/**
+ * The top of the picture on the stripe: its middle is at a third of the height of the window, but the picture stays on the stripe (a margin to the top and to the
+ * bottom). Content that is to line up with the picture (the fields of a form) is centred on the same line: the middle of the picture is the top plus half of its height.
+ */
+inline float
+StripePictureTop(float viewHeight, float pictureHeight)
+{
+	const float margin = DialogMargin();
+	float top = viewHeight / 3 - pictureHeight / 2;
+	if (top > viewHeight - margin - pictureHeight)
+		top = viewHeight - margin - pictureHeight;
+	if (top < margin)
+		top = margin;
+	return floorf(top);
+}
+
+
 /** The dark stripe with the picture across its edge. */
 class StripeView : public BView {
 public:
@@ -151,19 +182,13 @@ public:
 	{
 		float spacing = be_control_look->DefaultLabelSpacing();
 		BRect stripe = Bounds();
-		stripe.right = 5 * spacing;
+		stripe.right = StripeWidth(fPicture != NULL ? fPicture->Bounds().Width() + 1 : 0);
 		SetHighColor(tint_color(ViewColor(), B_DARKEN_1_TINT));
 		FillRect(stripe);
 		if (fPicture == NULL)
 			return;
 		// the centre of the picture at a third of the height, but on the stripe
-		float pictureHeight = fPicture->Bounds().Height() + 1;
-		float top = Bounds().Height() / 3 - pictureHeight / 2;
-		if (top > Bounds().Height() - DialogMargin() - pictureHeight)
-			top = Bounds().Height() - DialogMargin() - pictureHeight;
-		if (top < DialogMargin())
-			top = DialogMargin();
-		BPoint at(spacing * 3, floorf(top));
+		BPoint at(spacing * 3, StripePictureTop(Bounds().Height(), fPicture->Bounds().Height() + 1));
 		SetDrawingMode(B_OP_ALPHA);
 		SetBlendingMode(B_PIXEL_ALPHA, B_ALPHA_OVERLAY);
 		DrawBitmap(fPicture, at);
