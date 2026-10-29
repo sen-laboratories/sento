@@ -75,7 +75,7 @@ The graph window of the server (`sen-core`: `src/graph/GraphData`, `src/ui/Graph
 
 - **`SenGraph.h`** (sento, plain C++, no Haiku API, tested on every platform in `tests/SenGraphTest.cpp`): `sen::graph::Graph` with the nodes (`SEN:ID`, name, group), the edges (a relation in one direction, or
   both: the two directions of a relation are one reciprocal edge with both labels), the force layout (`Layout()`: Fruchterman and Reingold, every connected part by itself, the parts packed in rows,
-  deterministic), the filters (`Filtered()`, `Subgraph()`, `Neighborhood()`) and the SVG writer (`ToSvg()`). With `SvgOptions` the writer draws a *view*: its size, zoom and shift, the selection
+  deterministic), the filters (`Filtered(withMeta, withUnconnected, withOntologies)`, where a node is an ontology if its file has the ontology type `application/x-vnd.sen-labs.ontology`; `Subgraph()`, `Neighborhood()`) and the SVG writer (`ToSvg()`). With `SvgOptions` the writer draws a *view*: its size, zoom and shift, the selection
   (emphasised, the rest dimmed) and the labels that the view decided to show, so that a view and its SVG are the same picture. The palette (`PaletteFor()`, light or dark) and the sizes are shared.
 - **`SenLookup.h`** (sento, Haiku): besides the targets of relations, the functions for types: `TypeOf(node)` is the semantic type (`META:TYPE`) of a file, else its MIME type; `TypeOfDatabaseEntry(ref)` tells which type a
   file of the MIME database stands for (such a file has no type of its own, it has its type as `META:TYPE` and is named like the subtype, and the type system says that the type is installed: the folder of the database

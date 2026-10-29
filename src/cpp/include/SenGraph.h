@@ -34,6 +34,7 @@ struct Node {
 	float		x = 0;
 	float		y = 0;
 	int			degree = 0;	///< the number of edges at it (see Graph::Layout())
+	bool		ontology = false;	///< the file of an ontology (what defines the types: the meta level of SEN), which can be left out
 };
 
 /** An edge: a relation from one node to another (and back, if it is reciprocal). */
@@ -164,7 +165,7 @@ struct SvgOptions {
 class Graph {
 public:
 	/** Add a node; the node of the id that is there is returned if there is one. @return its index */
-	int AddNode(const std::string& id, const std::string& label, const std::string& group)
+	int AddNode(const std::string& id, const std::string& label, const std::string& group, bool ontology = false)
 	{
 		auto found = fIndex.find(id);
 		if (found != fIndex.end())
@@ -173,6 +174,7 @@ public:
 		node.id = id;
 		node.label = label;
 		node.group = group;
+		node.ontology = ontology;
 		fNodes.push_back(node);
 		fIndex[id] = static_cast<int>(fNodes.size()) - 1;
 		return fIndex[id];
@@ -222,25 +224,32 @@ public:
 	const std::vector<Edge>& Edges() const { return fList; }
 
 	/**
-	 * A part of the graph: without the meta relations (classification, context) unless they are wanted, and without the nodes that have no edge
-	 * (counting the edges that are wanted) unless the unconnected ones are wanted. The positions are not taken over: Layout() it.
+	 * A part of the graph: without the meta relations (classification, context) unless they are wanted, without the nodes that have no edge
+	 * (counting the edges that are wanted) unless the unconnected ones are wanted, and without the ontologies (and so their relations) unless they are
+	 * wanted. The positions are not taken over: Layout() it.
 	 */
-	Graph Filtered(bool withMeta, bool withUnconnected) const
+	Graph Filtered(bool withMeta, bool withUnconnected, bool withOntologies = true) const
 	{
+		// an edge is left out if it is a meta relation nobody wants, or if it ends at an ontology that is left out
+		auto skipped = [&](const Edge& edge) {
+			return (edge.meta && !withMeta) || (!withOntologies && (fNodes[edge.from].ontology || fNodes[edge.to].ontology));
+		};
 		std::vector<int> degree(fNodes.size(), 0);
 		for (const Edge& edge : fList) {
-			if (edge.meta && !withMeta)
+			if (skipped(edge))
 				continue;
 			degree[edge.from]++;
 			degree[edge.to]++;
 		}
 		Graph result;
 		for (size_t i = 0; i < fNodes.size(); i++) {
+			if (fNodes[i].ontology && !withOntologies)
+				continue;
 			if (withUnconnected || degree[i] > 0)
-				result.AddNode(fNodes[i].id, fNodes[i].label, fNodes[i].group);
+				result.AddNode(fNodes[i].id, fNodes[i].label, fNodes[i].group, fNodes[i].ontology);
 		}
 		for (const Edge& edge : fList) {
-			if (edge.meta && !withMeta)
+			if (skipped(edge))
 				continue;
 			Edge copy = edge;
 			copy.from = result.IndexOf(fNodes[edge.from].id);
@@ -263,7 +272,7 @@ public:
 		Graph result;
 		auto take = [&](int index) {
 			const Node& node = fNodes[index];
-			const int added = result.AddNode(node.id, node.label, node.group);
+			const int added = result.AddNode(node.id, node.label, node.group, node.ontology);
 			result.fNodes[added].x = node.x;
 			result.fNodes[added].y = node.y;
 			result.fNodes[added].degree = node.degree;
