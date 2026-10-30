@@ -5,10 +5,11 @@ SPDX-FileCopyrightText: 2026 SEN Labs e.U.
 
 # SEN 1.0.0 Beta 3 "Sofia" — *Look Closer*
 
-> From the graph to the details of a thing...
+> “Without context, words and actions have no meaning at all.” – Gregory Bateson
 
-Beta 2 let you *see* the graph of your files. Beta 3 lets you **look closer**: select an object and a card shows what is known about it, **Shoji** opens an entity to read and edit its attributes in a form, values that are
-lists *are* lists now, and the plugins ask you when a lookup has more than one answer.
+Beta 2 introduced the graph view. Beta 3 lets you **look closer**: point at an object or a relation and a card shows its metadata.
+
+**Shoji** acts as a universal entity editor that opens files in a template based metadata view, exposing its attributes in a dynamically configurable form. List values are real lists now, and enrichment plugins let you choose from a list of results, weighted by score.
 
 **SEN (Semantic Extensions Native)** on **Haiku R1/beta6 nightlies (x86_64), from hrev60299 on**. If you have beta 2 installed, `pkgman update` brings you here (see *Upgrading* below).
 
@@ -18,64 +19,50 @@ lists *are* lists now, and the plugins ask you when a lookup has more than one a
 > nightly runs every day (`abi-check.sh` in the [akita](https://github.com/sen-laboratories/akita) repository), and a new build follows when a nightly breaks Akita.
 > Because SEN Core requires FileTypes, **this beta needs a Haiku nightly from hrev60299_1 on**; `pkgman update` updates Haiku too (it asks for a reboot).
 
-## Cards for what you point at
+## Cards in the Graph View
 
-Point at a dot in the graph and a **card** appears next to it: the thumbnail or icon of the file, its title and the attributes that matter for its type, and at the bottom **how many relations** it has. The background is
-translucent, so the graph shows through; it is not a window. It replaces the old little pop-up with the name and the number of relations.
+The graph view from beta 2 now shows **cards** when you point at a node or a relation.
+
+A node gets a **card** next to it: the thumbnail or icon of the file, its title and the attributes from the file type definition, and the relation count at the bottom:
 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.3/docs/images/beta3/graph-card-node.png" alt="The graph with the card of a person" width="760">
 
-* **Move the mouse onto the card** (it stays while you go there) and it **lights up** a little; **click it** and the file or folder opens, just as with a double click on the dot.
-* **Which attributes** are in the card, in which order and under which labels is what the **Shoji template** of the type says (so a card and the window of Shoji show the same); a type without a template shows the viewable attributes of
-  its MIME type. What a file does not have is left out, so a card is as small as it can be.
-* **Lists** are shown as simple CSV and are cut in the middle ("Family, Friends, Colle...rs, Haiku Users") when they are too long.
-* **A line (a relation) has a card as well**: the icon of the relation, its label as seen from the end that the mouse is nearer to ("cited by" at one end, "Citation" at the other), the two objects, and how many **targets**
+* **Move the mouse onto the card** and it **lights up** a little; **click it** and the file or folder opens, just as with a double click on the dot.
+* **Attributes** shown on the card, their order and label is defined by the **Shoji template** (an archived BView wired to the attribute names) for the particular type.
+* **Lists** are expanded from CSV style comma separated lists (like the `Groups` attribute for People files) and written back in the original compact format. This allows for more intuitive editing, while keeping full compatibility and efficient storage.
+* **Edges** between nodes represent relations: the icon of the relation, its label as seen from the nearest end ("cites" at one end, "cited by" at the other), the two relation ends, and how many **targets**
   that end has. Move along the line and the card follows; click it to open the folder of those relations.
 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.3/docs/images/beta3/graph-card-relation.png" alt="The card of a relation in the graph" width="760">
 
-* The **Preview** checkbox in the window of the graph switches the cards off. The graph has a filter for **Ontologies** (off by default), like the one for classifications and objects without relations.
+* The **Preview** checkbox in the window of the graph switches the cards off. The graph filters internal types like **Ontologies** (off by default), as well as meta types like classifications, and objects without relations.
+* The **SEN key** (Settings, via the Deskbar knot) now offers the standard Haiku shortcut key first, with the physical key named, and applies to the knot as well.
 
-## Shoji: an entity as a form
+## shōji – a universal template driven entity form editor
 
-**Shoji** is new in the repository: it shows and edits the attributes of a file in a form that belongs to its type. Open a file with it (or *Shoji* from the Applications menu of the Deskbar).
+**Shoji** (from the Japanese word 障子 for paper doors with a wooden frame - symbolizing the template framework and the transparent handling of metadata) is new in the repository: it allows you to view and edit file attributes in a form that adapts to the file type:
 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.3/docs/images/beta3/shoji-book.png" alt="Shoji showing a book with its cover" width="460">
 
-* **Templates** for contacts (`application/x-person`) and books (`entity/x-vnd.sen-labs.entity.book`; the cover is the thumbnail that BERT fetched and sits on the stripe). Any other type gets a generated form with a control for
-  each viewable attribute of its MIME type. A template of your own goes to `~/config/settings/shoji/templates/<MIME type>/template.view` and replaces the one of a package.
-* **Edits are stored as you make them** (Enter, leaving a field, closing the window), not with a Save button; *Revert* puts the file back as it was opened. If somebody else changes an attribute while the window is open, Shoji asks whether to keep
-  your version or take the new one.
+* **Templates** for contacts (`application/x-person`) and books (`entity/x-vnd.sen-labs.entity.book`; the cover is the thumbnail that BERT fetched, nicely tacked to the side). Any other type gets a generated form with a suitable control for each viewable attribute, as defined in the MIME type database. A template of your own goes to `~/config/settings/shoji/templates/<MIME type>/template.view` and replaces the one of a package.
+* **Edits are stored as you make them**. External changes to attribute values while editing them are integrated safely.
 * **A list is a list**: an attribute that its type declares as a list (authors, subjects, the groups of a person) shows as a list of values with *Add* and *Remove*, and the one selected is edited in a field.
 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.3/docs/images/beta3/shoji-contact-list.png" alt="Shoji showing a contact with its groups as a list" width="520">
 
-## Lists of values
-
-An attribute can hold a **list in one string** (`Andy Hunt,Dave Thomas`). Storage and representation are separate: the file keeps the text, a program that knows it is a list shows the values one by one.
-
-* The **attribute info** of the MIME type says so: `SEN:is_list` and the one character `SEN:list_separator`, a comma unless the schema says otherwise (a comma is what People uses for `META:group`). The ontologies write them from
-  their schemas (`is_list: true` on the slot): authors, subjects, languages and publishers of books and papers, ISBN, classification, and the **groups of a person**, including an overlay for the attributes of Haiku's People
-  (`application/x-person`), so the groups of an existing contact are a list as well.
-* The values are split and joined as in CSV: blanks around a value do not belong to it, a value in quotes (`"Hunt, Andy"`) may contain the separator.
 * **SEN FileTypes** has the two fields now: *List of values* (for a String) and *Separator* in the dialog of an attribute.
 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.3/docs/images/beta3/filetypes-list.png" alt="The attribute dialog of FileTypes with List of values and Separator" width="300">
 
-* **BERT and Paperboy** write list values as lists (comma, quotes where needed).
-  *Data written by beta 2 used a semicolon: it shows as one value until the plugin is run on the file again or you edit it.*
+## Enrichment plugins handle multiple results now
 
-## Plugins that ask
-
-When a lookup has **more than one answer**, **BERT** (a book from OpenLibrary) and **Paperboy** (a paper by its title) no longer take the first: a window lists the candidates, the best first, with a bar for how good each is (how close the title
-is to what was asked, how complete and well known the entry is) and the source on the right. `--auto` takes the best without asking (for scripts). BERT also writes the cover as `Media:Thumbnail` and renames the file after the title.
+When a lookup has **more than one answer**, **BERT** (a book from OpenLibrary) and **Paperboy** (a paper by its title) no longer take the first: a window lists the candidates, along with a scoring indicator bar, ordered by match quality (how close the title is to the query, how complete and well known the entry is) and the source on the right. `--auto` takes the best without asking (for scripts). BERT also writes the cover as `Media:Thumbnail` and renames the file after the title.
 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.3/docs/images/beta3/choose-a-paper.png" alt="Choosing one of several papers" width="620">
 
-## The About windows
+## About eye candy
 
-**About SEN** and the About windows of the plugins have the dark stripe with the picture and show the **full version**, from the version resource of the program: `1.0.0-beta.3` (the package is `1.0.0~beta3`; development
-builds of 2.0 show `2.0.0-develop.1`).
+**About SEN** and the About windows of the plugins now have the standard, elegant striped look of Alert dialogs, with the version taken from the version resource: `1.0.0-beta.3` (the package is `1.0.0~beta3`; development builds of 2.0 show `2.0.0-develop.1`):
 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.3/docs/images/beta3/about-sen.png" alt="About SEN with the version 1.0.0-beta.3" width="520">
 
@@ -111,17 +98,20 @@ pkgman install sen_ontology_people sen_ontology_books sen_ontology_papers \
 
 The server starts with your next session (or run `sen start`); `akita start` switches to Akita at once, `akita disable` goes back to the Tracker of Haiku.
 
-## Known limits
+## Known limitations
 
 * The graph shows up to 2000 objects; with more, the status line says how many were read.
 * BFS volumes only, as in beta 1 and 2 (SEN keeps everything in extended attributes).
-* Shoji has templates for contacts and books; other types get the generated form.
+* Shoji currently has templates for contacts and books; other types to follow. As a generic fallback, Shoji will show a dynamic form generated from the file type definition, honoring readonly attributes, and hiding those with their Display flag set to `false`.
 * A Haiku older than hrev60299_1 cannot be used with this beta (Akita would not load there).
 
 ## What comes next
 
-SEN 2.0 "Gnosis": the unified registry of semantic types, an Akita of its own with a graph view next to the list and icon views, a way to walk the graph with nested menus from any file (a "SEN mode" of the context menu),
-and the lists of values as real relations (the groups of a person as a *Collection*).
+Besides probably one last beta and then release candidates for the 1.0 train, I am working at full speed on SEN 2.0 "Gnosis": the unified registry of semantic types in a rich, schema like hierarchy, breaking free from the strict 2-level MIME taxonomy.
+
+Akita will become an independent information browser of its own, with the Shoji form view integrated, more flexible, multi-dimensional attribute views, an integrated graph view, and a way to walk the graph with nested menus from any file (a "SEN mode" of the context menu), and value lists as real relations (e.g., the groups of a person as a *Collection*).
+
+More plugins, templates and ontologies will also follow.
 
 ## Your support is essential
 
