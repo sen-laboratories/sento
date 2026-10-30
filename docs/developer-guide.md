@@ -84,6 +84,10 @@ The graph window of the server (`sen-core`: `src/graph/GraphData`, `src/ui/Graph
   on the right, and waits for the choice (the index in the caller's list, -1 for a cancel). It is made for the thread of a plugin: the window has a thread of its own and Alt+Q cancels. While it waits, the application
   thread of the plugin does not answer messages (scripting of its windows does not work then). `tests/vm/ChoiceTest.cpp` shows it and takes `hey` commands (cancel, choose). The version of a program is
   `sen::VersionText()` of the version resource, `1.0.0-beta.4` (see the skill *haiku-packaging-release*).
+- **Enriching files: ask the server (`sen::cmd::kEnrichRefs`)**. A client (Akita, a script) that wants files enriched sends the server `refs`, and `wipe` and `auto` if it wants: the **server** chooses the plugin, the enrichment
+  plugins (found by their application signature, so packaged plugins as well) whose `file_types` resource says that they handle the type of the file; the first one is started with the file. A file that no plugin
+  handles is told to the user with a notification, and the reply says `B_NOT_SUPPORTED`. A plugin for PDFs does not get a book, and a client never looks for plugins itself. Plugins say what they did with a
+  **notification** (`sensei/common/Notice.h`), not with a dialog that blocks them.
 - **`SenEntityCard.h`** (sento, Haiku, header only): a small read-only **card** that a view draws over itself with a translucent background (`B_OP_ALPHA`; Haiku has no translucent
   windows, but a view can draw so that what is below shows through). `Load(ref)` reads the thumbnail (else the icon), the title (`dc:title` or `META:name`, else the file name) and the values that the file has; **which**
   attributes, in which order and under which labels is what the Shoji template of the MIME type says (`shoji/templates/<type>/template.view` of the data folders; the controls are named after the attributes), without

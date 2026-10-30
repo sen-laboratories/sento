@@ -67,6 +67,12 @@ inline constexpr uint32_t kRelationRemove               = 'SRrm';
 inline constexpr uint32_t kRelationUpdate               = 'SRup';
 inline constexpr uint32_t kRelationsRemoveAll           = 'SRra';
 
+// ---- plugins
+/** Enrich files with a plugin (refs: the files; wipe: replace what they have, default true; auto: take the best answer without asking). The server chooses the plugin: the
+ *  enrichment plugins that say in their file types that they handle the type of a file, the first of them gets the file. A file that no plugin handles is told to the user with a
+ *  notification. Answered with sen::key::kResult (B_OK if a plugin was started for at least one file). Any client (Akita, a script) asks the server and none looks for plugins itself. */
+inline constexpr uint32_t kEnrichRefs = 'SEnr';
+
 // ---- Tracker integration
 inline constexpr uint32_t kOpenRelationTarget     = 'STot';
 inline constexpr uint32_t kOpenRelationView       = 'STrv';
