@@ -29,9 +29,12 @@
 #include <Bitmap.h>
 #include <Button.h>
 #include <ControlLook.h>
+#include <Cursor.h>
 #include <GroupLayout.h>
 #include <LayoutBuilder.h>
 #include <Message.h>
+#include <Messenger.h>
+#include <Screen.h>
 #include <String.h>
 #include <TextView.h>
 #include <TranslationUtils.h>
@@ -157,6 +160,112 @@ StripePictureTop(float viewHeight, float pictureHeight)
 }
 
 
+/**
+ * The picture at its full size, in a window of its own that lies over the picture on the stripe: the same frame as the small one has. A click on it, Escape, or
+ * the window losing the focus (a click anywhere else) closes it.
+ */
+class EnlargedPictureWindow : public BWindow {
+public:
+	/** @param center where the middle of the window is (screen), as far as the screen allows it; @param picture the picture, taken over */
+	EnlargedPictureWindow(BPoint center, BBitmap* picture)
+		:
+		BWindow(FrameFor(center, picture), "picture", B_NO_BORDER_WINDOW_LOOK, B_MODAL_APP_WINDOW_FEEL,
+			B_NOT_RESIZABLE | B_NOT_ZOOMABLE | B_NOT_MINIMIZABLE | B_ASYNCHRONOUS_CONTROLS)
+	{
+		AddChild(new View(Bounds(), picture));
+	}
+
+	virtual void
+	WindowActivated(bool active)
+	{
+		if (!active)
+			PostMessage(B_QUIT_REQUESTED);
+	}
+
+private:
+	/** the picture is shown at its size, but not larger than most of the screen (then it is scaled down to it) */
+	static BRect
+	FrameFor(BPoint center, BBitmap*& picture)
+	{
+		BRect screen = BScreen().Frame();
+		const float frame = 2;		// (white and black line around it)
+		const float maxHeight = screen.Height() * 0.9f - 2 * frame, maxWidth = screen.Width() * 0.9f - 2 * frame;
+		if (picture->Bounds().Height() + 1 > maxHeight) {
+			BBitmap* scaled = ScaleDown(picture, maxHeight);
+			if (scaled != NULL) {
+				delete picture;
+				picture = scaled;
+			}
+		}
+		const float width = picture->Bounds().Width() + 1 + 2 * frame, height = picture->Bounds().Height() + 1 + 2 * frame;
+		(void) maxWidth;
+		BRect rect(0, 0, width - 1, height - 1);
+		rect.OffsetTo(floorf(center.x - width / 2), floorf(center.y - height / 2));
+		// (on the screen: moved, not cut)
+		if (rect.right > screen.right)
+			rect.OffsetBy(screen.right - rect.right, 0);
+		if (rect.bottom > screen.bottom)
+			rect.OffsetBy(0, screen.bottom - rect.bottom);
+		if (rect.left < screen.left)
+			rect.OffsetBy(screen.left - rect.left, 0);
+		if (rect.top < screen.top)
+			rect.OffsetBy(0, screen.top - rect.top);
+		return rect;
+	}
+
+	class View : public BView {
+	public:
+		View(BRect frame, BBitmap* picture)
+			:
+			BView(frame, "picture", B_FOLLOW_ALL, B_WILL_DRAW),
+			fPicture(picture)
+		{
+			SetViewColor(B_TRANSPARENT_COLOR);
+		}
+
+		virtual ~View() { delete fPicture; }
+
+		virtual void
+		AttachedToWindow()
+		{
+			MakeFocus(true);	// (Escape)
+		}
+
+		virtual void
+		Draw(BRect)
+		{
+			BRect bounds = Bounds();
+			SetHighColor(0, 0, 0);
+			FillRect(bounds);
+			SetHighColor(255, 255, 255);
+			FillRect(bounds.InsetByCopy(1, 1));
+			SetDrawingMode(B_OP_ALPHA);
+			SetBlendingMode(B_PIXEL_ALPHA, B_ALPHA_OVERLAY);
+			DrawBitmap(fPicture, BPoint(2, 2));
+			SetDrawingMode(B_OP_COPY);
+		}
+
+		virtual void
+		MouseDown(BPoint)
+		{
+			Window()->PostMessage(B_QUIT_REQUESTED);
+		}
+
+		virtual void
+		KeyDown(const char* bytes, int32 numBytes)
+		{
+			if (numBytes == 1 && bytes[0] == B_ESCAPE)
+				Window()->PostMessage(B_QUIT_REQUESTED);
+			else
+				BView::KeyDown(bytes, numBytes);
+		}
+
+	private:
+		BBitmap*	fPicture;
+	};
+};
+
+
 /** The dark stripe with the picture across its edge. */
 class StripeView : public BView {
 	static const int kShadowDistance = 5;	///< pixels that the shadow is moved to the right and down: it starts below the top edge of the frame and right of its left edge
@@ -164,11 +273,15 @@ class StripeView : public BView {
 	static const uint8 kShadowAlpha = 30;	///< of each of its layers (of 255)
 
 public:
-	/** @param picture the icon or logo, drawn as it is (it is taken over); NULL for a stripe without one */
-	StripeView(BBitmap* picture)
+	/**
+	 * @param picture the icon or logo, drawn as it is (it is taken over); NULL for a stripe without one
+	 * @param full the picture at its full size, if it is larger than it is shown (it is taken over): a click on the picture shows it
+	 */
+	StripeView(BBitmap* picture, BBitmap* full = NULL)
 		:
-		BView("stripe", B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE),
-		fPicture(picture)
+		BView("stripe", B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE | B_FRAME_EVENTS),
+		fPicture(picture),
+		fFull(full)
 	{
 		float spacing = be_control_look->DefaultLabelSpacing();
 		SetViewUIColor(B_PANEL_BACKGROUND_COLOR);
@@ -180,7 +293,11 @@ public:
 		SetExplicitPreferredSize(BSize(width, height));
 	}
 
-	virtual ~StripeView() { delete fPicture; }
+	virtual ~StripeView()
+	{
+		delete fPicture;
+		delete fFull;
+	}
 
 	virtual void
 	Draw(BRect)
@@ -218,8 +335,58 @@ public:
 		SetDrawingMode(B_OP_COPY);
 	}
 
+	/** the picture in the stripe is clickable if there is a larger one */
+	virtual void
+	MouseDown(BPoint where)
+	{
+		if (fFull != NULL && PictureFrame().Contains(where))
+			ToggleEnlarged();
+	}
+
+	virtual void
+	MouseMoved(BPoint where, uint32 transit, const BMessage*)
+	{
+		if (fFull == NULL)
+			return;
+		BCursor zoom(B_CURSOR_ID_ZOOM_IN);
+		if (transit != B_EXITED_VIEW && PictureFrame().Contains(where))
+			SetViewCursor(&zoom);
+		else
+			SetViewCursor(B_CURSOR_SYSTEM_DEFAULT);
+	}
+
+	/** The full picture shows, over the picture; a second call (or a click on it, Escape, a click elsewhere) puts it away. */
+	void
+	ToggleEnlarged()
+	{
+		if (fFull == NULL)
+			return;
+		if (fEnlarged.IsValid()) {
+			fEnlarged.SendMessage(B_QUIT_REQUESTED);
+			fEnlarged = BMessenger();
+			return;
+		}
+		EnlargedPictureWindow* window = new EnlargedPictureWindow(ConvertToScreen(PictureFrame()).LeftTop()
+			+ BPoint(PictureFrame().Width() / 2, PictureFrame().Height() / 2), new BBitmap(fFull));
+		fEnlarged = BMessenger(window);
+		window->Show();
+	}
+
 private:
+	/** where the picture is: the top left at three spacings from the left, as Draw() puts it */
+	BRect
+	PictureFrame() const
+	{
+		if (fPicture == NULL)
+			return BRect();
+		const float spacing = be_control_look->DefaultLabelSpacing();
+		BPoint at(spacing * 3, StripePictureTop(Bounds().Height(), fPicture->Bounds().Height() + 1));
+		return BRect(at.x, at.y, at.x + fPicture->Bounds().Width(), at.y + fPicture->Bounds().Height());
+	}
+
 	BBitmap*	fPicture;
+	BBitmap*	fFull;
+	BMessenger	fEnlarged;
 };
 
 
