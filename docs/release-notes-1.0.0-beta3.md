@@ -20,7 +20,7 @@ Beta 2 introduced the graph view. Beta 3 lets you **look closer**: point at an o
 > Because SEN Core requires FileTypes, **this beta needs a Haiku nightly from hrev60299_1 on**; `pkgman update` updates Haiku too (it asks for a reboot).
 
 > [!NOTE]
-> **Update, 31 October:** `sen_core ~beta3-5` fixes the menu of the SEN key setting (it had an unneeded disabled entry, and the standard key is the default now), and `shoji ~beta3-4` has its own icon. `pkgman update` brings both.
+> **Update, 31 October:** `sen_core ~beta3-5` fixes the menu of the SEN key setting (it had an unneeded disabled entry, and the standard key is the default now). **Shoji** has its own icon, a menu with an About window, and is now `1.0.0~beta3`, the version of the SEN 1.0 train (`pkgman update` brings both).
 
 ## Cards in the Graph View
 
@@ -55,9 +55,10 @@ A node gets a **card** next to it: the thumbnail or icon of the file, its title 
 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.3/docs/images/beta3/shoji-contact-list.png" alt="Shoji showing a contact with its groups as a list" width="520">
 
-* **Shoji has an icon** now: the knot of its logo, with a plainer drawing for 16 and 24 px.
+* **Shoji has an icon** now: the knot of its logo, with a plainer drawing for 16 and 24 px, and a menu with **About** (the About window of SEN, with the logo) and **Quit**.
 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/main/docs/images/beta3/shoji-icon.png" alt="The icon of Shoji" width="128">
+<img src="https://raw.githubusercontent.com/sen-laboratories/sento/main/docs/images/beta3/shoji-about.png" alt="The About window of Shoji" width="520">
 
 * **SEN FileTypes** has the two fields now: *List of values* (for a String) and *Separator* in the dialog of an attribute.
 
@@ -78,7 +79,7 @@ When a lookup has **more than one answer**, **BERT** (a book from OpenLibrary) a
 ## Packages
 
 * **New in Kiri: `qpdf` and `qpdf_devel`** (12.4.2), HaikuPorts has no recipe for it. `sen_plugin_pdf_extractor` requires `lib:libqpdf` now instead of bringing its own copy.
-* **`shoji`** (`0.2.0~beta3`) is new; **`akita` and `sen_filetypes`** are `1.0.0~beta3` (the Haiku requirement above); the ontology packages are at `0.1.0-20` (the list fields, the overlay for People);
+* **`shoji`** (`1.0.0~beta3`, the version of the SEN 1.0 train) is new; **`akita` and `sen_filetypes`** are `1.0.0~beta3` (the Haiku requirement above); the ontology packages are at `0.1.0-20` (the list fields, the overlay for People);
   all plugins and `sen_plugins`, `sen_core`, `sen_oni` are `~beta3`. The stage and its count are in the version resource of each program, and the package says the same.
 * **For developers** (sento): `SenEntityCard.h` (the card), `SenChoice.h` (the window to choose one answer), `SenList.h` and `SenAttrInfo.h` (lists), `SenVersion.h` (the version of a program), and `AddContent()` / `AddButton()` in
   the About dialog; see the developer guide.
