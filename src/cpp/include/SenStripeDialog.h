@@ -35,6 +35,7 @@
 #include <String.h>
 #include <TextView.h>
 #include <TranslationUtils.h>
+#include <Region.h>
 #include <View.h>
 #include <Window.h>
 
@@ -158,6 +159,10 @@ StripePictureTop(float viewHeight, float pictureHeight)
 
 /** The dark stripe with the picture across its edge. */
 class StripeView : public BView {
+	static const int kShadowDistance = 5;	///< pixels that the shadow is moved to the right and down: it starts below the top edge of the frame and right of its left edge
+	static const int kShadowBlur = 2;		///< pixels that it fades out over
+	static const uint8 kShadowAlpha = 30;	///< of each of its layers (of 255)
+
 public:
 	/** @param picture the icon or logo, drawn as it is (it is taken over); NULL for a stripe without one */
 	StripeView(BBitmap* picture)
@@ -189,13 +194,28 @@ public:
 			return;
 		// the centre of the picture at a third of the height, but on the stripe
 		BPoint at(spacing * 3, StripePictureTop(Bounds().Height(), fPicture->Bounds().Height() + 1));
+		const BRect picture(at.x, at.y, at.x + fPicture->Bounds().Width(), at.y + fPicture->Bounds().Height());
+
+		// a little depth, as a card has that lies on the panel: a soft shadow to the right and below it, and a thin frame (white inside, black outside) around it
 		SetDrawingMode(B_OP_ALPHA);
 		SetBlendingMode(B_PIXEL_ALPHA, B_ALPHA_OVERLAY);
+		const BRect frame = picture.InsetByCopy(-2, -2);
+		// (the shadow is only outside of the frame: a picture with transparent parts is not darkened by it)
+		BRegion outside(Bounds());
+		outside.Exclude(frame);
+		ConstrainClippingRegion(&outside);
+		for (int layer = kShadowBlur; layer >= 0; layer--) {
+			// (the layers lie on one another: dark next to the frame, fading out; moved by the distance, they do not show above and left of it)
+			SetHighColor(0, 0, 0, kShadowAlpha);
+			FillRect(frame.OffsetByCopy(kShadowDistance, kShadowDistance).InsetByCopy(-layer, -layer));
+		}
+		ConstrainClippingRegion(NULL);
+		SetHighColor(0, 0, 0, 255);
+		StrokeRect(frame);
+		SetHighColor(255, 255, 255, 255);
+		StrokeRect(picture.InsetByCopy(-1, -1));
 		DrawBitmap(fPicture, at);
-		// (a picture of a file is a card: a thin edge keeps it from running into the panel)
 		SetDrawingMode(B_OP_COPY);
-		SetHighColor(tint_color(ViewColor(), B_DARKEN_2_TINT));
-		StrokeRect(BRect(at.x, at.y, at.x + fPicture->Bounds().Width(), at.y + fPicture->Bounds().Height()));
 	}
 
 private:
