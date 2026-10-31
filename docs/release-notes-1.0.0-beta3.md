@@ -19,6 +19,9 @@ Beta 2 introduced the graph view. Beta 3 lets you **look closer**: point at an o
 > nightly runs every day (`abi-check.sh` in the [akita](https://github.com/sen-laboratories/akita) repository), and a new build follows when a nightly breaks Akita.
 > Because SEN Core requires FileTypes, **this beta needs a Haiku nightly from hrev60299_1 on**; `pkgman update` updates Haiku too (it asks for a reboot).
 
+> [!NOTE]
+> **Update, 31 October:** `sen_core ~beta3-5` fixes the menu of the SEN key setting (it had an unneeded disabled entry, and the standard key is the default now), and `shoji ~beta3-4` has its own icon. `pkgman update` brings both.
+
 ## Cards in the Graph View
 
 The graph view from beta 2 now shows **cards** when you point at a node or a relation.
@@ -36,7 +39,9 @@ A node gets a **card** next to it: the thumbnail or icon of the file, its title 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.3/docs/images/beta3/graph-card-relation.png" alt="The card of a relation in the graph" width="760">
 
 * The **Preview** checkbox in the window of the graph switches the cards off. The graph filters internal types like **Ontologies** (off by default), as well as meta types like classifications, and objects without relations.
-* The **SEN key** (Settings, via the Deskbar knot) now offers the standard Haiku shortcut key first, with the physical key named, and applies to the knot as well.
+* The **SEN key** (Settings, via the Deskbar knot) now offers the standard Haiku shortcut key first, with the physical key named, and applies to the knot as well. Standard is the default; the other keys follow below the separator.
+
+<img src="https://raw.githubusercontent.com/sen-laboratories/sento/main/docs/images/beta3/sen-key-settings.png" alt="The settings window of SEN with the SEN key" width="620">
 
 ## shōji – a universal template driven entity form editor
 
@@ -49,6 +54,10 @@ A node gets a **card** next to it: the thumbnail or icon of the file, its title 
 * **A list is a list**: an attribute that its type declares as a list (authors, subjects, the groups of a person) shows as a list of values with *Add* and *Remove*, and the one selected is edited in a field.
 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.3/docs/images/beta3/shoji-contact-list.png" alt="Shoji showing a contact with its groups as a list" width="520">
+
+* **Shoji has an icon** now: the knot of its logo, with a plainer drawing for 16 and 24 px.
+
+<img src="https://raw.githubusercontent.com/sen-laboratories/sento/main/docs/images/beta3/shoji-icon.png" alt="The icon of Shoji" width="128">
 
 * **SEN FileTypes** has the two fields now: *List of values* (for a String) and *Separator* in the dialog of an attribute.
 
