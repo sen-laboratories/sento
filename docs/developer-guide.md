@@ -368,14 +368,14 @@ at the end of the relation, the actual target.
 
 | What the user does with the relation file | What it applies to |
 |-------------------------------------------|--------------------|
-| double-click (Open) | the **target** is opened, with the navigator of the relation type; the properties of the relation come along (the navigator maps the ones that the application understands: a document reference gives the page to the PDF viewer, see `PdfNavigator`). |
+| double-click (Open) | the **target** is opened, with the navigator of the relation type; the properties of the relation come along (the navigator maps the ones that the application understands: a document reference gives the page to the PDF viewer, see `document-reference-navigator`). |
 | *Open related...*, *Open contained...* | the **target**: the menus list the relations that apply to the file that the relation points to. |
 | edit an attribute of the file | the **relation**: the properties of the relation change (5.1). |
 | delete, move, drop (5.1) | the **relation**. |
 
 The target is carried by each file: `SEN:REL:TRG` (a ref), written by `TrackerSenRelations::RelationsToList` when the view is made, next to `SEN:REL:ID` (source)
 and `SEN:REL:TO` (target id). `TrackerSenRelations::RelationTargetOrSelf` is what Tracker uses for the relation menus; the navigators resolve the proxy the same way when they
-are given a relation file (`PdfNavigator`, `ReferenceNavigator`). A file without `SEN:REL:TRG` is an ordinary file and stands for itself.
+are given a relation file (`document-reference-navigator`, `reference-navigator`). A file without `SEN:REL:TRG` is an ordinary file and stands for itself.
 
 **Nested (n-ary) relations are not proxies.** A nested relation is shown as a **folder**, and everything that is done with that folder is done with the relation itself. Contained
 relations of a plugin (a bookmark in a document) are files whose target is the file that contains them.
@@ -458,8 +458,8 @@ Rules for plugins: use the shared constants, never literals; a plugin writes no 
 
 ### Navigators: opening the target of a relation
 
-A navigator is the application that opens the target of a relation (the preferred application of the relation type, a plugin with the feature `navigate`). `PdfNavigator` gives the place in a PDF to the
-viewer that is installed (Toji, BePDF), `ReferenceNavigator` is the one of generic references, of dependencies and of what a type contains (its attributes): what the target is decides how it is opened. `RelationNavigator` is the default for all other relations (it declares the supertype `relation`): it shows the target in Tracker, in its folder, selected (a folder is opened); `ReferenceNavigator` hands every target that is not a type or an attribute of the MIME database to it when a relation file is opened. The server gives each installed relation type that has no preferred application the navigator that declares the type, or else the one for the supertype, when it starts (the roster does not look at the supertype for a file). A type of the MIME
+A navigator is the application that opens the target of a relation (the preferred application of the relation type, a plugin with the feature `navigate`). **Navigators are named for the relation that they navigate**, not for a kind of file: `document-reference-navigator` (DocumentReference), `text-reference-navigator` (TextReference, and the source code includes), `authorship-navigator` (Authorship), `personal-relation-navigator` (PersonalRelation and its special cases, Employment, Membership), `reference-navigator` (Reference, Dependency, Contains) and `relation-navigator` (all the others). A navigator whose target needs no arguments from the relation (a person is simply opened by its application) is `sensei::TargetOpenerApp` (sensei, `common/TargetOpener.h`) with its own signature. `document-reference-navigator` gives the place in a PDF to the
+viewer that is installed (Toji, BePDF), `reference-navigator` is the one of generic references, of dependencies and of what a type contains (its attributes): what the target is decides how it is opened. `relation-navigator` is the default for all other relations (it declares the supertype `relation`): it shows the target in Tracker, in its folder, selected (a folder is opened); `reference-navigator` hands every target that is not a type or an attribute of the MIME database to it when a relation file is opened. The server gives each installed relation type that has no preferred application the navigator that declares the type, or else the one for the supertype, when it starts (the roster does not look at the supertype for a file). A type of the MIME
 database is shown in FileTypes; an attribute of a type opens in the dialog of that attribute.
 
 FileTypes is a single launch application, so there is one instance, and it is not asked to quit. The navigator finds out which one is installed by the signature:
