@@ -14,6 +14,7 @@
  *     g++ -std=c++17 -Wno-multichar -I<headers> -o choice-test ChoiceTest.cpp -lbe
  */
 #include <Application.h>
+#include <Looper.h>
 #include <OS.h>
 #include <stdio.h>
 
@@ -31,27 +32,38 @@ Make(const char* title, const char* subtitle, const char* detail, const char* so
 	return candidate;
 }
 
-static int32
-Choose(void*)
-{
-	std::vector<sen::Candidate> candidates;
-	candidates.push_back(Make("A preprint of the same paper", "Ann Author, Ben Writer \xc2\xb7 2024", "arXiv:2401.00001 \xc2\xb7 12 pages", "arXiv", 0.45f));
-	candidates.push_back(Make("The paper, as published", "Ann Author, Ben Writer \xc2\xb7 2025", "DOI 10.1000/xyz123 \xc2\xb7 PDF \xc2\xb7 14 pages", "Unpaywall", 0.92f));
-	candidates.push_back(Make("A copy that somebody uploaded", "A. Author", "PDF \xc2\xb7 scanned", "ResearchGate", 0.2f));
+static const uint32 kChoose = 'Tchs';
 
-	int32 chosen = sen::ChooseCandidate("Choose a paper", "Several sources have this paper. Which one do you want?", candidates);
-	printf("chosen: %d\n", (int) chosen);
-	fflush(stdout);
-	be_app->PostMessage(B_QUIT_REQUESTED);
-	return 0;
-}
+/** the chooser blocks until the user has chosen: it is run by a looper of its own, not by the thread of the application */
+class Chooser : public BLooper {
+public:
+	virtual void
+	MessageReceived(BMessage* message)
+	{
+		if (message->what != kChoose) {
+			BLooper::MessageReceived(message);
+			return;
+		}
+
+		std::vector<sen::Candidate> candidates;
+		candidates.push_back(Make("A preprint of the same paper", "Ann Author, Ben Writer \xc2\xb7 2024", "arXiv:2401.00001 \xc2\xb7 12 pages", "arXiv", 0.45f));
+		candidates.push_back(Make("The paper, as published", "Ann Author, Ben Writer \xc2\xb7 2025", "DOI 10.1000/xyz123 \xc2\xb7 PDF \xc2\xb7 14 pages", "Unpaywall", 0.92f));
+		candidates.push_back(Make("A copy that somebody uploaded", "A. Author", "PDF \xc2\xb7 scanned", "ResearchGate", 0.2f));
+
+		int32 chosen = sen::ChooseCandidate("Choose a paper", "Several sources have this paper. Which one do you want?", candidates);
+		printf("chosen: %d\n", (int) chosen);
+		fflush(stdout);
+		be_app->PostMessage(B_QUIT_REQUESTED);
+	}
+};
 
 int
 main()
 {
 	BApplication app("application/x-vnd.sen-labs.choice-test");
-	thread_id thread = spawn_thread(Choose, "choose", B_NORMAL_PRIORITY, NULL);
-	resume_thread(thread);
+	Chooser* chooser = new Chooser();
+	chooser->Run();
+	chooser->PostMessage(kChoose);
 	app.Run();
 	return 0;
 }
