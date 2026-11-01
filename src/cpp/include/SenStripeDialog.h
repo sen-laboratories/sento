@@ -450,11 +450,15 @@ public:
 	 * @param description what it is, in a few lines; may be empty
 	 * @param copyright the lines of the copyright and the license; may be empty
 	 * @param logo the picture for the stripe (taken over), NULL for none
+	 * @param quitApplication the application quits when the window is closed
+	 * @param title the title of the window, NULL for "About <name>"; a program that is translated gives it, and the two labels, in the language of the user
+	 * @param versionLabel the word before the version
+	 * @param okLabel the label of the button
 	 */
 	AboutDialog(const char* name, const char* version, const char* description, const char* copyright, BBitmap* logo,
-			bool quitApplication = false)
+			bool quitApplication = false, const char* title = NULL, const char* versionLabel = "Version", const char* okLabel = "OK")
 		:
-		StripeDialog((BString("About ") << name).String(), logo, quitApplication),
+		StripeDialog(AboutTitle(name, title).String(), logo, quitApplication),
 		fButtons(NULL)
 	{
 		BString text(name);
@@ -462,7 +466,7 @@ public:
 		int32 nameEnd = text.Length();
 		text << "\n";
 		if (version != NULL && version[0] != '\0')
-			text << "Version " << version << "\n";
+			text << versionLabel << " " << version << "\n";
 		if (description != NULL && description[0] != '\0')
 			text << "\n" << description << "\n";
 		if (copyright != NULL && copyright[0] != '\0')
@@ -489,7 +493,7 @@ public:
 		view->SetExplicitMinSize(BSize(textWidth, textHeight));
 		view->SetExplicitMaxSize(BSize(textWidth, textHeight));
 
-		BButton* ok = new BButton("ok", "OK", new BMessage(B_QUIT_REQUESTED));
+		BButton* ok = new BButton("ok", okLabel, new BMessage(B_QUIT_REQUESTED));
 		ok->MakeDefault(true);
 
 		ContentLayout()->AddView(view);
@@ -511,6 +515,12 @@ public:
 	}
 
 private:
+	static BString
+	AboutTitle(const char* name, const char* title)
+	{
+		return title != NULL ? BString(title) : (BString("About ") << name);
+	}
+
 	BGroupLayout*	fButtons;
 };
 
