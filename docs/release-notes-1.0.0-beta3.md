@@ -47,7 +47,7 @@ A node gets a **card** next to it: the thumbnail or icon of the file, its title 
 
 **Shoji** (from the Japanese word 障子 for paper doors with a wooden frame - symbolizing the template framework and the transparent handling of metadata) is new in the repository: it allows you to view and edit file attributes in a form that adapts to the file type:
 
-<img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.3/docs/images/beta3/shoji-book.png" alt="Shoji showing a book with its cover" width="460">
+<img src="https://raw.githubusercontent.com/sen-laboratories/sento/main/docs/images/beta3/shoji-book.png" alt="Shoji showing a book with its cover" width="460">
 
 * **Templates** for contacts (`application/x-person`) and books (`entity/x-vnd.sen-labs.entity.book`; the cover is the thumbnail that BERT fetched, nicely tacked to the side). Any other type gets a generated form with a suitable control for each viewable attribute, as defined in the MIME type database. A template of your own goes to `~/config/settings/shoji/templates/<MIME type>/template.view` and replaces the one of a package.
 * **Edits are stored as you make them**. External changes to attribute values while editing them are integrated safely.
