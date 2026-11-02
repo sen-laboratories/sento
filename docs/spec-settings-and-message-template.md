@@ -14,7 +14,7 @@ a key such as the one of OpenAlex has to be typed into a text file. The aim:
 
 * a plugin **describes** its settings (a message, optionally a schema and a layout) and has no settings window of its own;
 * the user configures SEN **and** its plugins in **one** settings window, with controls that match the data;
-* the controls are made from the data (generic), so that the same code shows any archived `BMessage`, for example a settings file in Shoji.
+* the controls are made from the data (generic), by **one implementation**: Shoji's view for a `BMessage`. Shoji shows it for any message file; the SEN settings window **hosts the same view as a replicant** (section 7).
 
 Principles:
 
@@ -78,7 +78,7 @@ A form is made from `(values, schema)`. Two ways to draw a nested message were c
 
 **Layout from a plugin.** A plugin may bring a **layout**: an archived `BView` in a resource of its binary, read by SEN **without starting the plugin**. Its controls are named with path keys and are connected to the values as the generated form is. Only **layout** is allowed: the view is made of classes of the system (`BGridLayout`, `BViewLayoutItem`, `BTextControl`, `BCheckBox`, `BMenuField`, `BStringView` ...), because a process can only unarchive classes that it has: a plugin cannot give another process a control of its own. This is what the templates of Shoji are already (the archives of the installed templates contain only `BGridLayout`, `BViewLayoutItem`, `BTextControl` and `BStringView`; Shoji puts the list control in place of a text field when the form is shown). The resource is made at build time by the plugin (a small step like `shoji -g`, then `xres`). A plugin without a layout gets the generated form.
 
-Live editing: every control posts its change with the path and the new value to the owner of the view, which changes the **working copy** of the message. For plugin settings the owner then **sends the change to the plugin** (section 6); Shoji writes the file. **Revert** replaces the working copy by the **original copy** that was taken when the view was opened, and sends it back; **Defaults** replaces it by the defaults message.
+Live editing: every control changes the **working copy** of the message that the view holds and posts the change (path and value) to its **owner**: the window of Shoji, which writes the file, or the SEN settings window, which **sends the change to the plugin** (section 6). **Revert** replaces the working copy by the **original copy** that was taken when the data was set (and reports the whole message); **Defaults** replaces it by the defaults message.
 
 ## 6. The SEN settings window and the plugin protocol
 
@@ -111,13 +111,25 @@ The protocol (`Sensei.h`; the plugin is started with `be_roster->Launch(signatur
 * A plugin that needs more than the layout (a login, a list from a service) has a button in its layout that sends it a message and shows a window of its own, as About does.
 * *Core* is the same form with the settings of the server as values; the server handles its own requests (`UpdateSettings`, already there).
 
-## 7. Shoji: a template for messages (first consumer, proof of concept)
+## 7. Shoji: the view for messages, and its reuse as a replicant
 
-The generic form is first built and tested with Shoji, because Shoji needs the same pieces: the controls named by path keys, the hooks that store a change, the list control, Revert.
+Shoji knows two kinds of data: the **attributes** of a file (as now) and **messages** (a flattened message file, or one in memory; a message is the attributes' model with nesting and arrays). It knows nothing of SEN plugins. The settings window of SEN gets its settings from the plugins as messages (section 6) and needs nothing else from Shoji than the view.
 
-* Shoji takes the values from a **store** and no longer from the attributes of a file directly. The interface: `Get(path)`, `Set(path, value)`, enumerate, a change signal, `Revert`. Implementations: `AttributeStore` (what Shoji does now), `MessageFileStore` (a flattened message file: Shoji reads and writes it; this is a user opening a file in Shoji, not SEN touching a plugin's files) and `PluginSettingsStore` (section 6: the values come from the plugin and go back to it). The template views, the list control and the hooks stay as they are; the name of a control is the attribute or the path key.
-* The generic template for a message builds the form of section 5 for the file that is opened. A settings file is recognised by its type `application/x-vnd.sen-labs.settings` (the attribute `BEOS:TYPE`), so that Shoji opens it by double click and *Open With*; any other flattened message can be opened with *Open With*.
-* The builder and the stores' interface are a header-only or small static library of sento (`SenSettingsForm.h`), because the server cannot depend on Shoji. Shoji and the settings window of SEN then show the same form for the same message.
+* **`ShojiMessageView`** is a `BView` that builds the form of section 5 for a message. Shoji uses it in its own window for a message file (the template for messages: any flattened message opened with *Open With*; a settings file is recognised by its type `application/x-vnd.sen-labs.settings`, written as `BEOS:TYPE`). The path function set and the control building are shared with the attribute templates (control name = attribute or path key).
+* **As a replicant.** The same class is archived with `add_on = application/x-vnd.sen-labs.shoji`. The settings window makes the stub of the archive (the class name and the signature, nothing else), and `instantiate_object()` **loads the class from the executable of Shoji**, found with `BRoster::FindApp()`: the way the knot of SEN is loaded from `sen_server` into the Deskbar. The window does not link Shoji. It talks to the view with messages only:
+
+| Message | To / from the view | Content |
+|---|---|---|
+| `kSetData` | to | `settings`, optionally `schema`, `defaults`, `layout` (archived view of section 5), `target` (the messenger for the changes), `protocol` |
+| `kChanged` | from | `path`, `value` (as text and typed), `settings` (the whole working copy) |
+| `kGetData` | to, with reply | `settings` |
+| `kRevert`, `kDefaults` | to | – (the view answers with `kChanged` for the whole message) |
+
+  The codes and field names are in a header of sento (`SenSettingsForm.h`: constants only); the form itself is code of Shoji only.
+* **Tried in the VM** (a provider application with the view class, a host without a link to it; 2026-11-02): the class was loaded from the other executable, the form was built from a message with a nested message and an array, six changes (a check box, text, a number, an array element, two fields of the nested message) arrived at the host with their path keys, and the data could be read back. Two points that cost an hour: the loader looks up `Class::Instantiate(BMessage*)` among the dynamic symbols of the executable, so it must be **defined out of the class body** (an inline function is not emitted and the load fails with no message); and the host and the class share the process, so the class cannot use `be_app`, its catalog or its resources as if the application were Shoji (below).
+* **What the view must not assume**, because the application is the host: no use of `be_app` (the `ShojiApp` of Shoji), no global state of the application, the catalog of Shoji bound explicitly (`BCatalog` with its signature, not the one of the running application), icons and other resources read from the file of Shoji (`BResources` of the executable found with the signature), the window found with `Window()`.
+* **Without Shoji** (not installed, or too old for the protocol): the settings window says so in the pane and offers to open the settings file of Core; no second implementation of the form is kept. SEN's packages recommend `shoji`; `sen_core` does not require it.
+* **Isolation.** The class runs in the process of the host: a crash in the form is a crash of the host. The settings window of the server would take the server down with it. Hosting the window in a small helper application of `sen_core` (`sen_settings`, started by the *Settings…* item of the Deskbar menu, talking to the server and the plugins) keeps the server out of it, and is cheap as the window is the only part. *Open point 1.*
 
 ## 8. Compatibility
 
@@ -127,15 +139,16 @@ The generic form is first built and tested with Shoji, because Shoji needs the s
 
 ## 9. Order of work (beta 5)
 
-1. **Format and code:** `SenSettingsPath.h` (path functions) with tests (no GUI); the schema and defaults fields; the store interface.
-2. **Generic form** (`SenSettingsForm.h`): controls of section 2, Revert and Defaults, layouts by control name; tested in the VM with screenshots.
-3. **Shoji:** `MessageFileStore` and the template for messages (the proof of concept), with the settings of Shoji itself and a flattened message of SEN as examples.
-4. **Protocol and window:** `kSettings`, `kSettingsSet`, `kSettingsClose` in `Sensei.h` with the plugin side in `common/` (a small helper that a plugin app uses to answer), the tree and the pane in the server, the plugin lookup; *Core* first, then Paperboy, then BERT and the other plugins as they get settings.
+1. **Format and code:** `SenSettingsPath.h` (path functions) with tests (no GUI); the schema and defaults fields; `SenSettingsForm.h` (the message codes).
+2. **`ShojiMessageView`:** the generated form with the controls of section 2, layouts by control name, Revert and Defaults; Shoji's window for a message file (the proof of concept, with the settings of Shoji and a flattened message of SEN as examples); the view free of the assumptions in section 7; tested in the VM with screenshots.
+3. **Replicant:** the host side (`instantiate_object`, the messages, the fallback without Shoji) with a test host in the sento tests (the proof of concept of 2026-11-02 as its start).
+4. **Protocol and window:** `kSettings`, `kSettingsSet`, `kSettingsClose` in `Sensei.h` with the plugin side in `common/` (a small helper that a plugin app uses to answer), the tree and the pane, the plugin lookup; *Core* first, then Paperboy, then BERT and the others as they get settings.
 5. *Later:* the inspector for arbitrary messages (variant B), the movie enricher (a new plugin that will need an API key and therefore the settings window).
 
 ## 10. Open points
 
-* Where the translations of the labels come from for a plugin whose catalog is not bound into the binary (the plugin gives translated strings in its schema, as it has its own catalog, or the server asks its catalog by signature).
-* Whether `restart` is shown in the window or acted on.
-* How the window behaves when the plugin cannot be started or does not answer (a message in the pane, the other plugins stay usable).
-* A plugin that is a script or has no `BApplication` of its own (none so far: all plugins are applications).
+1. Where the settings window lives: the server (as the other windows) or a helper application (section 7, isolation).
+2. Where the translations of the labels come from for a plugin whose catalog is not bound into the binary (the plugin gives translated strings in its schema, as it has its own catalog, or the server asks its catalog by signature).
+3. Whether `restart` is shown in the window or acted on.
+4. How the window behaves when the plugin cannot be started or does not answer (a message in the pane, the other plugins stay usable).
+5. The `protocol` number of the replicant messages and what the host does with a view that answers with another one.
