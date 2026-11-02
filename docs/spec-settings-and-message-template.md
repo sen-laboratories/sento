@@ -129,7 +129,7 @@ Shoji knows two kinds of data: the **attributes** of a file (as now) and **messa
 * **Tried in the VM** (a provider application with the view class, a host without a link to it; 2026-11-02): the class was loaded from the other executable, the form was built from a message with a nested message and an array, six changes (a check box, text, a number, an array element, two fields of the nested message) arrived at the host with their path keys, and the data could be read back. Two points that cost an hour: the loader looks up `Class::Instantiate(BMessage*)` among the dynamic symbols of the executable, so it must be **defined out of the class body** (an inline function is not emitted and the load fails with no message); and the host and the class share the process, so the class cannot use `be_app`, its catalog or its resources as if the application were Shoji (below).
 * **What the view must not assume**, because the application is the host: no use of `be_app` (the `ShojiApp` of Shoji), no global state of the application, the catalog of Shoji bound explicitly (`BCatalog` with its signature, not the one of the running application), icons and other resources read from the file of Shoji (`BResources` of the executable found with the signature), the window found with `Window()`.
 * **Without Shoji** (not installed, or too old for the protocol): the settings window says so in the pane and offers to open the settings file of Core; no second implementation of the form is kept. SEN's packages recommend `shoji`; `sen_core` does not require it.
-* **Isolation.** The class runs in the process of the host: a crash in the form is a crash of the host. The settings window of the server would take the server down with it. Hosting the window in a small helper application of `sen_core` (`sen_settings`, started by the *Settings…* item of the Deskbar menu, talking to the server and the plugins) keeps the server out of it, and is cheap as the window is the only part. *Open point 1.*
+* **Isolation.** The class runs in the process of the host: a crash in the form is a crash of the host. The settings window of the server would take the server down with it. Hosting the window in a small helper application of `sen_core` (`sen_settings`, started by the *Settings…* item of the Deskbar menu, talking to the server and the plugins) keeps the server out of it, and is cheap as the window is the only part. **Decided** for beta 5.
 
 ## 8. Compatibility
 
@@ -139,7 +139,7 @@ Shoji knows two kinds of data: the **attributes** of a file (as now) and **messa
 
 ## 9. Order of work (beta 5)
 
-1. **Format and code:** `SenSettingsPath.h` (path functions) with tests (no GUI); the schema and defaults fields; `SenSettingsForm.h` (the message codes).
+1. **Format and code:** `SenSettingsPath.h` (path functions, plain C++, tests on every platform) and `SenMessagePath.h` (`GetText`, `SetText`, `Append`, `Remove`, `Enumerate` on a `BMessage`, tests in `tests/vm`): **done**; the schema and defaults fields; `SenSettingsForm.h` (the message codes).
 2. **`ShojiMessageView`:** the generated form with the controls of section 2, layouts by control name, Revert and Defaults; Shoji's window for a message file (the proof of concept, with the settings of Shoji and a flattened message of SEN as examples); the view free of the assumptions in section 7; tested in the VM with screenshots.
 3. **Replicant:** the host side (`instantiate_object`, the messages, the fallback without Shoji) with a test host in the sento tests (the proof of concept of 2026-11-02 as its start).
 4. **Protocol and window:** `kSettings`, `kSettingsSet`, `kSettingsClose` in `Sensei.h` with the plugin side in `common/` (a small helper that a plugin app uses to answer), the tree and the pane, the plugin lookup; *Core* first, then Paperboy, then BERT and the others as they get settings.
@@ -147,7 +147,7 @@ Shoji knows two kinds of data: the **attributes** of a file (as now) and **messa
 
 ## 10. Open points
 
-1. Where the settings window lives: the server (as the other windows) or a helper application (section 7, isolation).
+1. ~~Where the settings window lives~~ — **decided: a helper application** (`sen_settings`, section 7): the replicant is loaded into it and a fault in the form cannot take the server down.
 2. Where the translations of the labels come from for a plugin whose catalog is not bound into the binary (the plugin gives translated strings in its schema, as it has its own catalog, or the server asks its catalog by signature).
 3. Whether `restart` is shown in the window or acted on.
 4. How the window behaves when the plugin cannot be started or does not answer (a message in the pane, the other plugins stay usable).
