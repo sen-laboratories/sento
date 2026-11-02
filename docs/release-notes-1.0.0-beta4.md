@@ -3,9 +3,10 @@ SPDX-License-Identifier: MIT
 SPDX-FileCopyrightText: 2026 SEN Labs e.U.
 -->
 
-# SEN 1.0.0 Beta 4 "Sofia" — *Know the People*
+# SEN 1.0.0 Beta 4 "Sofia" — *Know your People*
 
-> Draft: not published yet. The images are those of the tag `v1.0.0-beta.4`, which has to exist before the page is shown on GitHub.
+> Knowledge is created only by people. It resides in the social interactions and shared context between individuals.
+— Adapted from Ikujiro Nonaka (The Knowledge-Creating Company)
 
 Beta 3 let you look closer at a file. Beta 4 is about **the people behind your files** and about **several files at once**: the authors of a paper become real person files (with their ORCID, a photo and the relation to the paper), the relation menus of Akita work for a
 selection of files, and **Shoji** learns to be the form for all of it: a template for papers and people, lists that you edit in place, and a settings window.
@@ -39,11 +40,11 @@ In **Akita**, select more than one file:
 * **New related…**, **Enrich** (one file after the other) and dropping files into a relation folder work for the whole selection; a folder of common relations says why nothing can be dropped into it.
 * **Relation folders show what is at the other end.** A file in a relation folder has the icon of its target, and a double click opens the target with the **application of its type**. If no navigator knows the relation, the file is opened with the default application, so nothing stays as a "relation file" that opens nothing.
 * **A new type shows at once.** When a PDF becomes a scientific paper, the *Attributes* menu and the columns of the open windows follow; when the last file of a type leaves the folder, its attributes leave the menu.
-* The file **Kind** is called **Type** in the columns and the menu (a relation also has a kind; the two were confusing), and the property of a relation is *Relation Kind*.
+* The file **Kind** is called **Type** in the columns so to not be confused with the standard Relation property `Kind`.
 
 **Navigators are named for their relation** now: *Authorship*, *Knows* (new: the relationships between people, from `sen_plugin_personal_relation_navigator`), *Reference* (document and text references replace the earlier PDF and text navigators), and the general *Relation* navigator. The developer guide has the details.
 
-## Shoji: people, papers, lists, settings
+## Shoji: people, papers, lists, and settings
 
 Shoji comes with templates for the new types, a form of its own for each, and gets a few things that you asked for:
 
@@ -59,12 +60,11 @@ Shoji comes with templates for the new types, a form of its own for each, and ge
 * **Dates are dates.** A day that a plugin stores (midnight UTC) was shown as `1955-06-08 01:00:00`, a time of day that moves with your time zone. It shows as `1955-06-08` now, and a day that you type is stored the same way.
 * **Lists are edited in the list.** No *Add* and *Remove* buttons: a **double click** on a value changes it, a double click on the empty part below the values adds one, **Delete** removes the selected value, **+** (or Insert) adds one, and the context menu has *Add…* and *Delete*. Enter or leaving the field keeps what you typed, Escape takes it back. Lists are as high as their values need (two to five rows, then they scroll).
 * **Click the picture** (the cover, the photo) and it shows at its full size in a window over the form; a click, Escape or another window puts it away.
-* **Settings** (File menu, or Shoji started without a file): *Associate Shoji with:* **no file types** (the default: Shoji opens what it is asked to open, from the SEN menus or *Open With*), **all unassociated file types** (a type that no application handles gets a form made from its attributes) or **all file types with a template, too** (this replaces the
-  application of those types, People for contacts). Shoji remembers what each type had before, so choosing *no file types* puts everything back, and *Revert to defaults* does that. The system's own file type database is never changed.
+* **Settings** (File menu, or Shoji started without a file): *Associate Shoji with:* **no file types** (the default: Shoji opens what it is asked to open, from the SEN menus or *Open With*), **all unassociated file types** (a type that no application handles gets a form made from its attributes) or **all file types with a template, too** (this replaces the application of those types, People for contacts). Shoji remembers what each type had before, so choosing *no file types* puts everything back, and *Revert to defaults* does that. The system's own file type database is never changed.
 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.4/docs/images/beta4/shoji-settings.png" alt="The settings window of Shoji" width="480">
 
-* Shoji **ends with its last window**, and its signature is `application/x-vnd.sen-labs.shoji` like everything of SEN.
+* Shoji **quits with its last window**, and its signature is fixed to `application/x-vnd.sen-labs.shoji` to align with other components of SEN.
 
 ## People of the People application
 
@@ -95,7 +95,7 @@ The pictures of **About SEN** and the dialogs of the plugins and of Shoji have a
 
 25 packages in the repository **Kiri**, among them:
 
-* `sen_core`, `sen_oni`, `akita`, `sen_filetypes`: `1.0.0~beta4`; **`shoji`: `1.0.0~beta4-2`**.
+* `sen_core`, `sen_oni`, `akita`, `sen_filetypes`: `1.0.0~beta4`; **`shoji`: `1.0.0~beta4-3`**.
 * The seven ontology packages are at `0.1.0-28`.
 * All twelve plugin packages are `~beta4`, and `sen_plugins` (`1.0.0~beta4`) requires all of them. New: `sen_plugin_personal_relation_navigator`, `sen_plugin_authorship_navigator`, `sen_plugin_document_reference_navigator` and `sen_plugin_text_reference_navigator`, the last two replace the earlier PDF and text navigators.
 
@@ -120,7 +120,13 @@ The first start with beta 4 asks about the contacts of People (above), if you ha
 
 ## What comes next
 
-More beta-4 feedback and then release candidates for the 1.0 train; in parallel SEN 2.0 "Gnosis" (the unified registry of semantic types, an Akita that is an information browser with Shoji and the graph built in) moves ahead. Templates for more types, and the same author work for the other enrichment plugins, will follow.
+Planned improvements besides bug fixes and integrating beta-4 feedback are:
+* SEN settings UI overhaul for core, also:
+  * integrate plugin settings into the UI: plugins expose their settings as an archived BView that is integrated into SEN settings.
+* a movie file enricher
+* templates for more types
+
+Then there will be release candidates for the 1.0 train; in parallel SEN 2.0 "Gnosis" (the unified registry of semantic types, an Akita that is an information browser with Shoji and the graph built in) moves ahead.
 
 ## Your support is essential
 
