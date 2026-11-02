@@ -29,7 +29,7 @@ sen start       # and, for the new Akita:  akita restart
 
 New here? `pkgman add-repo https://kiri.sen-labs.org/x86_64`, then `pkgman install sen_core sen_plugins akita sen_filetypes shoji` and the ontologies you like. Needs a Haiku **nightly from hrev60299_1 on**, as beta 3.
 
-**Good to know:** Paperboy has support for Semantic Scholar and DBLP already built in but this is not yet tested as it needs a key (S2 limits anonymous requests, DBLP shows a bot check to programs, which is not supportet yet); OpenAlex and arXiv did the work in testing. Also still a beta, BFS volumes only.
+**Good to know:** Paperboy has support for Semantic Scholar and DBLP already built in but this is not yet tested as it needs a key (S2 limits anonymous requests, DBLP shows a bot check to programs, which is not supported yet); OpenAlex and arXiv did the work in testing. Also still a beta, BFS volumes only.
 
 **Links:** [release notes](https://github.com/sen-laboratories/sento/releases/tag/v1.0.0-beta.4) · [source](https://github.com/sen-laboratories) · package repository `https://kiri.sen-labs.org/x86_64` · support SEN Labs on [Liberapay](https://liberapay.com/sen-labs/).
 
