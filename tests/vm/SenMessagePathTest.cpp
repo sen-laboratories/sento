@@ -405,4 +405,63 @@ TEST(ATimeIsReadAndWrittenAsADate)
 	CHECK_STR(Text(s, "dates_01"), "2021-01-01");
 }
 
+TEST(AValueIsCopiedWithItsTypeUnderThePathAsName)
+{
+	const BMessage s = MakeSettings();
+	BMessage changes;
+	CHECK_EQ(CopyValue(s, "nested.depth", &changes, "nested.depth"), (status_t)B_OK);
+	CHECK_EQ(CopyValue(s, "email", &changes, "email"), (status_t)B_OK);
+	CHECK_EQ(CopyValue(s, "tags_01", &changes, "tags_01"), (status_t)B_OK);
+	CHECK_EQ(CopyValue(s, "ratio", &changes, "ratio"), (status_t)B_OK);
+	CHECK_EQ(CopyValue(s, "unpaywall", &changes, "unpaywall"), (status_t)B_OK);
+	CHECK_EQ(CopyValue(s, "nested", &changes, "nested"), (status_t)B_OK);		// a message as a whole
+	CHECK_EQ(CopyValue(s, "nope", &changes, "nope"), (status_t)B_NAME_NOT_FOUND);
+	CHECK_EQ(CopyValue(s, "tags_09", &changes, "tags_09"), (status_t)B_BAD_INDEX);
+	int32 depth = 0;
+	CHECK_EQ(changes.FindInt32("nested.depth", &depth), (status_t)B_OK);
+	CHECK_EQ(depth, 2);
+	CHECK_STR(changes.GetString("tags_01", ""), "y");
+	double ratio = 0;
+	CHECK_EQ(changes.FindDouble("ratio", &ratio), (status_t)B_OK);
+	BMessage nested;
+	CHECK_EQ(changes.FindMessage("nested", &nested), (status_t)B_OK);
+}
+
+TEST(ChangesAreAppliedByPathAndKeepTheirTypes)
+{
+	BMessage s = MakeSettings();
+	BMessage changes;
+	changes.AddInt32("nested.depth", 9);
+	changes.AddString("email", "x@y.z");
+	changes.AddBool("unpaywall", false);
+	changes.AddString("tags_01", "yy");
+	std::vector<std::string> refused;
+	CHECK_EQ(ApplyChanges(&s, changes, &refused), (status_t)B_OK);
+	CHECK(refused.empty());
+	CHECK_STR(Text(s, "nested.depth"), "9");
+	CHECK_STR(Text(s, "email"), "x@y.z");
+	CHECK_STR(Text(s, "unpaywall"), "false");
+	CHECK_STR(Text(s, "tags_01"), "yy");
+
+	// the rest is applied if one value is refused (a string for a number, a path that is not there, a type that no text stands for)
+	BMessage bad;
+	bad.AddString("max_authors", "many");
+	bad.AddString("email", "again@y.z");
+	bad.AddString("nope", "1");
+	bad.AddData("blob", B_RAW_TYPE, "1", 1);
+	refused.clear();
+	CHECK_EQ(ApplyChanges(&s, bad, &refused), (status_t)B_BAD_VALUE);
+	CHECK_EQ(refused.size(), (size_t)3);
+	CHECK_STR(Text(s, "email"), "again@y.z");
+	CHECK_STR(Text(s, "max_authors"), "10");
+
+	// an integer of another width is the number that it is
+	BMessage wide;
+	wide.AddInt64("max_authors", 11);
+	CHECK_EQ(ApplyChanges(&s, wide), (status_t)B_OK);
+	CHECK_STR(Text(s, "max_authors"), "11");
+	int32 stored = 0;
+	CHECK_EQ(s.FindInt32("max_authors", &stored), (status_t)B_OK);		// (still an int32)
+}
+
 TEST_MAIN()

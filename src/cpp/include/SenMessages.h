@@ -37,6 +37,13 @@ inline constexpr uint32_t kQueryRefForId = 'SQri';
 /** find the `SEN:ID` for an entry_ref */
 inline constexpr uint32_t kQueryIdForRef = 'SQir';
 
+// ---- the settings of the server (the settings window, sen_settings, asks for them; the plugins have their own, see sensei::cmd::kSettings)
+/** The settings of the server for the form of the settings window (see SenSettingsForm.h): the reply has `settings`, `schema` and `defaults` (messages) and `result`. */
+inline constexpr uint32_t kCoreSettings    = 'SCsg';
+/** Change settings of the server: `settings` holds the changed values, each under its path key (the whole message after a revert or defaults); the server checks them,
+ *  applies what is valid and stores it. The reply has `result` and `detail` (why a value was refused) and the settings as the server now has them (`settings`). */
+inline constexpr uint32_t kCoreSettingsSet = 'SCss';
+
 /** `what` of the messages that hold the flavor of a relation direction in resource files (see sen::conf). */
 inline constexpr uint32_t kRelationDefinition = 'SCrd';
 

@@ -460,6 +460,73 @@ SetValues(BMessage* message, const std::string& parent, const std::string& name,
 }
 
 
+/**
+ * Puts the value that the path names into `to`, as a field called `name` (the path key, for the changes that the settings window sends: `nested.depth` is a field of
+ * that name): type and bytes as they are. A field with several values gives the one that the path names. B_NAME_NOT_FOUND, B_BAD_INDEX and so on for a path that is not
+ * a value; a nested message is copied as a whole.
+ */
+inline status_t
+CopyValue(const BMessage& from, const std::string& path, BMessage* to, const std::string& name)
+{
+	detail::Located located;
+	status_t result = detail::Locate(from, path, &located);
+	if (result != B_OK)
+		return result;
+	if (located.step.index >= located.step.count)
+		return B_BAD_INDEX;
+
+	const void* data = NULL;
+	ssize_t size = 0;
+	result = located.container.FindData(located.step.name.c_str(), located.type, (int32)located.step.index, &data, &size);
+	if (result != B_OK)
+		return result;
+	// (what varies in size is stored as such)
+	const bool fixed = detail::IsText(located.type) && located.type != B_STRING_TYPE;
+	return to->AddData(name.c_str(), located.type, data, size, fixed);
+}
+
+
+/**
+ * Applies changes to a settings message: every field of `changes` is the value of the path that is its name, and goes into `settings` through the text of the value, so
+ * that the field keeps its type and a value that does not fit is refused (the rest of the changes are made all the same). The names of the fields that were refused
+ * are added to `refused`, if it is given. Returns B_OK if everything was applied, else the first error.
+ */
+inline status_t
+ApplyChanges(BMessage* settings, const BMessage& changes, std::vector<std::string>* refused = NULL)
+{
+	status_t first = B_OK;
+	char* fieldName = NULL;
+	type_code type = 0;
+	int32 count = 0;
+	for (int32 i = 0; changes.GetInfo(B_ANY_TYPE, i, &fieldName, &type, &count) == B_OK; i++) {
+		for (int32 index = 0; index < count; index++) {
+			// the value as text, in a message of its own (the name of the field is a path, not a field name to look up as one)
+			status_t result = B_BAD_TYPE;
+			std::string text;
+			if (detail::IsText(type)) {
+				const void* data = NULL;
+				ssize_t size = 0;
+				BMessage single;
+				result = changes.FindData(fieldName, type, index, &data, &size);
+				if (result == B_OK)
+					result = single.AddData("v", type, data, size, type != B_STRING_TYPE);
+				if (result == B_OK)
+					result = GetText(single, "v", &text);
+			}
+			if (result == B_OK)
+				result = SetText(settings, fieldName, text);
+			if (result != B_OK) {
+				if (refused != NULL)
+					refused->push_back(fieldName);
+				if (first == B_OK)
+					first = result;
+			}
+		}
+	}
+	return first;
+}
+
+
 /** One value of a message, as the form lists them. */
 struct Leaf {
 	std::string	path;				///< the path key; empty if the value cannot be addressed (see SegmentFor)
