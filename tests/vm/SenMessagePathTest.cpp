@@ -464,4 +464,36 @@ TEST(ChangesAreAppliedByPathAndKeepTheirTypes)
 	CHECK_EQ(s.FindInt32("max_authors", &stored), (status_t)B_OK);		// (still an int32)
 }
 
+TEST(PointsRectanglesAndColoursAreTextToo)
+{
+	BMessage s;
+	s.AddPoint("p", BPoint(10, 20.5f));
+	s.AddRect("r", BRect(1, 2, 30, 40));
+	s.AddColor("c", (rgb_color){10, 20, 30, 255});
+	s.AddColor("translucent", (rgb_color){255, 0, 128, 64});
+	CHECK_STR(Text(s, "p"), "10, 20.5");
+	CHECK_STR(Text(s, "r"), "1, 2, 30, 40");
+	CHECK_STR(Text(s, "c"), "#0a141e");
+	CHECK_STR(Text(s, "translucent"), "#ff008040");
+
+	CHECK_EQ(SetText(&s, "p", "3 4"), (status_t)B_OK);
+	CHECK_STR(Text(s, "p"), "3, 4");
+	CHECK_EQ(SetText(&s, "r", "0,0,100,50.5"), (status_t)B_OK);
+	CHECK_STR(Text(s, "r"), "0, 0, 100, 50.5");
+	CHECK_EQ(SetText(&s, "c", "#FFF"), (status_t)B_OK);
+	CHECK_STR(Text(s, "c"), "#ffffff");
+	CHECK_EQ(SetText(&s, "c", "#11223344"), (status_t)B_OK);
+	CHECK_STR(Text(s, "c"), "#11223344");
+
+	// a text that is none of them changes nothing
+	BMessage before(s);
+	CHECK_EQ(SetText(&s, "p", "3"), (status_t)B_BAD_VALUE);
+	CHECK_EQ(SetText(&s, "p", "3, 4, 5"), (status_t)B_BAD_VALUE);
+	CHECK_EQ(SetText(&s, "r", "1, 2, 3"), (status_t)B_BAD_VALUE);
+	CHECK_EQ(SetText(&s, "c", "red"), (status_t)B_BAD_VALUE);
+	CHECK_EQ(SetText(&s, "c", "#12"), (status_t)B_BAD_VALUE);
+	CHECK_EQ(SetText(&s, "c", "#ggg"), (status_t)B_BAD_VALUE);
+	CHECK(s.HasSameData(before, true, true));
+}
+
 TEST_MAIN()

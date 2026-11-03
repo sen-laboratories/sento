@@ -14,11 +14,12 @@
  *
  * A BMessage hands out copies of the messages in it, so a change of a nested field is made on the copy and put back (at every level).
  *
- * Types that a text can stand for: bool, the integers (8 to 64 bit, signed and unsigned), float, double, string and time (`B_TIME_TYPE`, as `2026-11-03` or
- * `2026-11-03T14:30:00Z`, see FormatTime()). A field of another type can be
+ * Types that a text can stand for: bool, the integers (8 to 64 bit, signed and unsigned), float, double, string, time (`B_TIME_TYPE`, as `2026-11-03` or
+ * `2026-11-03T14:30:00Z`, see FormatTime()), point (`10, 20.5`), rectangle (`left, top, right, bottom`) and colour (`#rrggbb`, or `#rrggbbaa` with an alpha that is not 255; the types of BMessage::AddColor() and of a raw rgb_color). A field of another type can be
  * found and listed, not read or written as text (B_BAD_TYPE): a form shows it read-only and keeps it as it is.
  */
 
+#include <GraphicsDefs.h>
 #include <Message.h>
 #include <SupportDefs.h>
 
@@ -61,6 +62,7 @@ IsText(type_code type)
 		case B_UINT8_TYPE: case B_UINT16_TYPE: case B_UINT32_TYPE: case B_UINT64_TYPE:
 		case B_FLOAT_TYPE: case B_DOUBLE_TYPE: case B_STRING_TYPE:
 		case B_TIME_TYPE:
+		case B_POINT_TYPE: case B_RECT_TYPE: case B_RGB_COLOR_TYPE: case B_RGB_32_BIT_TYPE:
 			return true;
 	}
 	return false;
@@ -82,6 +84,60 @@ ParseBool(const std::string& text, bool* value)
 		return true;
 	}
 	return false;
+}
+
+
+/** Numbers separated by commas and blanks: exactly `count` of them (`10, 20.5`). */
+inline bool
+ParseNumbers(const std::string& text, size_t count, float* values)
+{
+	size_t at = 0;
+	for (size_t i = 0; i < count; i++) {
+		at = text.find_first_not_of(" \t,", at);
+		if (at == std::string::npos)
+			return false;
+		errno = 0;
+		char* stop = NULL;
+		const double value = strtod(text.c_str() + at, &stop);
+		if (errno != 0 || stop == text.c_str() + at)
+			return false;
+		values[i] = (float)value;
+		at = (size_t)(stop - text.c_str());
+	}
+	return text.find_first_not_of(" \t", at) == std::string::npos;
+}
+
+
+/** `#rgb`, `#rrggbb` or `#rrggbbaa`. */
+inline bool
+ParseColor(const std::string& text, rgb_color* color)
+{
+	size_t start = text.find_first_not_of(" \t");
+	size_t end = text.find_last_not_of(" \t");
+	if (start == std::string::npos || text[start] != '#')
+		return false;
+	const std::string digits = text.substr(start + 1, end - start);
+	if (digits.size() != 3 && digits.size() != 6 && digits.size() != 8)
+		return false;
+	unsigned value[8];
+	for (size_t i = 0; i < digits.size(); i++) {
+		const char c = digits[i];
+		if (c >= '0' && c <= '9')
+			value[i] = c - '0';
+		else if (c >= 'a' && c <= 'f')
+			value[i] = 10 + c - 'a';
+		else if (c >= 'A' && c <= 'F')
+			value[i] = 10 + c - 'A';
+		else
+			return false;
+	}
+	if (digits.size() == 3) {
+		*color = (rgb_color){(uint8)(value[0] * 17), (uint8)(value[1] * 17), (uint8)(value[2] * 17), 255};
+	} else {
+		*color = (rgb_color){(uint8)(value[0] * 16 + value[1]), (uint8)(value[2] * 16 + value[3]), (uint8)(value[4] * 16 + value[5]),
+			(uint8)(digits.size() == 8 ? value[6] * 16 + value[7] : 255)};
+	}
+	return true;
 }
 
 
@@ -241,6 +297,25 @@ StoreText(BMessage* message, const char* name, type_code type, size_t index, siz
 		}
 		case B_STRING_TYPE:
 			return append ? message->AddString(name, text.c_str()) : message->ReplaceString(name, at, text.c_str());
+		case B_POINT_TYPE: {
+			float v[2];
+			if (!ParseNumbers(text, 2, v))
+				return B_BAD_VALUE;
+			return append ? message->AddPoint(name, BPoint(v[0], v[1])) : message->ReplacePoint(name, at, BPoint(v[0], v[1]));
+		}
+		case B_RECT_TYPE: {
+			float v[4];
+			if (!ParseNumbers(text, 4, v))
+				return B_BAD_VALUE;
+			return append ? message->AddRect(name, BRect(v[0], v[1], v[2], v[3])) : message->ReplaceRect(name, at, BRect(v[0], v[1], v[2], v[3]));
+		}
+		case B_RGB_32_BIT_TYPE:			// (what BMessage::AddColor() makes)
+		case B_RGB_COLOR_TYPE: {
+			rgb_color color;
+			if (!ParseColor(text, &color))
+				return B_BAD_VALUE;
+			return append ? message->AddData(name, type, &color, sizeof(color)) : message->ReplaceData(name, type, at, &color, sizeof(color));
+		}
 		case B_TIME_TYPE: {
 			int64_t seconds;
 			if (!ParseTime(text, &seconds))
@@ -351,6 +426,33 @@ GetText(const BMessage& message, const std::string& path, std::string* text)
 		case B_UINT64_TYPE: *text = detail::NumberText(m.GetUInt64(name, at, 0)); return B_OK;
 		case B_FLOAT_TYPE: *text = detail::NumberText(m.GetFloat(name, at, 0.0f)); return B_OK;
 		case B_DOUBLE_TYPE: *text = detail::NumberText(m.GetDouble(name, at, 0.0)); return B_OK;
+		case B_POINT_TYPE: {
+			BPoint point;
+			m.FindPoint(name, at, &point);
+			*text = detail::NumberText(point.x) + ", " + detail::NumberText(point.y);
+			return B_OK;
+		}
+		case B_RECT_TYPE: {
+			BRect rect;
+			m.FindRect(name, at, &rect);
+			*text = detail::NumberText(rect.left) + ", " + detail::NumberText(rect.top) + ", " + detail::NumberText(rect.right) + ", " + detail::NumberText(rect.bottom);
+			return B_OK;
+		}
+		case B_RGB_32_BIT_TYPE:
+		case B_RGB_COLOR_TYPE: {
+			rgb_color color = {0, 0, 0, 255};
+			const void* data = NULL;
+			ssize_t size = 0;
+			if (m.FindData(name, located.type, at, &data, &size) == B_OK && size == (ssize_t)sizeof(color))
+				memcpy((void*)&color, data, sizeof(color));
+			char hex[16];
+			if (color.alpha == 255)
+				snprintf(hex, sizeof(hex), "#%02x%02x%02x", color.red, color.green, color.blue);
+			else
+				snprintf(hex, sizeof(hex), "#%02x%02x%02x%02x", color.red, color.green, color.blue, color.alpha);
+			*text = hex;
+			return B_OK;
+		}
 		case B_TIME_TYPE: {
 			const void* data = NULL;
 			ssize_t size = 0;
