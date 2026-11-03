@@ -31,3 +31,6 @@
 *.out
 *.app
 docs/api/
+
+# macOS
+.DS_Store
