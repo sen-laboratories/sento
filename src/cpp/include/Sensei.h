@@ -44,8 +44,9 @@ inline constexpr uint32_t kSettings      = 'SEse';
 inline constexpr uint32_t kSettingsSet   = 'SEss';
 /** The window is done with the settings; the plugin ends the session (no reply). A plugin that was running for a job is not stopped by it. */
 inline constexpr uint32_t kSettingsClose = 'SEsc';
-/** The answer to kSettings or kSettingsSet that is sent to the messenger in the field kReplyTo of the request: a plugin that was started for the request has nobody
- *  that waits for a reply (the roster delivers the message, with no return address). Its content is that of the reply. */
+/** The answer to kSettings that is sent to the messenger in the field kReplyTo of the request: a plugin that was started for the request has nobody that waits for a reply
+ *  (the roster delivers the message, with no return address). Its content is that of the reply, with the signature of the plugin in kPlugin and the `serial` of the request;
+ *  the return address of the message is the instance of the plugin that has the session (many plugins are multiple launch applications), where kSettingsSet goes. */
 inline constexpr uint32_t kSettingsReply = 'SEsr';
 }
 
