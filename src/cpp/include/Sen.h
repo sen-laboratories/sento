@@ -18,6 +18,7 @@
  *  - SenSettingsPath.h : path keys for the fields of nested messages, plain C++ (sen::settings; include it on its own)
  *  - SenMessagePath.h  : reading and changing the fields of a BMessage by path keys, as text (sen::settings; include it on its own, Haiku only)
  *  - SenSettingsForm.h : constants of the settings form of Shoji: its messages and the names in a schema (sen::settings::form; include it on its own)
+ *  - SenSettingsFormHost.h : for a program that shows the form in a window of its own: loads it from Shoji as a replicant and talks to it (sen::settings::form; Haiku only)
  */
 
 #include <Entry.h>

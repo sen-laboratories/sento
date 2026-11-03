@@ -19,13 +19,17 @@ namespace sen {
 namespace settings {
 namespace form {
 
+/** The application that has the class of the form, and the class (the `add_on` and the `class` of the stub of the archive). */
+const char* const kShojiSignature	= "application/x-vnd.sen-labs.shoji";
+const char* const kViewClass		= "ShojiMessageView";
+
 /** The number of the protocol of these messages, in the field `protocol` of kSetData (and of every answer). */
 const int32_t kProtocol = 1;
 
 /** Messages. To the view: kSetData, kGetData, kRevert, kDefaults. From the view (to its target): kChanged, kRefused. */
 enum : uint32_t {
-	kSetData	= 'SFsd',		///< `settings`; optional `schema`, `defaults`, `layout`, `target` (BMessenger), `protocol`
-	kGetData	= 'SFgd',		///< asks for the working copy; the reply has `settings`
+	kSetData	= 'SFsd',		///< `settings`; optional `schema`, `defaults`, `target` (BMessenger), `protocol`, `editable`, `root_label` (`layout` is not used yet); replied to if a reply is waited for
+	kGetData	= 'SFgd',		///< asks for the working copy; the reply has `settings` (do not wait for it in the thread of the window that has the form: the form is in that thread)
 	kRevert		= 'SFrv',		///< the working copy goes back to the data as it was set; answered with kChanged for the whole message
 	kDefaults	= 'SFdf',		///< the working copy becomes the defaults; answered with kChanged for the whole message
 	kChanged	= 'SFch',		///< `path` and `value` (text) of a change, or no `path` for the whole message; always `settings` (the working copy)
@@ -43,6 +47,9 @@ const char* const kFieldPath		= "path";
 const char* const kFieldValue		= "value";
 const char* const kFieldStatus		= "status";
 const char* const kFieldDetail		= "detail";
+const char* const kFieldResult		= "result";			///< int32: the status in a reply (B_OK, or B_NOT_SUPPORTED for a protocol that is too new, B_BAD_VALUE for a message that lacks `settings`)
+const char* const kFieldEditable	= "editable";		///< bool in kSetData: false shows the values and changes nothing (default true)
+const char* const kFieldRootLabel	= "root_label";		///< string in kSetData: the text of the first node of the tree
 
 /**
  * A date needs no kind: a `B_TIME_TYPE` field is edited with a date control. The kind names what the value means, the form decides which control of the system
