@@ -193,4 +193,46 @@ TEST(AValueThatCannotBeAddressedHasNoSegment)
 	CHECK_STR(SegmentFor("tags_02", 1, 1, message.Info()), "");
 }
 
+TEST(ATimeIsADateAtMidnightAndOtherwiseADateWithTheTime)
+{
+	CHECK_STR(FormatTime(0), "1970-01-01");
+	CHECK_STR(FormatTime(86400 * 11017), "2000-03-01");
+	CHECK_STR(FormatTime(-86400), "1969-12-31");
+	CHECK_STR(FormatTime(86400 + 3600 * 14 + 60 * 30 + 5), "1970-01-02T14:30:05Z");
+	CHECK_STR(FormatTime(-1), "1969-12-31T23:59:59Z");
+	CHECK_STR(FormatTime(951782400), "2000-02-29");
+
+	int64_t seconds = 7;
+	CHECK(ParseTime("1970-01-01", &seconds));
+	CHECK_EQ(seconds, (int64_t)0);
+	CHECK(ParseTime("2000-03-01", &seconds));
+	CHECK_EQ(seconds, (int64_t)(86400 * 11017));
+	CHECK(ParseTime("  1969-12-31  ", &seconds));
+	CHECK_EQ(seconds, (int64_t)-86400);
+	CHECK(ParseTime("1970-01-02T14:30:05Z", &seconds));
+	CHECK_EQ(seconds, (int64_t)(86400 + 52205));
+	CHECK(ParseTime("1970-01-02 14:30", &seconds));			// a blank for the T, no seconds, no Z
+	CHECK_EQ(seconds, (int64_t)(86400 + 52200));
+	CHECK(ParseTime("2020-2-9", &seconds));					// lenient about the zeros
+	CHECK_STR(FormatTime(seconds), "2020-02-09");
+
+	// what Format writes, Parse reads, over a wide range
+	for (int64_t t = -62000000000LL; t < 250000000000LL; t += 123456789LL) {
+		int64_t back = 0;
+		CHECK(ParseTime(FormatTime(t), &back));
+		CHECK_EQ(back, t);
+	}
+}
+
+TEST(ATimeThatIsNotInTheCalendarIsRefused)
+{
+	int64_t seconds = 0;
+	for (const char* text : {"", "x", "2020", "2020-13-01", "2020-00-10", "2020-02-30", "2021-02-29", "2020-04-31", "2020-01-01T24:00", "2020-01-01T10:61",
+			"2020-01-01Tx", "2020-01-01 10:00:00 junk", "2020-01-01X10:00", "-5-01-01", "20000-01-01"})
+		CHECK(!ParseTime(text, &seconds));
+	CHECK(ParseTime("2020-02-29", &seconds));				// a leap year
+	CHECK(ParseTime("2000-02-29", &seconds));
+	CHECK(!ParseTime("1900-02-29", &seconds));
+}
+
 TEST_MAIN()

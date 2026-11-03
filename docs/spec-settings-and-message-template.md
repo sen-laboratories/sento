@@ -28,17 +28,18 @@ A settings object is a `BMessage`. Supported field types and how they are edited
 | Field type | Control |
 |---|---|
 | `B_BOOL_TYPE` | check box |
-| `B_INT8/16/32/64_TYPE`, `B_UINT*` | text field with a number check; a slider with a spin field if the schema gives a range; a menu if it gives choices |
-| `B_FLOAT_TYPE`, `B_DOUBLE_TYPE` | text field with a number check (range from the schema) |
-| `B_STRING_TYPE` | text field; menu if the schema gives choices; text field and a *Choose…* button (file panel) if `kind = path`; masked if `secret` |
-| `B_REF_TYPE` | path of the file with a *Choose…* button |
-| `B_RGB_COLOR_TYPE` | `BColorControl` |
-| `B_POINT_TYPE`, `B_RECT_TYPE` | two or four number fields |
+| `B_INT8/16/32/64_TYPE`, `B_UINT*` | text field with a number check; with `min` and `max` in the schema a **spinner** (`BSpinner`, 32 bit), as a **slider** (`BSlider`) if `kind = slider`; a menu or radio buttons if the schema gives choices |
+| `B_FLOAT_TYPE`, `B_DOUBLE_TYPE` | text field with a number check; with `min` and `max` a decimal spinner (`BDecimalSpinner`, `step`), or a slider |
+| `B_STRING_TYPE` | text field; menu (or radio buttons, `kind = radio`) if the schema gives choices; masked if `secret`; text field and a *Choose…* button (file panel) if `kind = path` (*not yet*) |
+| `B_TIME_TYPE` | the date control of the Time preferences (`BPrivate::DateEdit` from `libshared`, no `kind` needed); a time of day is typed as `2026-11-03T14:30:00Z` |
+| `B_REF_TYPE` | path of the file with a *Choose…* button (*not yet: read-only*) |
+| `B_RGB_COLOR_TYPE` | `BColorControl` (*not yet: shown read-only*) |
+| `B_POINT_TYPE`, `B_RECT_TYPE` | two or four number fields (*not yet: read-only*) |
 | `B_MESSAGE_TYPE` | a group of the controls of its fields (a node in the tree, a section in the form) |
 | several values under one name (an array) | a list that is edited in the list (`ShojiListControl`: double click changes, Delete removes, `+` adds); an array of messages is a list of groups |
 | everything else (`B_RAW_TYPE`, `B_MESSENGER_TYPE`, pointers, unknown types) | read-only line with the type and the size; the value is kept as it is when the message is sent back |
 
-A field never changes its type through the editor; a value that does not fit its type (or the range of the schema) is refused and the control goes back, as in Shoji.
+The controls are the standard ones of the Interface Kit (the date field comes from the private `libshared`, which the Time preferences use, linked statically). A field never changes its type through the editor; a value that does not fit its type (or the range of the schema) is refused and the control goes back, as in Shoji.
 
 ## 3. Path keys
 
@@ -61,11 +62,13 @@ Resolution (`Get(path)`, `Set(path, value)`, `Has(path)`, enumerate the fields i
 
 ## 4. Schema and defaults
 
-A message alone has no label, no help text, no range. The **schema** is a second message with the same structure; per path it can hold:
+A message alone has no label, no help text, no range. The **schema** is a second message with **one field per path key** (the key of the field without an index: `nested.items.name`); each field is a message that holds the attributes of that value (the names are constants in `SenSettingsForm.h`):
 
-`label`, `help`, `kind` (`text`, `path`, `choice`, `slider`, `secret`, `color`), `choices` (strings, or value/label pairs), `min`, `max`, `step`, `order`, `restart` (a change takes effect when the program is started again), `hidden`.
+`label`, `help` (tool tip), `kind` (`text`, `path`, `choice`, `slider`, `spinner`, `radio`, `secret`, `color`), `choices` (strings) with `choice_labels` (their texts), `min`, `max`, `step` (doubles), `order`, `restart` (a change takes effect when the program is started again), `hidden`, `list` (the field is edited as a list also with one value or none); the field `version` of the schema itself is its format.
 
-Without a schema the view derives the label from the field name (`max_authors` becomes *Max authors*) and the control from the type. A second message, **defaults**, holds the value of every field when nothing was set: it is what *Revert to defaults* puts back.
+**`kind` names what the value means, not a control class**: the form picks the standard control that fits (`slider`, `spinner` and `radio` are what the schema can ask for; a number with `min` and `max` and no kind is a spinner; a `B_TIME_TYPE` field is a date control without any hint), and a form that does not know a kind shows a text field. The binding is in the schema, which the plugin gives, never in the data and never in the names of the fields. A plugin that needs a particular arrangement of controls uses the layout of section 5.
+
+Without a schema the view derives the label from the field name (`max_authors` becomes *Max authors*) and the control from the type. A field that is in no value of the data, the defaults or the earlier state of the form is not shown: its type is not known, so a plugin gives every field a first value. A second message, **defaults**, holds the value of every field when nothing was set: it is what *Revert to defaults* puts back.
 
 Settings, schema and defaults come **from the plugin**, in its answer to the request of section 6: the plugin knows them, SEN does not read any file or resource for them.
 
@@ -121,9 +124,10 @@ Shoji knows two kinds of data: the **attributes** of a file (as now) and **messa
 | Message | To / from the view | Content |
 |---|---|---|
 | `kSetData` | to | `settings`, optionally `schema`, `defaults`, `layout` (archived view of section 5), `target` (the messenger for the changes), `protocol` |
-| `kChanged` | from | `path`, `value` (as text and typed), `settings` (the whole working copy) |
+| `kChanged` | from | `path` and `value` (the text of the new value; neither for a change of the whole message), `settings` (the whole working copy) |
+| `kRefused` | from | `path`, `value` (what was typed), `status`, `detail`: the control went back to its value |
 | `kGetData` | to, with reply | `settings` |
-| `kRevert`, `kDefaults` | to | – (the view answers with `kChanged` for the whole message) |
+| `kRevert`, `kDefaults` | to | – (the view answers with `kChanged` for the whole message; `kDefaults` replaces the working copy by the defaults) |
 
   The codes and field names are in a header of sento (`SenSettingsForm.h`: constants only); the form itself is code of Shoji only.
 * **Tried in the VM** (a provider application with the view class, a host without a link to it; 2026-11-02): the class was loaded from the other executable, the form was built from a message with a nested message and an array, six changes (a check box, text, a number, an array element, two fields of the nested message) arrived at the host with their path keys, and the data could be read back. Two points that cost an hour: the loader looks up `Class::Instantiate(BMessage*)` among the dynamic symbols of the executable, so it must be **defined out of the class body** (an inline function is not emitted and the load fails with no message); and the host and the class share the process, so the class cannot use `be_app`, its catalog or its resources as if the application were Shoji (below).
@@ -140,7 +144,7 @@ Shoji knows two kinds of data: the **attributes** of a file (as now) and **messa
 ## 9. Order of work (beta 5)
 
 1. **Format and code:** `SenSettingsPath.h` (path functions, plain C++, tests on every platform) and `SenMessagePath.h` (`GetText`, `SetText`, `Append`, `Remove`, `Enumerate` on a `BMessage`, tests in `tests/vm`): **done**; the schema and defaults fields; `SenSettingsForm.h` (the message codes).
-2. **`ShojiMessageView`:** the generated form with the controls of section 2, layouts by control name, Revert and Defaults; Shoji's window for a message file (the proof of concept, with the settings of Shoji and a flattened message of SEN as examples); the view free of the assumptions in section 7; tested in the VM with screenshots.
+2. **`ShojiMessageView`:** **done** for the types of section 2 that a text stands for: the generated form (tree of nested messages and arrays of messages, controls by type and schema: check box, text, spinner, slider, menu, radio buttons, date, list, read-only line for the rest), Revert and Defaults, `ShojiMessageWindow` for a message file (found by the first bytes of the file, written in place as the values change), the date control also in the attribute form of Shoji; 113 checks in `tests/MessageViewTest.cpp`, screenshots in the VM. **Left:** colour, point, rectangle and reference controls, the *Choose…* button, scrolling of long forms, adding and removing messages of an array, layouts from a resource, translations; the view free of `be_app` is checked by reading, the replicant test (step 3) is the proof.
 3. **Replicant:** the host side (`instantiate_object`, the messages, the fallback without Shoji) with a test host in the sento tests (the proof of concept of 2026-11-02 as its start).
 4. **Protocol and window:** `kSettings`, `kSettingsSet`, `kSettingsClose` in `Sensei.h` with the plugin side in `common/` (a small helper that a plugin app uses to answer), the tree and the pane, the plugin lookup; *Core* first, then Paperboy, then BERT and the others as they get settings.
 5. *Later:* the inspector for arbitrary messages (variant B), the movie enricher (a new plugin that will need an API key and therefore the settings window).

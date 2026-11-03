@@ -17,6 +17,7 @@
  *  - Sensei.h        : the plugin protocol (namespace sensei)
  *  - SenSettingsPath.h : path keys for the fields of nested messages, plain C++ (sen::settings; include it on its own)
  *  - SenMessagePath.h  : reading and changing the fields of a BMessage by path keys, as text (sen::settings; include it on its own, Haiku only)
+ *  - SenSettingsForm.h : constants of the settings form of Shoji: its messages and the names in a schema (sen::settings::form; include it on its own)
  */
 
 #include <Entry.h>

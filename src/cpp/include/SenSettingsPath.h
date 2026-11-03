@@ -24,6 +24,7 @@
  */
 
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #include <functional>
@@ -194,6 +195,89 @@ SegmentFor(const std::string& name, size_t index, size_t count, const FieldInfo&
 	if (!ResolveSegment(segment, info, &step))
 		return std::string();
 	return step.name == name && step.index == index ? segment : std::string();
+}
+
+/**
+ * A point in time (seconds since 1970, UTC, what a `B_TIME_TYPE` field holds) as the text of a form: `2026-11-03` if it is midnight, else `2026-11-03T14:30:00Z`.
+ * ParseTime() reads both (also with a blank for the `T`, without the seconds, and without the `Z`), and refuses a day that is not in the calendar.
+ */
+inline std::string
+FormatTime(int64_t seconds)
+{
+	int64_t days = seconds / 86400;
+	int64_t rest = seconds % 86400;
+	if (rest < 0) {
+		rest += 86400;
+		days--;
+	}
+
+	// civil date from the day number (proleptic Gregorian calendar)
+	const int64_t z = days + 719468;
+	const int64_t era = (z >= 0 ? z : z - 146096) / 146097;
+	const int64_t doe = z - era * 146097;
+	const int64_t yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+	const int64_t doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+	const int64_t mp = (5 * doy + 2) / 153;
+	const int day = (int)(doy - (153 * mp + 2) / 5 + 1);
+	const int month = (int)(mp < 10 ? mp + 3 : mp - 9);
+	const int64_t year = yoe + era * 400 + (month <= 2 ? 1 : 0);
+
+	char text[64];
+	if (rest == 0)
+		snprintf(text, sizeof(text), "%04d-%02d-%02d", (int)year, month, day);
+	else
+		snprintf(text, sizeof(text), "%04d-%02d-%02dT%02d:%02d:%02dZ", (int)year, month, day, (int)(rest / 3600), (int)(rest % 3600 / 60), (int)(rest % 60));
+	return text;
+}
+
+
+inline bool
+ParseTime(const std::string& text, int64_t* seconds)
+{
+	size_t start = text.find_first_not_of(" \t");
+	size_t end = text.find_last_not_of(" \t");
+	if (start == std::string::npos)
+		return false;
+	const std::string trimmed = text.substr(start, end - start + 1);
+
+	int year = 0, month = 0, day = 0, used = 0;
+	if (sscanf(trimmed.c_str(), "%d-%d-%d%n", &year, &month, &day, &used) < 3 || year < 0 || year > 9999)
+		return false;
+	static const int kDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+	const bool leap = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
+	if (month < 1 || month > 12 || day < 1 || day > kDays[month - 1] + (month == 2 && leap ? 1 : 0))
+		return false;
+
+	int hour = 0, minute = 0, second = 0;
+	const char* rest = trimmed.c_str() + used;
+	if (*rest != '\0') {
+		if (*rest != 'T' && *rest != ' ')
+			return false;
+		rest++;
+		int read = 0;
+		if (sscanf(rest, "%d:%d%n", &hour, &minute, &read) < 2)
+			return false;
+		rest += read;
+		if (*rest == ':') {
+			if (sscanf(rest, ":%d%n", &second, &read) < 1)
+				return false;
+			rest += read;
+		}
+		if (*rest == 'Z')
+			rest++;
+		if (*rest != '\0' || hour < 0 || hour > 23 || minute < 0 || minute > 59 || second < 0 || second > 59)
+			return false;
+	}
+
+	// the day number of the civil date
+	int64_t y = year - (month <= 2 ? 1 : 0);
+	const int64_t era = (y >= 0 ? y : y - 399) / 400;
+	const int64_t yoe = y - era * 400;
+	const int64_t doy = (153 * (month + (month > 2 ? -3 : 9)) + 2) / 5 + day - 1;
+	const int64_t doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+	const int64_t days = era * 146097 + doe - 719468;
+	*seconds = days * 86400 + hour * 3600 + minute * 60 + second;
+	return true;
 }
 
 }	// namespace settings

@@ -339,4 +339,70 @@ TEST(AValueThatCannotBeNamedIsListedWithoutAPath)
 	CHECK_STR(Text(s, "tags_02"), "own");
 }
 
+TEST(SetValuesReplacesAppendsAndRemovesInPlace)
+{
+	BMessage s = MakeSettings();
+	// as many: replaced in place; more: appended; fewer: the surplus goes
+	CHECK_EQ(SetValues(&s, "", "tags", B_STRING_TYPE, {"a", "b", "c"}), (status_t)B_OK);
+	CHECK_STR(Text(s, "tags_00"), "a");
+	CHECK_STR(Text(s, "tags_02"), "c");
+	CHECK_EQ(SetValues(&s, "", "tags", B_STRING_TYPE, {"a", "b", "c", "d"}), (status_t)B_OK);
+	CHECK_STR(Text(s, "tags_03"), "d");
+	CHECK_EQ(SetValues(&s, "", "tags", B_STRING_TYPE, {"z"}), (status_t)B_OK);
+	CHECK_STR(Text(s, "tags"), "z");
+	type_code type; size_t count;
+	CHECK_EQ(FieldOf(s, "tags", &type, &count), (status_t)B_OK);
+	CHECK_EQ(count, (size_t)1);
+}
+
+TEST(SetValuesMakesAFieldThatIsNotThereAndRemovesAnEmptiedOne)
+{
+	BMessage s = MakeSettings();
+	CHECK_EQ(SetValues(&s, "", "tags", B_STRING_TYPE, {}), (status_t)B_OK);
+	CHECK(!Has(s, "tags"));
+	// an array that was emptied comes back in its type
+	CHECK_EQ(SetValues(&s, "", "tags", B_STRING_TYPE, {"p", "q"}), (status_t)B_OK);
+	CHECK_STR(Text(s, "tags_01"), "q");
+	// and in a nested message
+	CHECK_EQ(SetValues(&s, "nested", "ids", B_INT32_TYPE, {"4", "5"}), (status_t)B_OK);
+	CHECK_STR(Text(s, "nested.ids_01"), "5");
+	CHECK_STR(Text(s, "nested.depth"), "2");		// (the rest of the nested message is as it was)
+	CHECK_EQ(SetValues(&s, "nested.items_01", "extra", B_BOOL_TYPE, {"true"}), (status_t)B_OK);
+	CHECK_STR(Text(s, "nested.items_01.extra"), "true");
+}
+
+TEST(SetValuesChangesNothingIfOneTextDoesNotFit)
+{
+	BMessage s = MakeSettings();
+	BMessage before(s);
+	CHECK_EQ(SetValues(&s, "nested", "ids", B_INT32_TYPE, {"1", "two"}), (status_t)B_BAD_VALUE);
+	CHECK(!Has(s, "nested.ids"));
+	CHECK_EQ(SetValues(&s, "", "max_authors", B_INT32_TYPE, {"x"}), (status_t)B_BAD_VALUE);
+	CHECK_EQ(SetValues(&s, "", "max_authors", B_STRING_TYPE, {"x"}), (status_t)B_BAD_TYPE);		// the field has another type
+	CHECK_EQ(SetValues(&s, "", "blob", B_RAW_TYPE, {"x"}), (status_t)B_BAD_TYPE);
+	CHECK_EQ(SetValues(&s, "nope", "x", B_STRING_TYPE, {"x"}), (status_t)B_NAME_NOT_FOUND);
+	CHECK_EQ(SetValues(&s, "email", "x", B_STRING_TYPE, {"x"}), (status_t)B_BAD_TYPE);			// not a message
+	CHECK(s.HasSameData(before));
+}
+
+TEST(ATimeIsReadAndWrittenAsADate)
+{
+	BMessage s = MakeSettings();
+	const time_t first = 86400 * 11017;
+	s.AddData("released", B_TIME_TYPE, &first, sizeof(first));
+	CHECK_STR(Text(s, "released"), "2000-03-01");
+	CHECK_EQ(SetText(&s, "released", "2024-02-29"), (status_t)B_OK);
+	CHECK_STR(Text(s, "released"), "2024-02-29");
+	type_code type; size_t count;
+	CHECK_EQ(FieldOf(s, "released", &type, &count), (status_t)B_OK);
+	CHECK_EQ(type, (type_code)B_TIME_TYPE);						// the type stays
+	CHECK_EQ(SetText(&s, "released", "2024-02-30"), (status_t)B_BAD_VALUE);
+	CHECK_EQ(SetText(&s, "released", "soon"), (status_t)B_BAD_VALUE);
+	CHECK_STR(Text(s, "released"), "2024-02-29");
+	CHECK_EQ(SetText(&s, "released", "2024-03-01T10:20:30Z"), (status_t)B_OK);
+	CHECK_STR(Text(s, "released"), "2024-03-01T10:20:30Z");
+	CHECK_EQ(SetValues(&s, "", "dates", B_TIME_TYPE, {"2020-01-01", "2021-01-01"}), (status_t)B_OK);
+	CHECK_STR(Text(s, "dates_01"), "2021-01-01");
+}
+
 TEST_MAIN()

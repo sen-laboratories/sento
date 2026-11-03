@@ -14,7 +14,8 @@
  *
  * A BMessage hands out copies of the messages in it, so a change of a nested field is made on the copy and put back (at every level).
  *
- * Types that a text can stand for: bool, the integers (8 to 64 bit, signed and unsigned), float, double and string. A field of another type can be
+ * Types that a text can stand for: bool, the integers (8 to 64 bit, signed and unsigned), float, double, string and time (`B_TIME_TYPE`, as `2026-11-03` or
+ * `2026-11-03T14:30:00Z`, see FormatTime()). A field of another type can be
  * found and listed, not read or written as text (B_BAD_TYPE): a form shows it read-only and keeps it as it is.
  */
 
@@ -59,6 +60,7 @@ IsText(type_code type)
 		case B_INT8_TYPE: case B_INT16_TYPE: case B_INT32_TYPE: case B_INT64_TYPE:
 		case B_UINT8_TYPE: case B_UINT16_TYPE: case B_UINT32_TYPE: case B_UINT64_TYPE:
 		case B_FLOAT_TYPE: case B_DOUBLE_TYPE: case B_STRING_TYPE:
+		case B_TIME_TYPE:
 			return true;
 	}
 	return false;
@@ -239,6 +241,13 @@ StoreText(BMessage* message, const char* name, type_code type, size_t index, siz
 		}
 		case B_STRING_TYPE:
 			return append ? message->AddString(name, text.c_str()) : message->ReplaceString(name, at, text.c_str());
+		case B_TIME_TYPE: {
+			int64_t seconds;
+			if (!ParseTime(text, &seconds))
+				return B_BAD_VALUE;
+			const time_t value = (time_t)seconds;
+			return append ? message->AddData(name, B_TIME_TYPE, &value, sizeof(value)) : message->ReplaceData(name, B_TIME_TYPE, at, &value, sizeof(value));
+		}
 		case B_FLOAT_TYPE: {
 			double value;
 			if (!ParseDouble(text, &value))
@@ -342,6 +351,16 @@ GetText(const BMessage& message, const std::string& path, std::string* text)
 		case B_UINT64_TYPE: *text = detail::NumberText(m.GetUInt64(name, at, 0)); return B_OK;
 		case B_FLOAT_TYPE: *text = detail::NumberText(m.GetFloat(name, at, 0.0f)); return B_OK;
 		case B_DOUBLE_TYPE: *text = detail::NumberText(m.GetDouble(name, at, 0.0)); return B_OK;
+		case B_TIME_TYPE: {
+			const void* data = NULL;
+			ssize_t size = 0;
+			if (m.FindData(name, B_TIME_TYPE, at, &data, &size) != B_OK || size != (ssize_t)sizeof(time_t))
+				return B_BAD_VALUE;
+			time_t value;
+			memcpy(&value, data, sizeof(value));
+			*text = FormatTime((int64_t)value);
+			return B_OK;
+		}
 	}
 	return B_BAD_TYPE;
 }
@@ -379,6 +398,64 @@ Remove(BMessage* message, const std::string& path)
 		if (step.index >= step.count)
 			return (status_t)B_BAD_INDEX;
 		return container->RemoveData(step.name.c_str(), (int32)step.index);
+	});
+}
+
+
+/**
+ * Sets all values of a field to the texts (an array that is edited as a whole): the values that are there are replaced in place, the others appended, the
+ * surplus ones removed. `parent` is the path of the nested message that has the field (empty: the message itself). The field is made, in `type`, if it is not there
+ * (an array that was emptied has no field left), and it goes with its last value if there are no texts. The message is not changed if this fails:
+ * B_BAD_VALUE (a text does not fit the type), B_BAD_TYPE (not a type of text, or the field has another one), and the errors of the path.
+ */
+inline status_t
+SetValues(BMessage* message, const std::string& parent, const std::string& name, type_code type, const std::vector<std::string>& texts)
+{
+	if (!detail::IsText(type))
+		return B_BAD_TYPE;
+
+	auto apply = [&](BMessage* target) -> status_t {
+		type_code have = 0;
+		int32 count = 0;
+		if (target->GetInfo(name.c_str(), &have, &count) != B_OK)
+			count = 0;
+		else if (have != type)
+			return B_BAD_TYPE;
+
+		const size_t existing = (size_t)count;
+		for (size_t i = 0; i < texts.size(); i++) {
+			status_t result = detail::StoreText(target, name.c_str(), type, i, i < existing ? existing : i, texts[i]);
+			if (result != B_OK)
+				return result;
+		}
+		for (size_t i = existing; i > texts.size(); i--) {
+			status_t result = target->RemoveData(name.c_str(), (int32)(i - 1));
+			if (result != B_OK)
+				return result;
+		}
+		return B_OK;
+	};
+
+	if (parent.empty()) {
+		BMessage copy(*message);
+		status_t result = apply(&copy);
+		if (result == B_OK)
+			*message = copy;
+		return result;
+	}
+
+	return detail::ModifyPath(message, parent, [&apply](BMessage* container, const Step& step, type_code stepType) -> status_t {
+		if (stepType != B_MESSAGE_TYPE)
+			return B_BAD_TYPE;
+		if (step.index >= step.count)
+			return B_BAD_INDEX;
+		BMessage child;
+		status_t result = container->FindMessage(step.name.c_str(), (int32)step.index, &child);
+		if (result == B_OK)
+			result = apply(&child);
+		if (result == B_OK)
+			result = container->ReplaceMessage(step.name.c_str(), (int32)step.index, &child);
+		return result;
 	});
 }
 
