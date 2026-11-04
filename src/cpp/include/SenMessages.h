@@ -163,6 +163,11 @@ inline constexpr char kApiVersion[] = "apiVersion";
 inline constexpr char kResult[]     = "result";
 
 // ---- common request fields
+/** string, field of kCoreSettings and kCoreSettingsSet: whose settings are meant. kScopeCore (default): the server itself; kScopePlugins: what all plugins share (key::kExtractInto). */
+inline constexpr char kScope[]   = "SEN:scope";
+inline constexpr char kScopeCore[]    = "core";
+inline constexpr char kScopePlugins[] = "plugins";
+
 /** uint32 command to perform, sent by Tracker */
 inline constexpr char kAction[]         = "SEN:action";
 inline constexpr char kFilter[]         = "SEN:filter";
@@ -201,6 +206,13 @@ inline constexpr char kDarkMode[]               = "SEN:darkMode";
 /** string in the settings: the name of the current context (global if there is none) */
 inline constexpr char kCurrentContext[]        = "SEN:currentContext";
 inline constexpr char kContextPathRef[]        = "SEN:contextPathRef";
+/** string in the settings: the name of the Library folder in the home folder (default config::kLibraryDir, `Library`); an existing folder is not moved */
+inline constexpr char kLibraryName[]           = "SEN:libraryName";
+/** string in the settings: where plugins put the entities that they find in a file (the authors of a book, the cast of a movie): kExtractIntoFiles (default, a file for each in the
+ *  Library, related to the file) or kExtractIntoAttributes (only as names in the attributes of the file itself). Read it with sen::plugins::ExtractEntitiesIntoFiles(). */
+inline constexpr char kExtractInto[]           = "SEN:extractEntitiesInto";
+inline constexpr char kExtractIntoFiles[]      = "files";
+inline constexpr char kExtractIntoAttributes[] = "attributes";
 
 // ---- relations
 /** the relations of a source: relation type names in a request, nested relation messages in a result */
@@ -318,7 +330,7 @@ inline constexpr char kContextDefault[]     = "default";
 inline constexpr char kContextGlobalLegacy[] = "global";
 /** the file with the settings of SEN in its settings folder (~/config/settings/sen), a flattened message */
 inline constexpr char kSettingsFile[]       = "sen.settings";
-/** the Library of the default context, in the home folder (`~/Library`); that of another context is `~/Library/Contexts/<name>`, unless the context says otherwise (attr::kLibraryPath) */
+/** the Library of the default context, in the home folder (`~/Library`, the name can be set: key::kLibraryName); that of another context is `~/Library/Contexts/<name>`, unless the context says otherwise (attr::kLibraryPath) */
 inline constexpr char kLibraryDir[]         = "Library";
 inline constexpr char kLibraryContextsDir[] = "Contexts";
 /** the folder with the query files that the Deskbar menu opens */
