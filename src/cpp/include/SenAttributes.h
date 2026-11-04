@@ -87,6 +87,11 @@ inline constexpr char kRelationLabel[] = "SEN:REL:Label";
 inline constexpr char kRelationKind[]  = "SEN:REL:Kind";
 /** Resource and attribute that hold the configuration of a relation type (see namespace sen::conf). */
 inline constexpr char kRelationConfig[] = "SEN:REL:CONFIG";
+/** string, resource and attribute of an ENTITY type (written by the ontology installer from the annotation `library`): the name of the folder of the type in the Library
+ *  of a context (`People`, `Books`). Without it the short description of the type is the name. */
+inline constexpr char kLibraryFolder[] = "SEN:LIBRARY";
+/** string, attribute of the folder of a context: where the Library of the context is (an absolute path). Without it the Library is in the default place, see sen::library. */
+inline constexpr char kLibraryPath[] = "SEN:libraryPath";
 /** Resource of a relation type with the vector icon of its relation folder. */
 inline constexpr char kRelationFolderIcon[] = "SEN:ICON:FOLDER";
 

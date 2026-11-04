@@ -47,6 +47,16 @@ inline constexpr uint32_t kCoreSettingsSet = 'SCss';
 /** `what` of the messages that hold the flavor of a relation direction in resource files (see sen::conf). */
 inline constexpr uint32_t kRelationDefinition = 'SCrd';
 
+// ---- the Library of a context
+/**
+ * Where entities (people, books, movies...) that SEN or a plugin makes are put: every context has a Library, a folder with a folder for each entity type
+ * (`People`, `Books`...), and what is made new goes into the Library of the current context, not into the folder of the file that it was found at. Request fields:
+ * `SEN:context` (the name of a context; default the current one), `SEN:type` (an entity type, `entity/x-vnd.sen-labs.entity.person`: the answer is the folder of that type, else the Library
+ * itself), `SEN:create` (bool, default true: folders that are not there are made). The reply has `refs` (the folder), `SEN:libraryPath` (its path) and `SEN:context` (the context that was
+ * used), and `result` (B_ENTRY_NOT_FOUND: no such context; B_BAD_VALUE: not an entity type). A program that has no answer (no server) puts its entities where it did before. See SenLibrary.h.
+ */
+inline constexpr uint32_t kContextLibrary = 'SClb';
+
 // ---- configuration and classification
 /** returns the static configuration as a message, read-only for now */
 inline constexpr uint32_t kConfigGet = 'SCge';
@@ -161,6 +171,10 @@ inline constexpr char kName[]           = "SEN:name";
 /** bool: the Shift key was held when a menu item was chosen (the Deskbar menu tells the server: it makes a classification or a context sticky or not) */
 inline constexpr char kShift[]          = "SEN:shift";
 inline constexpr char kType[]           = "SEN:type";
+/** string: the path of a folder (the Library, in the answer to kContextLibrary) */
+inline constexpr char kLibraryPath[]     = "SEN:libraryPath";
+/** bool, with kContextLibrary: make the folders that are not there (default true) */
+inline constexpr char kCreate[]          = "SEN:create";
 /** string: the application signature of a plugin */
 inline constexpr char kPluginSignature[] = "SEN:pluginSignature";
 inline constexpr char kCount[]          = "SEN:count";
@@ -304,6 +318,9 @@ inline constexpr char kContextDefault[]     = "default";
 inline constexpr char kContextGlobalLegacy[] = "global";
 /** the file with the settings of SEN in its settings folder (~/config/settings/sen), a flattened message */
 inline constexpr char kSettingsFile[]       = "sen.settings";
+/** the Library of the default context, in the home folder (`~/Library`); that of another context is `~/Library/Contexts/<name>`, unless the context says otherwise (attr::kLibraryPath) */
+inline constexpr char kLibraryDir[]         = "Library";
+inline constexpr char kLibraryContextsDir[] = "Contexts";
 /** the folder with the query files that the Deskbar menu opens */
 inline constexpr char kQueriesDir[]         = "queries";
 /** the folder of the settings of SEN with a file for each installed ontology (the attributes of the ontology, the relations to its types) */
