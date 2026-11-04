@@ -87,7 +87,7 @@ inline constexpr char kRelationLabel[] = "SEN:REL:Label";
 inline constexpr char kRelationKind[]  = "SEN:REL:Kind";
 /** Resource and attribute that hold the configuration of a relation type (see namespace sen::conf). */
 inline constexpr char kRelationConfig[] = "SEN:REL:CONFIG";
-/** string, resource and attribute of a type (written by the ontology installer from the annotation `plural`): the plural of its name (`People`, `Books`, `Movies`). It names
+/** string, resource and attribute of a type (written by the ontology installer from the slot `plural` of the class Entity, which every entity type sets): the plural of its name (`People`, `Books`, `Movies`). It names
  *  the folder of an entity type in the Library of a context, and is what a list of the things of the type is called. Without it the short description of the type is used. */
 inline constexpr char kPlural[] = "SEN:PLURAL";
 /** string, attribute of the folder of a context: where the Library of the context is (an absolute path). Without it the Library is in the default place, see sen::library. */
