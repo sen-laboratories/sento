@@ -15,7 +15,7 @@
  *     if (sen::library::FolderFor(sen::onto::people::mime::kPerson, &folder) != B_OK)
  *         ... // no server: do what was done before (next to the file)
  *
- * The server knows the current context and its Library (the default one is `~/Library`, the name of the folder can be set in the settings of SEN; that of another context `~/Library/Contexts/<name>`, a context can name another folder in the attribute
+ * The server knows the current context and its Library (the default one is `~/Library`, the name of the folder can be set in the settings of SEN; that of another context `~/Library/<name>`, a context can name another folder in the attribute
  * `SEN:libraryPath`), makes the folders that are missing and names the folder of a type after its plural (the slot `plural` of the root class Entity of the ontology, `SEN:PLURAL` of the type). The entity is found
  * again by a query for its key, wherever it is: the Library only decides where NEW ones are made. See sen::cmd::kContextLibrary.
  */

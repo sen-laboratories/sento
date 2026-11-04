@@ -206,6 +206,9 @@ inline constexpr char kDarkMode[]               = "SEN:darkMode";
 /** string in the settings: the name of the current context (global if there is none) */
 inline constexpr char kCurrentContext[]        = "SEN:currentContext";
 inline constexpr char kContextPathRef[]        = "SEN:contextPathRef";
+/** bool in the settings: what is made new (a file, a relation, the entities that plugins make) belongs to the current context as if it were sticky: it gets an association relation to
+ *  it (default true; off: only the classifications and the context that were locked in the menu, SEN:sticky, are applied). The default context is every file and never applies. */
+inline constexpr char kAssociateContext[]      = "SEN:associateCurrentContext";
 /** string in the settings: the name of the Library folder in the home folder (default config::kLibraryDir, `Library`); an existing folder is not moved */
 inline constexpr char kLibraryName[]           = "SEN:libraryName";
 /** string in the settings: where plugins put the entities that they find in a file (the authors of a book, the cast of a movie): kExtractIntoFiles (default, a file for each in the
@@ -340,9 +343,8 @@ inline constexpr char kContextDefault[]     = "default";
 inline constexpr char kContextGlobalLegacy[] = "global";
 /** the file with the settings of SEN in its settings folder (~/config/settings/sen), a flattened message */
 inline constexpr char kSettingsFile[]       = "sen.settings";
-/** the Library of the default context, in the home folder (`~/Library`, the name can be set: key::kLibraryName); that of another context is `~/Library/Contexts/<name>`, unless the context says otherwise (attr::kLibraryPath) */
+/** the Library of the default context, in the home folder (`~/Library`, the name can be set: key::kLibraryName); that of another context is `~/Library/<name>`, unless the context says otherwise (attr::kLibraryPath) */
 inline constexpr char kLibraryDir[]         = "Library";
-inline constexpr char kLibraryContextsDir[] = "Contexts";
 /** the folder with the query files that the Deskbar menu opens */
 inline constexpr char kQueriesDir[]         = "queries";
 /** the folder of the settings of SEN with a file for each installed ontology (the attributes of the ontology, the relations to its types) */
