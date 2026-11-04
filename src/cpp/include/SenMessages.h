@@ -163,7 +163,7 @@ inline constexpr char kApiVersion[] = "apiVersion";
 inline constexpr char kResult[]     = "result";
 
 // ---- common request fields
-/** string, field of kCoreSettings and kCoreSettingsSet: whose settings are meant. kScopeCore (default): the server itself; kScopePlugins: what all plugins share (key::kExtractInto). */
+/** string, field of kCoreSettings and kCoreSettingsSet: whose settings are meant. kScopeCore (default): the server itself; kScopePlugins: what all plugins share (key::kExtractInto, kAskIfSeveral, kMaxEntities). */
 inline constexpr char kScope[]   = "SEN:scope";
 inline constexpr char kScopeCore[]    = "core";
 inline constexpr char kScopePlugins[] = "plugins";
@@ -213,6 +213,16 @@ inline constexpr char kLibraryName[]           = "SEN:libraryName";
 inline constexpr char kExtractInto[]           = "SEN:extractEntitiesInto";
 inline constexpr char kExtractIntoFiles[]      = "files";
 inline constexpr char kExtractIntoAttributes[] = "attributes";
+/** bool in the settings: if a lookup of a plugin finds several answers (several books for a title), ask which one is meant (default true); off: the best one is taken.
+ *  Read it with sen::plugins::LoadSharedSettings(). */
+inline constexpr char kAskIfSeveral[]          = "SEN:askIfSeveral";
+/** int32 in the settings: the most entities of a type that a plugin makes of one file (authors, actors, ...; default 10): 0 (None) to kMaxEntitiesLimit, which is "All" (no limit of
+ *  the user's: a plugin gets kMaxEntitiesInternal). Read it with sen::plugins::LoadSharedSettings(). */
+inline constexpr char kMaxEntities[]           = "SEN:maxEntities";
+inline constexpr int32 kMaxEntitiesDefault     = 10;
+inline constexpr int32 kMaxEntitiesLimit       = 100;
+/** what a plugin gets as the most entities when the setting is "All" (a number of its own so that a plugin never has to ask whether there is a limit) */
+inline constexpr int32 kMaxEntitiesInternal    = 255;
 
 // ---- relations
 /** the relations of a source: relation type names in a request, nested relation messages in a result */

@@ -58,6 +58,10 @@ inline constexpr char kSignaturePattern[] = "application/x-vnd.sen-plugin.*";
 /** Prefix of the feature attributes of a plugin: `SEN:plugin:extract` and so on. */
 inline constexpr char kFeatureAttrPrefix[] = "SEN:plugin";
 
+/** The attribute (bool, or a number) of a plugin that says whether it has settings that the settings window can show: `SEN:plugin:hasSettings`. A plugin that does not have it (an older
+ *  one, none of which has settings) or has it set to false is not listed in the settings window at all. */
+inline constexpr char kHasSettingsAttr[] = "SEN:plugin:hasSettings";
+
 /** The features; the attribute of a feature is kFeatureAttrPrefix + ":" + feature. */
 namespace feature {
 inline constexpr char kSearch[]   = "search";
