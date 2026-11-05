@@ -116,6 +116,8 @@ If several candidates are found, a window asks which one is yours (unless you sw
 
 ![Contributions of a movie](images/beta5/akari-contributions.png)
 
+A person who has more than one Contribution to a movie (a director who is also the writer) is listed once for each, and then the entries are named by their role: *Ang Lee (Director)*, *Ang Lee (Writer)*. The **Provenance** column of a relation says which program made it.
+
 ## Shoji, the form for a file
 
 Shoji opens a file (a paper, a person, a movie...) as a form: the Deskbar menu of SEN and *Open With... Shoji* start it, and in its settings it can be made the application for more types. A few things to know:

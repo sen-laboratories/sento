@@ -57,7 +57,8 @@ default; **SEN › Core › *New objects belong to the current context*** switch
 * **The movie.** Title and year come from the attributes of the file, else from its name: `Blade Runner 2049 (2017).mp4` and `The.Matrix.1999.1080p.BluRay.x264-YIFY.mkv` are found as what they are. If TMDB finds **several movies**, you choose (the best first, rated by title, year and how well known the movie is; you can switch the question off in the settings).
   The file gets the semantic type **Movie** (its type for Haiku stays what it was), title, original title, release date, **duration**, description, **genres**, languages, countries, links (TMDB, IMDb, Wikidata, Letterboxd) and the **poster as its thumbnail**. What the file has already is kept; *Enrich (Overwrite)* (Shift) replaces it.
 * **The people.** The director, the crew (writers, producers, composer, cinematography, editing) and the cast become **person files** in the Library (`~/Library/People`), with birthday, biography, links and **photo**, each with a **Contribution** to the movie: the **role**, for an actor the **character**, and the place in the credits.
-  A person with two jobs has two Contributions. A person that exists is updated and not made twice.
+  A person with two jobs has two Contributions. A person that exists is updated and not made twice. In the window of the relations such a person is listed once for each Contribution, and **only then** the entries are named by their role:
+  *Ang Lee (Director)* and *Ang Lee (Writer)*; a person with one Contribution is named as before.
 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.5/docs/images/beta5/akari-contributions.png" alt="The Contribution relations of a movie in Akita, and the person Ang Lee in Shoji" width="760">
 
@@ -91,6 +92,7 @@ default; **SEN › Core › *New objects belong to the current context*** switch
 * **Restart Akita** is an item of the Deskbar menu (next to *Restart*), when Akita is installed. It is the same as `akita restart` and applies what a new Akita brings.
 * **Installing ontologies shows a notification** with the progress and a message when it is done.
 * **Thumbnails in every size.** A poster or cover now shows as the icon in *all* sizes of the icon view, not only in the one that was selected when the file was enriched: the thumbnail is scaled to the size of the icon (**Akita** has the fix in Tracker's code; senryu 6b0b271e31), and plugins write the creation time of the thumbnail *before* the picture, so the icon is refreshed when it changes.
+* **Every relation says who made it.** The new relation property **Provenance** (`prov:wasAttributedTo`, from PROV-O) is the signature of the program that made the relation (a plugin, Akita...), set by the server from the sender of the request. It is a column in the relation windows. Relations that exist already have none, and a relation that is made again by another program keeps its first creator.
 * **New files get the sticky classifications at once**, and the *Contexts* folder of the Library is gone (see above).
 * BERT no longer asks for a setting that only it had; the *SEN key* setting has short names with a tip.
 
@@ -124,7 +126,6 @@ The first start with beta 5 installs the ontologies again (the notification tell
 ## Known limitations
 
 * **Akari needs a TMDB key** (free). Without it nothing is enriched, and the plugin says why. TMDB's data are in many languages; the one that you ask for in the settings is used where TMDB has it, and the original title is kept.
-* **People with the same name:** two persons that TMDB tells apart get two files, the second one named with a number (`Ang Lee #2`). Merging is not there yet.
 * **The graph** watches up to 1500 files and reads up to 2000 objects; with more, it says so and does not follow the rest live.
 * **Semantic Scholar and DBLP** in Paperboy are still not tested live (as in beta 4); OpenAlex and arXiv do the work.
 * BFS volumes only, as before. A Haiku older than hrev60299_1 cannot be used with this beta (Akita would not load there).
