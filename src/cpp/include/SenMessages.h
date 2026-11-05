@@ -137,6 +137,8 @@ inline constexpr uint32_t kUiSetContext   = 'SUcx';
 inline constexpr uint32_t kUiRequestQuit  = 'SUqt';
 /** restart the server: it quits and is started again (by the launch daemon, as a service, or by a command of its own if it was started by hand) */
 inline constexpr uint32_t kUiRequestRestart = 'SUrs';
+/** restart Akita (the Tracker of SEN, the command `akita restart`: it quits and is started again), if it is installed */
+inline constexpr uint32_t kUiRestartAkita = 'SUra';
 /** open the folder with the contexts (the Context item of the Deskbar menu itself) */
 inline constexpr uint32_t kUiOpenContexts = 'SUoc';
 /** open the folder with the ontologies (a file for each, with the attributes of the ontology) in Tracker */
