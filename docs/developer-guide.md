@@ -270,7 +270,7 @@ is a column that the relation type defines (`META:ATTR_INFO` of its MIME type).
 
 Every relation has the property **Provenance** (`prov:wasAttributedTo`, `sen::onto::core::attr::kRelProvenance`): the signature of the program that made it. The server sets it from the sender of the
 `kRelationAdd` request (a program that is no application is named by its command), unless the request brings one; the sticky classifications that the server applies carry the signature of the server.
-It is not part of what makes two relations the same: making a relation again does not make a second one and keeps the first creator. A relation window names its entries after their targets; if several
+It is not part of what makes two relations the same: making a relation again does not make a second one; a relation that has no provenance (made by an earlier version) gets it then, one that has it keeps its first creator. A relation window names its entries after their targets; if several
 entries of the window have the same name (a person with two Contributions), each is named `<target> (<role>)` with the Role of its relation, and only a second one with the same role is numbered.
 
 ```mermaid
