@@ -37,8 +37,25 @@ inline constexpr uint32_t kQueryRefForId = 'SQri';
 /** find the `SEN:ID` for an entry_ref */
 inline constexpr uint32_t kQueryIdForRef = 'SQir';
 
+// ---- the settings of the server (the settings window, sen_settings, asks for them; the plugins have their own, see sensei::cmd::kSettings)
+/** The settings of the server for the form of the settings window (see SenSettingsForm.h): the reply has `settings`, `schema` and `defaults` (messages) and `result`. */
+inline constexpr uint32_t kCoreSettings    = 'SCsg';
+/** Change settings of the server: `settings` holds the changed values, each under its path key (the whole message after a revert or defaults); the server checks them,
+ *  applies what is valid and stores it. The reply has `result` and `detail` (why a value was refused) and the settings as the server now has them (`settings`). */
+inline constexpr uint32_t kCoreSettingsSet = 'SCss';
+
 /** `what` of the messages that hold the flavor of a relation direction in resource files (see sen::conf). */
 inline constexpr uint32_t kRelationDefinition = 'SCrd';
+
+// ---- the Library of a context
+/**
+ * Where entities (people, books, movies...) that SEN or a plugin makes are put: every context has a Library, a folder with a folder for each entity type
+ * (`People`, `Books`...), and what is made new goes into the Library of the current context, not into the folder of the file that it was found at. Request fields:
+ * `SEN:context` (the name of a context; default the current one), `SEN:type` (an entity type, `entity/x-vnd.sen-labs.entity.person`: the answer is the folder of that type, else the Library
+ * itself), `SEN:create` (bool, default true: folders that are not there are made). The reply has `refs` (the folder), `SEN:libraryPath` (its path) and `SEN:context` (the context that was
+ * used), and `result` (B_ENTRY_NOT_FOUND: no such context; B_BAD_VALUE: not an entity type). A program that has no answer (no server) puts its entities where it did before. See SenLibrary.h.
+ */
+inline constexpr uint32_t kContextLibrary = 'SClb';
 
 // ---- configuration and classification
 /** returns the static configuration as a message, read-only for now */
@@ -120,6 +137,8 @@ inline constexpr uint32_t kUiSetContext   = 'SUcx';
 inline constexpr uint32_t kUiRequestQuit  = 'SUqt';
 /** restart the server: it quits and is started again (by the launch daemon, as a service, or by a command of its own if it was started by hand) */
 inline constexpr uint32_t kUiRequestRestart = 'SUrs';
+/** restart Akita (the Tracker of SEN, the command `akita restart`: it quits and is started again), if it is installed */
+inline constexpr uint32_t kUiRestartAkita = 'SUra';
 /** open the folder with the contexts (the Context item of the Deskbar menu itself) */
 inline constexpr uint32_t kUiOpenContexts = 'SUoc';
 /** open the folder with the ontologies (a file for each, with the attributes of the ontology) in Tracker */
@@ -146,6 +165,11 @@ inline constexpr char kApiVersion[] = "apiVersion";
 inline constexpr char kResult[]     = "result";
 
 // ---- common request fields
+/** string, field of kCoreSettings and kCoreSettingsSet: whose settings are meant. kScopeCore (default): the server itself; kScopePlugins: what all plugins share (key::kExtractInto, kAskIfSeveral, kMaxEntities). */
+inline constexpr char kScope[]   = "SEN:scope";
+inline constexpr char kScopeCore[]    = "core";
+inline constexpr char kScopePlugins[] = "plugins";
+
 /** uint32 command to perform, sent by Tracker */
 inline constexpr char kAction[]         = "SEN:action";
 inline constexpr char kFilter[]         = "SEN:filter";
@@ -154,6 +178,10 @@ inline constexpr char kName[]           = "SEN:name";
 /** bool: the Shift key was held when a menu item was chosen (the Deskbar menu tells the server: it makes a classification or a context sticky or not) */
 inline constexpr char kShift[]          = "SEN:shift";
 inline constexpr char kType[]           = "SEN:type";
+/** string: the path of a folder (the Library, in the answer to kContextLibrary) */
+inline constexpr char kLibraryPath[]     = "SEN:libraryPath";
+/** bool, with kContextLibrary: make the folders that are not there (default true) */
+inline constexpr char kCreate[]          = "SEN:create";
 /** string: the application signature of a plugin */
 inline constexpr char kPluginSignature[] = "SEN:pluginSignature";
 inline constexpr char kCount[]          = "SEN:count";
@@ -180,6 +208,26 @@ inline constexpr char kDarkMode[]               = "SEN:darkMode";
 /** string in the settings: the name of the current context (global if there is none) */
 inline constexpr char kCurrentContext[]        = "SEN:currentContext";
 inline constexpr char kContextPathRef[]        = "SEN:contextPathRef";
+/** bool in the settings: what is made new (a file, a relation, the entities that plugins make) belongs to the current context as if it were sticky: it gets an association relation to
+ *  it (default true; off: only the classifications and the context that were locked in the menu, SEN:sticky, are applied). The default context is every file and never applies. */
+inline constexpr char kAssociateContext[]      = "SEN:associateCurrentContext";
+/** string in the settings: the name of the Library folder in the home folder (default config::kLibraryDir, `Library`); an existing folder is not moved */
+inline constexpr char kLibraryName[]           = "SEN:libraryName";
+/** string in the settings: where plugins put the entities that they find in a file (the authors of a book, the cast of a movie): kExtractIntoFiles (default, a file for each in the
+ *  Library, related to the file) or kExtractIntoAttributes (only as names in the attributes of the file itself). Read it with sen::plugins::ExtractEntitiesIntoFiles(). */
+inline constexpr char kExtractInto[]           = "SEN:extractEntitiesInto";
+inline constexpr char kExtractIntoFiles[]      = "files";
+inline constexpr char kExtractIntoAttributes[] = "attributes";
+/** bool in the settings: if a lookup of a plugin finds several answers (several books for a title), ask which one is meant (default true); off: the best one is taken.
+ *  Read it with sen::plugins::LoadSharedSettings(). */
+inline constexpr char kAskIfSeveral[]          = "SEN:askIfSeveral";
+/** int32 in the settings: the most entities of a type that a plugin makes of one file (authors, actors, ...; default 10): 0 (None) to kMaxEntitiesLimit, which is "All" (no limit of
+ *  the user's: a plugin gets kMaxEntitiesInternal). Read it with sen::plugins::LoadSharedSettings(). */
+inline constexpr char kMaxEntities[]           = "SEN:maxEntities";
+inline constexpr int32 kMaxEntitiesDefault     = 10;
+inline constexpr int32 kMaxEntitiesLimit       = 100;
+/** what a plugin gets as the most entities when the setting is "All" (a number of its own so that a plugin never has to ask whether there is a limit) */
+inline constexpr int32 kMaxEntitiesInternal    = 255;
 
 // ---- relations
 /** the relations of a source: relation type names in a request, nested relation messages in a result */
@@ -297,6 +345,8 @@ inline constexpr char kContextDefault[]     = "default";
 inline constexpr char kContextGlobalLegacy[] = "global";
 /** the file with the settings of SEN in its settings folder (~/config/settings/sen), a flattened message */
 inline constexpr char kSettingsFile[]       = "sen.settings";
+/** the Library of the default context, in the home folder (`~/Library`, the name can be set: key::kLibraryName); that of another context is `~/Library/<name>`, unless the context says otherwise (attr::kLibraryPath) */
+inline constexpr char kLibraryDir[]         = "Library";
 /** the folder with the query files that the Deskbar menu opens */
 inline constexpr char kQueriesDir[]         = "queries";
 /** the folder of the settings of SEN with a file for each installed ontology (the attributes of the ontology, the relations to its types) */

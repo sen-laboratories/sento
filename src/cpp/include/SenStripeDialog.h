@@ -335,6 +335,16 @@ public:
 		SetDrawingMode(B_OP_COPY);
 	}
 
+	/** the enlarged picture belongs to the window of the stripe: it closes with it */
+	virtual void
+	DetachedFromWindow()
+	{
+		if (fEnlarged.IsValid())
+			fEnlarged.SendMessage(B_QUIT_REQUESTED);
+		fEnlarged = BMessenger();
+		BView::DetachedFromWindow();
+	}
+
 	/** the picture in the stripe is clickable if there is a larger one */
 	virtual void
 	MouseDown(BPoint where)

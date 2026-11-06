@@ -17,6 +17,8 @@ inline constexpr char kHaikuFileTypesSignature[] = "application/x-vnd.Haiku-File
 
 /** Signature of the SEN server application. */
 inline constexpr char kServerSignature[] = "application/x-vnd.sen-labs.sen-server";
+/** Signature of sen_settings, the application of the settings window (a single launch application, started by the Settings item of the Deskbar menu). */
+inline constexpr char kSettingsSignature[] = "application/x-vnd.sen-labs.sen-settings";
 /** the name of the server as a service of the launch daemon (launch_roster stop/start) */
 inline constexpr char kServerService[]   = "x-vnd.sen-labs.sen-server";
 

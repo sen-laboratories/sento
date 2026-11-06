@@ -268,6 +268,11 @@ Because the relations are shown as ordinary files, everything Tracker knows abou
 file attributes, so a list of document references can be sorted by page or chapter, a list of quotes by position, and each property
 is a column that the relation type defines (`META:ATTR_INFO` of its MIME type).
 
+Every relation has the property **Provenance** (`prov:wasAttributedTo`, `sen::onto::core::attr::kRelProvenance`): the signature of the program that made it. The server sets it from the sender of the
+`kRelationAdd` request (a program that is no application is named by its command), unless the request brings one; the sticky classifications that the server applies carry the signature of the server.
+It is not part of what makes two relations the same: making a relation again does not make a second one; a relation that has no provenance (made by an earlier version) gets it then, one that has it keeps its first creator. A relation window names its entries after their targets; if several
+entries of the window have the same name (a person with two Contributions), each is named `<target> (<role>)` with the Role of its relation, and only a second one with the same role is numbered.
+
 ```mermaid
 sequenceDiagram
   actor User
@@ -406,7 +411,7 @@ A plugin is a Haiku application with `B_MULTIPLE_LAUNCH | B_BACKGROUND_APP` and 
 
 - the signature `application/x-vnd.sen-plugin.<vendor>.<name>` (`sensei::kSignaturePrefix`), e.g. `application/x-vnd.sen-plugin.sen-labs.pdf-extractor`. It is how the server finds plugins (below). The name is what the plugin does, like the folder of the plugin in `sensei/plugins`.
 - the plugin type `application/x-vnd.sen-labs.plugin` (as the attribute `META:TYPE`, the semantic type).
-- feature flags, one int32 attribute per feature, prefix `SEN:plugin` (`sensei::kFeatureAttrPrefix`): `SEN:plugin:extract`, `:enrich`, `:identify`, `:navigate` (and `search`). The flags are not indexed (BFS cannot index 16 bit values at all, so keep them 32 bit).
+- feature flags, one int32 attribute per feature, prefix `SEN:plugin` (`sensei::kFeatureAttrPrefix`): `SEN:plugin:extract`, `:enrich`, `:identify`, `:navigate` (and `search`). The flags are not indexed (BFS cannot index 16 bit values at all, so keep them 32 bit). A plugin that has settings for the settings window of SEN says so with the bool attribute `SEN:plugin:hasSettings` (`resource(20, "SEN:plugin:hasSettings") true;` in its rdef; `sensei::kHasSettingsAttr`); a plugin that sets it to false, or does not have it, is not listed there. What all plugins share (where entities go, ask if several, the most entities) is read with `sen::plugins::LoadSharedSettings()` (`SenPluginSettings.h`) and is not a setting of the plugin: a command line option such as `--auto` wins for one run.
 - `file_types`: the MIME types it can handle.
 - optional `SEN:type_mapping` (short alias to relation type, `SEN:default` is the default type) and `SEN:attr_mapping` (short property key to attribute name): they only keep messages small.
 

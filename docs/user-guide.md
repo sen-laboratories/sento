@@ -11,7 +11,7 @@ The SEN server puts its knot into the Deskbar when it starts. **Clicking** it op
 a SEN:ID, as a flat list. With the **SEN key (Command)** held, the click opens the [graph](#the-graph) of the objects instead. The menu (secondary mouse button) has:
 
 - **Context** (choosing the item itself opens the folder of the contexts): the contexts that are set up (the folders of `~/config/settings/sen/contexts`, with their icon), the current one marked: choosing one makes it the current one.
-  A new context ("New related... Context" in the file manager) is a folder there, with the type of a context.
+  A new context ("New related... Context" in the file manager) is a folder there, with the type of a context. Every context has its own [Library](#the-library).
 - one menu for every kind of classification (**Labels**, **Topics**, **Projects**...): choosing the menu itself opens the list of them, and choosing one of
   its entries opens a window with the files that have it: a query for the classification ("Files with Label \"Homework\""), the same one as *Open related...* on the classification shows. (As in the menus of the file manager, every menu can be chosen itself.)
 - **Info**: the overview of SEN as a tree: the objects on every volume, the types and relations that are installed with the number of files of each.
@@ -21,9 +21,8 @@ a SEN:ID, as a flat list. With the **SEN key (Command)** held, the click opens t
   and not switched off in the Settings), choosing an ontology shows it in its folder. Choosing *Ontologies* itself opens the folder `~/config/settings/sen/ontologies`, which shows the version, description, author and schema of each ontology as its columns (in Akita), and *Update* has the ontologies of the packages
   installed now, which is otherwise done when the server starts and when a package comes or goes.
 - **Graph...** (below Ontologies): the [graph](#the-graph) of the objects and their relations.
-- **Settings**: the SEN key (the standard shortcut key of Haiku, or Option, Control or Shift) that switches dragging, the knot and Akita to SEN, the use of Akita instead of Tracker (this takes
-  effect at the next login: it is a file of the user for the launch daemon, which the command `akita` writes; `akita start` and `akita stop` switch at once) and the use of the FileTypes of SEN instead of the one of Haiku (also in the Preferences menu of the Deskbar: a link of its own in `~/config/settings/deskbar/menu/Preferences` takes the place of the one of Haiku).
-- **About**, **Restart** and **Quit**. Restart quits the server and starts it again (it is the way to apply what a new version of the server brings). Quitting asks first: without the
+- **Settings**: opens the [settings window](#the-settings-window).
+- **About**, **Restart**, **Restart Akita** (only if Akita is installed) and **Quit**. Restart quits the server and starts it again (it is the way to apply what a new version of the server brings); Restart Akita does what `akita restart` does, to apply a new Akita. Quitting asks first: without the
   server, copies of files keep the SEN:ID of the original, which breaks the lookup by ID. It stays off until you start it again (`sen start`, or the next login).
 
 The same information is on the command line: `sen info`, `sen types` and `sen check` (see the README of sen-core).
@@ -57,6 +56,9 @@ connected stand by themselves, so you see at a glance what belongs together: an 
   opens** the file or the folder of the relations, as a double click does. **Preview** above the graph switches the cards off.
 - **Drag** to move the graph, the **mouse wheel** zooms around the pointer (or `+` and `-`), **F** fits all of it into the window again. When you resize the window the graph is fitted again, as long as you have not zoomed or moved it.
 - **Dark** switches between a light and a dark look. It follows the colours of the system until you choose, and then the choice is remembered (the setting `SEN:darkMode` in `~/config/settings/sen/sen.settings`).
+- **The graph is live**: it watches the files of its objects and follows new and removed ones, so an enrichment that makes people shows up while you look. Changes are read after a moment of quiet, and your zoom, position and selection stay. It watches up to 1500 files. If a file that you asked for has no relations (yet) the window says so, and shows it when it gets some.
+
+![The graph centred on a movie](images/beta5/graph-movie.png)
 - **Refresh** reads the objects again.
 - **Alt+W** closes the window; the server keeps running.
 
@@ -65,6 +67,73 @@ connected stand by themselves, so you see at a glance what belongs together: an 
 - **Save as SVG...** saves the picture of the window as it is: its size, zoom and position, the selection emphasised, the names that you see.
 - **Save selection...** (enabled when something is selected) saves the selected dot with the dots that it is directly connected to, or the two ends of a selected line, laid out as in the graph. The name that is
   suggested for the file has no spaces or other characters that mean something in a path or a URL.
+
+## The settings window
+
+**Settings** in the Deskbar menu opens one window for everything that can be adjusted. On the left is a tree, on the right the form of the selected node (it is the form of Shoji, so it works as everywhere in SEN). **Defaults** puts the node back to its standard values, **Revert** (enabled after a change) takes back what you changed.
+
+![SEN > Core](images/beta5/settings-core.png)
+
+**SEN › Core**
+
+- **SEN key**: the key that switches dragging, the knot and Akita to SEN (the standard shortcut key of Haiku, or Option, Control or Shift).
+- **Use Akita instead of Tracker**: takes effect at the next login (it is a file of the user for the launch daemon, which the command `akita` writes; `akita start` and `akita stop` switch at once).
+- **Use the FileTypes of SEN instead of the one of Haiku**: also in the Preferences menu of the Deskbar (a link of its own in `~/config/settings/deskbar/menu/Preferences` takes the place of the one of Haiku).
+- **Library name**: the name of the [Library](#the-library) folder (`Library`). An existing folder is not moved.
+- **New objects belong to the current context**: see [below](#the-library).
+
+**Plugins** has the settings that are the same for all plugins:
+
+![Plugins](images/beta5/settings-plugins.png)
+
+- **Extract entities into**: *Files* makes a file of every person (author, actor...) that a plugin finds; *Attributes* only writes their names into the attributes of the file.
+- **Ask which one if several are found**: when a book, a movie or a paper has several candidates, a window lets you choose; switched off, the best is taken.
+- **Max. number of entities to extract**: how many people a plugin makes of a long list (the first ones). A slider from *None* (the left end) to *All* (the right end, no limit).
+
+Below **Plugins** are the kinds of plugin (*Enrich*, *Identify*...) and under them the plugins **that have settings of their own**: Paperboy (your e-mail address and the OpenAlex key for friendlier servers, which sources to ask, whether to rename the file after the paper and with which pattern) and Akari (the TMDB key and the language of the descriptions). A plugin that has nothing to set is not listed. A plugin may refuse a value and says why. A key is shown as dots.
+Choosing a heading selects the first node below it.
+
+## The Library
+
+What SEN or a plugin makes new, such as the people of the authors of a paper, the cast of a movie or a label, **does not go into the folder of the file** that it was found for, but into the **Library**:
+
+- The Library of the default context is **`~/Library`** (the name is a setting of Core), the one of another context is **`~/Library/<name of the context>`**. A context can name another folder in the attribute `SEN:libraryPath` of its folder.
+- It has **one folder for each type**, named in the plural: *People*, *Books*, *Movies*. The folders are made when they are first needed.
+- A person that exists already (found by its name and its key, in the Library or next to a file where an earlier version put it) is **updated where it is**, not made again.
+- From the command line: `sen --library person` prints the folder for a type (`--create` makes it, `--context <name>` asks for another context).
+
+**New objects belong to the current context.** What is made new while a context is the current one (the one that is checked in the *Context* menu) is related to it by an **Association**, as if the context were [sticky](#sticky-classifications): a file made with *New*, a relation, the people that a plugin makes. With the context's *Open related...* you see its objects. Switch it off in *Settings › SEN › Core*: then only what you have made sticky yourself is applied. The default context is every file and is never applied.
+
+## Enriching a file
+
+*Enrich* in the context menu of Akita (with **Shift**, *Enrich (Overwrite)*, which replaces what the file has) asks the plugins that know the file's type to look it up:
+
+- **PDFs of scientific papers** (Paperboy): the attributes of the paper from OpenAlex, arXiv, Semantic Scholar and DBLP, and the authors as people.
+- **Books** (BERT, from OpenLibrary): the attributes, the cover as the thumbnail, the authors as people.
+- **Movies** (Akari, from The Movie Database, TMDB): title, year, duration, genres, links, the poster as the thumbnail; the director, crew and cast as people, each with a **Contribution** relation (role, character, place in the credits). Akari needs a free **TMDB key**: register at themoviedb.org, copy the *API Key* (or the *API Read Access Token*) from *Settings › API* into *Settings › Plugins › Enrich › SEN Akari*.
+
+While a plugin works, a **notification** says so (*Enriching movie*, *Enriching book*, *Enriching paper*), and the result (*Movie enriched* with what was found, or why nothing was) takes its place.
+
+![Akari: the notification at the start and at the end](images/beta5/akari-notify-start.png) ![](images/beta5/akari-notify-done.png)
+
+![Choosing the movie](images/beta5/akari-chooser.png)
+
+If several candidates are found, a window asks which one is yours (unless you switched that off). *Cancel* changes nothing. The file keeps its type for Haiku; SEN adds its *semantic type* (*Movie*, *Scientific paper*...), so Shoji and the *Attributes* menu show what fits. The people are made as set under *Plugins* and put into the [Library](#the-library). Genres, countries and links are written as lists with the separator that the attribute defines (a comma), so Shoji shows one entry for each.
+
+![Contributions of a movie: role, character, place in the credits, provenance](images/beta5/akari-contributions.png)
+
+A person who has more than one Contribution to a movie (a director who is also a producer) is listed once for each, and then the entries are named by their role: *Ang Lee (Director)*, *Ang Lee (Producer)*. The **Provenance** column of a relation says which program made it. A related file that has been deleted keeps its entry in the window, with the **broken-link icon** of Haiku, and shows in the *Open related* menus as a disabled entry (*Missing file*, or the name the relation knew).
+
+## Shoji, the form for a file
+
+Shoji opens a file (a paper, a person, a movie...) as a form: the Deskbar menu of SEN and *Open With... Shoji* start it, and in its settings it can be made the application for more types. A few things to know:
+
+![A movie in Shoji](images/beta5/shoji-movie.png)
+
+- A **duration** is shown and typed as `hh:mm:ss` (stored as ISO 8601, `PT2H16M`); a **date** has a date control.
+- A **list** (genres, groups, links) shows its entries one below the other: double-click to change or add one, *Delete* removes one.
+- A **field that cannot be changed** is greyed and read-only, its label stays readable.
+- A **click on the picture** shows it larger; it closes with the window.
 
 ## Relating files with Command+drag
 
@@ -94,7 +163,7 @@ What you make while a classification is **sticky** is put into it automatically:
 that you make lists it, so that you can filter by it later. In the menu of the SEN item, **Shift+click** a label, topic, collection... (or a context in the Context menu) to make it
 sticky: it is shown in **bold**. Shift+click it again to let it go; a plain click shows the files of a label as before. Only one context is sticky: choosing another context
 (plain click) lets the sticky one go, and Shift+click on a context makes it the current one, too. The default context cannot be sticky (it would be everything).
-Choosing the *Context* item itself opens the folder of the contexts.
+Choosing the *Context* item itself opens the folder of the contexts. The **current context** counts as sticky by default (see [the Library](#the-library)).
 
 ## New objects from the ontologies
 
