@@ -90,6 +90,7 @@ default; **SEN › Core › *New objects belong to the current context*** switch
 ## Smaller, but you will notice
 
 * **Restart Akita** is an item of the Deskbar menu (next to *Restart*), when Akita is installed. It is the same as `akita restart` and applies what a new Akita brings.
+* **Enrichment says that it has begun.** Akari, Book Enricher and Paperboy show a notification when the lookup starts ("Enriching movie"), not only when it is done; the result replaces it.
 * **Installing ontologies shows a notification** with the progress and a message when it is done.
 * **Thumbnails in every size.** A poster or cover now shows as the icon in *all* sizes of the icon view, not only in the one that was selected when the file was enriched: the thumbnail is scaled to the size of the icon (**Akita** has the fix in Tracker's code; senryu 6b0b271e31), and plugins write the creation time of the thumbnail *before* the picture, so the icon is refreshed when it changes.
 * **Every relation says who made it.** The new relation property **Provenance** (`prov:wasAttributedTo`, from PROV-O) is the signature of the program that made the relation (a plugin, Akita...), set by the server from the sender of the request. It is a column in the relation windows. A relation from before gets it when it is made again (an *Enrich* of the file does that); one that has it keeps its first creator.
