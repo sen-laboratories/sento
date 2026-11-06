@@ -38,7 +38,7 @@ inline constexpr uint32_t kResult   = 'SErs';
  * plugin that handles the type (its preferred application, `META:PREF_APP`, which the plugin gets by naming the relation type in its file types) when the relations of that type of a file
  * are asked for, i.e. when the user opens the relation in the menu: nothing is stored, so what is found is right at that moment.
  *
- * Request: `refs` is the source file (a ref), sen::key::kRelationType the relation type; the message is sent to the plugin that the server started for it (a multiple launch
+ * Request: `refs` is the source file (a ref), sen::key::kRelationType the relation type, key::kLibraries the folders to make entities in; the message is sent to the plugin that the server started for it (a multiple launch
  * application) and is answered with a reply, as usual.
  *
  * Reply: kResult (int32, B_OK if there is nothing to find too), and kTargets: one message for each related file, with
@@ -122,6 +122,12 @@ inline constexpr char kItemId[] = "_itemId";
 inline constexpr char kSemanticType[] = "META:TYPE";
 /** BMessenger in a settings request: where a plugin that was started for it sends kSettingsReply (it answers a request that is waited for with a reply as usual). */
 inline constexpr char kReplyTo[] = "reply_to";
+/**
+ * In a kResolve request: the Library folders of the entity types that the relation is between, so that the plugin can make an entity (a place that is missing) without asking the server,
+ * which waits for the answer of the plugin and could not answer it. A message with a field for each entity type (`entity/x-vnd.sen-labs.entity.place`) that holds the folder as a ref.
+ * Use it with sensei::FindOrCreateEntityFile() (the parameter @p library).
+ */
+inline constexpr char kLibraries[] = "SEN:libraries";
 /** the reply to kResolve: a message for each related file (see there) */
 inline constexpr char kTargets[] = "SEN:targets";
 /** shortcut for the relation target id: a `SEN:ID` or one of the placeholders below */
