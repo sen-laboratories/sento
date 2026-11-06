@@ -33,6 +33,23 @@ inline constexpr uint32_t kNavigate = 'SEnv';
 /** a plugin's reply */
 inline constexpr uint32_t kResult   = 'SErs';
 
+/**
+ * Resolve a dynamic relation between files (a relation type with `SEN:dynamic` that is not a self relation: the spatial relations within, touches...). The server asks the navigator
+ * plugin that handles the type (its preferred application, `META:PREF_APP`, which the plugin gets by naming the relation type in its file types) when the relations of that type of a file
+ * are asked for, i.e. when the user opens the relation in the menu: nothing is stored, so what is found is right at that moment.
+ *
+ * Request: `refs` is the source file (a ref), sen::key::kRelationType the relation type; the message is sent to the plugin that the server started for it (a multiple launch
+ * application) and is answered with a reply, as usual.
+ *
+ * Reply: kResult (int32, B_OK if there is nothing to find too), and kTargets: one message for each related file, with
+ *  - sen::key::kTargetRef: the related file (a ref; a file that does not exist is not a target),
+ *  - the properties of the relation seen from the source: SEN:REL:Label is the label of the direction (`within` for the file that the source is in, `contains` for a file in it:
+ *    a relation type has one label for each direction, see `label` and `inverse_label` of the relation types of the ontologies), and any other property that the type has
+ *    (SEN:REL:Kind...).
+ * The server gives each target its `SEN:ID` (a file that has none gets one) and answers like for a stored relation, so the menus and the relation views need nothing of their own.
+ */
+inline constexpr uint32_t kResolve  = 'SErv';
+
 // ---- the settings of a plugin (see docs/spec-settings-and-message-template.md in sento). The plugin keeps and validates its settings itself, in the place and
 // format of its choice; SEN never reads or writes them. The settings window starts the plugin with kSettings if it is not running.
 /** Ask for the settings. The reply has `settings`, `schema` and `defaults` (messages, see SenSettingsForm.h; the last two may be left out), and `result`. This starts a settings
@@ -105,6 +122,8 @@ inline constexpr char kItemId[] = "_itemId";
 inline constexpr char kSemanticType[] = "META:TYPE";
 /** BMessenger in a settings request: where a plugin that was started for it sends kSettingsReply (it answers a request that is waited for with a reply as usual). */
 inline constexpr char kReplyTo[] = "reply_to";
+/** the reply to kResolve: a message for each related file (see there) */
+inline constexpr char kTargets[] = "SEN:targets";
 /** shortcut for the relation target id: a `SEN:ID` or one of the placeholders below */
 inline constexpr char kTo[]     = "_to";
 
