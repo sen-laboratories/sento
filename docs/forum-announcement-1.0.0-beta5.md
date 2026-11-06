@@ -5,34 +5,41 @@ Draft of the post for the Haiku Community forum (discuss.haiku-os.org). Not publ
 
 # SEN 1.0 Beta 5: Settings, a Library and Movies
 
-Beta 4 looked at the people behind your files. Beta 5 lets you **adjust SEN**, **keeps what it makes in order**, and learns **movies**. Still for **Haiku R1/beta6 (x86_64)**, still all in the attributes of your files.
+Beta 4 brought the people behind your files into focus. Beta 5 is about **making SEN yours**, **keeping things in order**, and **movies**. Still for **Haiku R1/beta6 nightlies (x86_64)**, and still storing everything natively in file attributes.
 
-**One settings window.** *Settings…* in the Deskbar menu of SEN opens a tree: **Core**, the settings that are the same for **all plugins** (where entities go: files or attributes, ask if several are found, how many to extract), and a node for each plugin that has settings of its own (Paperboy, Akari). The forms are made by Shoji, so a plugin only describes its settings. Changes take effect at once.
+**One central settings window.** Choose *Settings…* from the SEN Deskbar menu to open a unified preferences center: **Core** for server and system options, **Plugins** for shared enrichment rules (extracting to files vs. attributes, interactive disambiguation prompts, and extraction limits), plus dedicated sections for plugins with custom options (Paperboy, Akari). The forms are hosted natively by Shoji as embedded replicants, so plugins never have to draw custom windows, and settings take effect immediately.
 
 ![The SEN settings window](https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.5/docs/images/beta5/settings-plugins.png)
 
-**A Library for what SEN makes.** The people of a paper, a book or a movie no longer pile up next to the file: they go into **`~/Library`**, one folder per type (*People*, *Books*, *Movies*), and every context has its own (`~/Library/<context>`). New objects are also **associated with the current context** by default (you can switch that off in the Core settings).
+**A Library for what SEN makes.** Extracted entities (authors, actors, directors) no longer clutter the folder containing your source files: they are organized into **`~/Library`**, with structured folders per entity type (*People*, *Books*, *Movies*), and dedicated sub-libraries for each context (`~/Library/<context>`). Furthermore, newly created objects now **automatically join the active context** by default (configurable in Core settings).
 
-**Akari enriches movies.** Choose *Enrich* on a video file: title, year, duration, genres, links and the poster as thumbnail come from The Movie Database (TMDB, you need a free key), and the director, the crew and the cast become **person files** with photo and a **Contribution** relation (role, character, place in the credits) to the movie.
+**Akari enriches movies.** Select a video file in Akita and choose *Enrich*: Akari identifies the title and year, lets you pick from scored candidates if multiple titles match, and pulls rich metadata from The Movie Database (TMDB). The file receives the schema.org-compliant **Movie** type, duration, genres, web links, and poster artwork as its thumbnail. Key crew and cast become **Person files** with headshots and bios in `~/Library/People`, connected through detailed **Contribution** relations tracking their specific roles and characters.
 
 ![The Contribution relations of a movie, with role and provenance](https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.5/docs/images/beta5/akari-contributions.png)
 
-**Shoji** shows durations as `02:16:00`, has sliders, password fields and read-only fields that look like it, and can edit every value of any BMessage in an outline. **The graph is live**: it follows new and changed files and keeps your zoom and selection. Also: *Restart Akita* in the Deskbar menu, a notification while ontologies are installed and when an enrichment starts, a related file that is gone shown with the broken-link icon, and thumbnails that show in **all** icon sizes (the fix is in Akita).
+**Live graph & Shoji polish.** The relationship graph is now **live and reactive**: it watches files and listens to live queries, automatically reflecting modifications, additions, and deletions while preserving your zoom level, pan position, and selection. **Shoji** gains a universal BMessage inspector and form host, formats ISO 8601 durations as human-readable time (`02:16:00`), masks password fields, and refines date and slider controls.
 
 ![The graph centred on a movie](https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.5/docs/images/beta5/graph-movie.png)
 
-**Upgrade** (stop SEN while the packages are replaced):
+**Desktop integration & system polish:**
+* **Restart Akita** directly from the SEN Deskbar menu after package updates.
+* **Real-time enrichment feedback**: Desktop notifications appear as soon as a lookup begins and update in place when done.
+* **Tracker thumbnail scaling**: Poster and cover thumbnails now scale cleanly across all icon sizes.
+* **Missing relation indicators**: Targets that have moved or been deleted are displayed with Haiku's standard broken-link icon rather than silently disappearing.
+* **Relation provenance**: Relations record their creator (`prov:wasAttributedTo`), visible as a dedicated column in relation views.
+
+**Upgrade** (stop SEN while packages are updated):
 
 ```sh
 sen stop
 pkgman update
-sen start       # and, for the new Akita:  akita restart
+sen start       # and, to reload Akita:  akita restart
 ```
 
-New here? `pkgman add-repo https://kiri.sen-labs.org/x86_64`, then `pkgman install sen_core sen_plugins akita sen_filetypes shoji` and the ontologies you like. Needs a Haiku **nightly from hrev60299_1 on**, as before.
+New here? `pkgman add-repo https://kiri.sen-labs.org/x86_64`, then `pkgman install sen_core sen_plugins akita sen_filetypes shoji` and the ontologies you like. Requires a Haiku **nightly from hrev60299_1 on**.
 
-**Good to know:** Akari needs a (free) TMDB key; Semantic Scholar and DBLP in Paperboy are still untested live; BFS volumes only; still a beta.
+**Good to know:** Akari requires a free TMDB API key or Read Access Token (configured in settings). Semantic Scholar and DBLP in Paperboy remain experimental; OpenAlex and arXiv handle primary paper lookups. BFS volumes only; still a beta.
 
-**Links:** [release notes](https://github.com/sen-laboratories/sento/releases/tag/v1.0.0-beta.5) · [source](https://github.com/sen-laboratories) · package repository `https://kiri.sen-labs.org/x86_64` · support SEN Labs on [Liberapay](https://liberapay.com/sen-labs/).
+**Links:** [Release notes](https://github.com/sen-laboratories/sento/releases/tag/v1.0.0-beta.5) · [Source code](https://github.com/sen-laboratories) · Package repository `https://kiri.sen-labs.org/x86_64` · Support SEN Labs on [Liberapay](https://liberapay.com/sen-labs/).
 
-Reports are welcome. Which type of file should get an enricher next?
+Reports and feedback are always welcome. Which file type would you like to see an enricher for next?
