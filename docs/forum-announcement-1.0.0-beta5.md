@@ -15,9 +15,11 @@ Beta 4 looked at the people behind your files. Beta 5 lets you **adjust SEN**, *
 
 **Akari enriches movies.** Choose *Enrich* on a video file: title, year, duration, genres, links and the poster as thumbnail come from The Movie Database (TMDB, you need a free key), and the director, the crew and the cast become **person files** with photo and a **Contribution** relation (role, character, place in the credits) to the movie.
 
-![The Contribution relations of a movie, and the person Ang Lee in Shoji](https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.5/docs/images/beta5/akari-contributions.png)
+![The Contribution relations of a movie, with role and provenance](https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.5/docs/images/beta5/akari-contributions.png)
 
-**Shoji** shows durations as `02:16:00`, has sliders, password fields and read-only fields that look like it, and can edit every value of any BMessage in an outline. **The graph is live**: it follows new and changed files and keeps your zoom and selection. Also: *Restart Akita* in the Deskbar menu, a notification while ontologies are installed, and thumbnails that show in **all** icon sizes (the fix is in Akita).
+**Shoji** shows durations as `02:16:00`, has sliders, password fields and read-only fields that look like it, and can edit every value of any BMessage in an outline. **The graph is live**: it follows new and changed files and keeps your zoom and selection. Also: *Restart Akita* in the Deskbar menu, a notification while ontologies are installed and when an enrichment starts, a related file that is gone shown with the broken-link icon, and thumbnails that show in **all** icon sizes (the fix is in Akita).
+
+![The graph centred on a movie](https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.5/docs/images/beta5/graph-movie.png)
 
 **Upgrade** (stop SEN while the packages are replaced):
 

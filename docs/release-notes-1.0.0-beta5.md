@@ -58,9 +58,9 @@ default; **SEN › Core › *New objects belong to the current context*** switch
   The file gets the semantic type **Movie** (its type for Haiku stays what it was), title, original title, release date, **duration**, description, **genres**, languages, countries, links (TMDB, IMDb, Wikidata, Letterboxd) and the **poster as its thumbnail**. What the file has already is kept; *Enrich (Overwrite)* (Shift) replaces it.
 * **The people.** The director, the crew (writers, producers, composer, cinematography, editing) and the cast become **person files** in the Library (`~/Library/People`), with birthday, biography, links and **photo**, each with a **Contribution** to the movie: the **role**, for an actor the **character**, and the place in the credits.
   A person with two jobs has two Contributions. A person that exists is updated and not made twice. In the window of the relations such a person is listed once for each Contribution, and **only then** the entries are named by their role:
-  *Ang Lee (Director)* and *Ang Lee (Writer)*; a person with one Contribution is named as before.
+  *Ang Lee (Director)* and *Ang Lee (Producer)*; a person with one Contribution is named as before.
 
-<img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.5/docs/images/beta5/akari-contributions.png" alt="The Contribution relations of a movie in Akita, and the person Ang Lee in Shoji" width="760">
+<img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.5/docs/images/beta5/akari-contributions.png" alt="The Contribution relations of a movie in Akita: role, character, place in the credits and provenance" width="760">
 
 * **You need a key**, TMDB gives one for free (*Settings › API* on themoviedb.org). Both the API key and the *API Read Access Token* are accepted. Put it into *Settings › Plugins › Enrich › SEN Akari*. The plugin says so if the key is missing, and does nothing else.
 * The ontology of movies (**SEN Movies**) follows **schema.org** now (`schema:duration`, `schema:genre`, `schema:director`, `schema:actor`…), and **Movie has an icon** (a video cassette).
@@ -83,6 +83,8 @@ default; **SEN › Core › *New objects belong to the current context*** switch
 
 ## The graph is live
 
+<img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.5/docs/images/beta5/graph-movie.png" alt="The graph centred on a movie: its crew and cast" width="760">
+
 * **It follows the files.** The graph watches the files of its objects (their SEN attributes and names) and a live query follows **new and removed** objects. What changed is read again after a moment of quiet (so an enrichment that writes twenty people does not make it flicker), and **zoom, place and selection stay**.
 * **A file with no relations yet** that you asked for is found as soon as it gets them. If it has none, the window says **"<name> has no relations."** (and not that it is no object of SEN).
 * The file in focus is found **by its id**, read from the file, also after a rename.
@@ -90,25 +92,29 @@ default; **SEN › Core › *New objects belong to the current context*** switch
 ## Smaller, but you will notice
 
 * **Restart Akita** is an item of the Deskbar menu (next to *Restart*), when Akita is installed. It is the same as `akita restart` and applies what a new Akita brings.
-* **Enrichment says that it has begun.** Akari, Book Enricher and Paperboy show a notification when the lookup starts ("Enriching movie"), not only when it is done; the result replaces it.
+* **Enrichment says that it has begun.** Akari, Book Enricher and Paperboy show a notification when the lookup starts ("Enriching movie"), not only when it is done; the result replaces it in the same place.
+
+  <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.5/docs/images/beta5/akari-notify-start.png" alt="Akari: Enriching movie" width="300"> <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.5/docs/images/beta5/akari-notify-done.png" alt="Akari: Movie enriched" width="300">
+
 * **Installing ontologies shows a notification** with the progress and a message when it is done.
 * **Thumbnails in every size.** A poster or cover now shows as the icon in *all* sizes of the icon view, not only in the one that was selected when the file was enriched: the thumbnail is scaled to the size of the icon (**Akita** has the fix in Tracker's code; senryu 6b0b271e31), and plugins write the creation time of the thumbnail *before* the picture, so the icon is refreshed when it changes.
 * **Every relation says who made it.** The new relation property **Provenance** (`prov:wasAttributedTo`, from PROV-O) is the signature of the program that made the relation (a plugin, Akita...), set by the server from the sender of the request. It is a column in the relation windows. A relation from before gets it when it is made again (an *Enrich* of the file does that); one that has it keeps its first creator.
+* **A related file that is gone is shown as such.** In a relation window it keeps its entry with the **broken-link icon** that Haiku uses for a broken symbolic link (it is named after what the relation knew of it), and the *Open related* menus list it as a disabled entry, so a dangling relation is not mistaken for no relation.
 * **New files get the sticky classifications at once**, and the *Contexts* folder of the Library is gone (see above).
 * BERT no longer asks for a setting that only it had; the *SEN key* setting has short names with a tip.
 
 ## Under the hood
 
 * **The settings protocol** (spec: `docs/spec-settings-and-message-template.md`): path keys for nested messages (`SenSettingsPath.h`, `SenMessagePath.h`), a form schema (with `min_label` and `max_label` for sliders), values as text for points, rectangles and colours, `kSettings` to the plugin and `kSettingsReply` back, `SenSettingsForm.h` for the host side. `sen_settings` is an application of its own that the server starts.
-* **Ontologies** (`0.1.0-31`): a type has its **plural** (a slot of the root class *Entity*, written as the resource `SEN:PLURAL` when the type is installed), the plugin type has the attribute `SEN:plugin:hasSettings`, *Movies* follows schema.org and has the Contribution relation. The installer runs once more after the update so that the plurals are in place.
+* **Ontologies** (`0.1.0-32`): a type has its **plural** (a slot of the root class *Entity*, written as the resource `SEN:PLURAL` when the type is installed), the plugin type has the attribute `SEN:plugin:hasSettings`, *Movies* follows schema.org and has the Contribution relation. The installer runs once more after the update so that the plurals are in place.
 * **For developers** (sento): `SenPluginSettings.h` (`sen::plugins::LoadSharedSettings()`), `SenLibrary.h` (`sen::library::FolderFor(type, &folder)`), `SenStripeDialog.h`. The developer guide is updated.
 
 ## Packages
 
-32 files in the repository **Kiri**, among them:
+31 packages in the repository **Kiri**, among them:
 
-* `sen_core`: `1.0.0~beta5-6`, `sen_oni`: `1.0.0~beta5-2`, `akita`: `1.0.0~beta5-1`, `shoji`: `1.0.0~beta5-7` (`sen_filetypes` stays at `1.0.0~beta4-1`: nothing changed there).
-* The seven ontology packages are at `0.1.0-31`.
+* `sen_core`: `1.0.0~beta5-8`, `sen_oni`: `1.0.0~beta5-3`, `akita`: `1.0.0~beta5-3`, `shoji`: `1.0.0~beta5-7` (`sen_filetypes` stays at `1.0.0~beta4-1`: nothing changed there).
+* The seven ontology packages are at `0.1.0-32`.
 * All plugin packages are `~beta5`, and `sen_plugins` (`1.0.0~beta5-2`) requires them all. **New:** `sen_plugin_movie_enricher` (Akari).
 
 ## Upgrading from Beta 4

@@ -57,6 +57,8 @@ connected stand by themselves, so you see at a glance what belongs together: an 
 - **Drag** to move the graph, the **mouse wheel** zooms around the pointer (or `+` and `-`), **F** fits all of it into the window again. When you resize the window the graph is fitted again, as long as you have not zoomed or moved it.
 - **Dark** switches between a light and a dark look. It follows the colours of the system until you choose, and then the choice is remembered (the setting `SEN:darkMode` in `~/config/settings/sen/sen.settings`).
 - **The graph is live**: it watches the files of its objects and follows new and removed ones, so an enrichment that makes people shows up while you look. Changes are read after a moment of quiet, and your zoom, position and selection stay. It watches up to 1500 files. If a file that you asked for has no relations (yet) the window says so, and shows it when it gets some.
+
+![The graph centred on a movie](images/beta5/graph-movie.png)
 - **Refresh** reads the objects again.
 - **Alt+W** closes the window; the server keeps running.
 
@@ -110,13 +112,17 @@ What SEN or a plugin makes new, such as the people of the authors of a paper, th
 - **Books** (BERT, from OpenLibrary): the attributes, the cover as the thumbnail, the authors as people.
 - **Movies** (Akari, from The Movie Database, TMDB): title, year, duration, genres, links, the poster as the thumbnail; the director, crew and cast as people, each with a **Contribution** relation (role, character, place in the credits). Akari needs a free **TMDB key**: register at themoviedb.org, copy the *API Key* (or the *API Read Access Token*) from *Settings › API* into *Settings › Plugins › Enrich › SEN Akari*.
 
+While a plugin works, a **notification** says so (*Enriching movie*, *Enriching book*, *Enriching paper*), and the result (*Movie enriched* with what was found, or why nothing was) takes its place.
+
+![Akari: the notification at the start and at the end](images/beta5/akari-notify-start.png) ![](images/beta5/akari-notify-done.png)
+
 ![Choosing the movie](images/beta5/akari-chooser.png)
 
 If several candidates are found, a window asks which one is yours (unless you switched that off). *Cancel* changes nothing. The file keeps its type for Haiku; SEN adds its *semantic type* (*Movie*, *Scientific paper*...), so Shoji and the *Attributes* menu show what fits. The people are made as set under *Plugins* and put into the [Library](#the-library). Genres, countries and links are written as lists with the separator that the attribute defines (a comma), so Shoji shows one entry for each.
 
-![Contributions of a movie](images/beta5/akari-contributions.png)
+![Contributions of a movie: role, character, place in the credits, provenance](images/beta5/akari-contributions.png)
 
-A person who has more than one Contribution to a movie (a director who is also the writer) is listed once for each, and then the entries are named by their role: *Ang Lee (Director)*, *Ang Lee (Writer)*. The **Provenance** column of a relation says which program made it.
+A person who has more than one Contribution to a movie (a director who is also a producer) is listed once for each, and then the entries are named by their role: *Ang Lee (Director)*, *Ang Lee (Producer)*. The **Provenance** column of a relation says which program made it. A related file that has been deleted keeps its entry in the window, with the **broken-link icon** of Haiku, and shows in the *Open related* menus as a disabled entry (*Missing file*, or the name the relation knew).
 
 ## Shoji, the form for a file
 
