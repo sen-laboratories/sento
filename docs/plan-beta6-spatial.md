@@ -33,7 +33,7 @@ The schema is `sen-oni/schema/sen-spatial.yaml` (done, see *Status*).
 
 ## Relations
 
-A file or entity is **located at** a place or location (`dcterms:spatial`; stored; a photo, a paper, an event). The relations *between* places and locations are RCC-8
+A file or entity is **located near** a place or location (first called *located at*; renamed because the lookup of a position finds the place that is there and the places around it, and there can be several) (`dcterms:spatial`; stored; a photo, a paper, an event). The relations *between* places and locations are RCC-8
 (Region Connection Calculus) in the names of everyday use proposed in the workshop paper on LLMs and spatial reasoning (`viterbi-web.usc.edu/~sabek/pdf/25_workshop_llm_spatial_benchmark.pdf`; not read in full, the names are those of the research notes), with the OGC GeoSPARQL vocabulary as `class_uri`:
 
 | Relation | Inverse | RCC-8 | GeoSPARQL |
