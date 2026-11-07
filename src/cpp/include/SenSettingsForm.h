@@ -72,7 +72,7 @@ const char* const kAttrStep			= "step";			///< double
 const char* const kAttrOrder		= "order";			///< int32: the place among the fields of its message (the fields without one keep the order of the message)
 const char* const kAttrRestart		= "restart";		///< bool: a change takes effect when the program is started again
 const char* const kAttrHidden		= "hidden";			///< bool: not shown
-const char* const kAttrEnabledWhen	= "enabled_when";	///< string `key=value`: the control is enabled only while the field `key` of the same message has this value (a text field for the choice "Custom")
+const char* const kAttrEnabledWhen	= "enabled_when";	///< string `key=value`: the control is enabled only while the field `key` of the same message has this value; `&` joins conditions (all hold), `|` alternatives (one holds): `mode=custom&flag=true|mode=other`
 const char* const kAttrList			= "list";			///< bool: the field is a list (edited in a list) also with one value or none
 
 const char* const kKindText			= "text";
