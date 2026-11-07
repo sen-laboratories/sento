@@ -97,7 +97,8 @@ EndsWith(const std::string& text, const std::string& end)
 }
 
 inline status_t
-Get(const std::string& url, const std::string& userAgent, const char* accept, std::string* body, int* httpStatus, int redirects, bigtime_t timeout)
+Get(const std::string& url, const std::string& userAgent, const char* accept, std::string* body, int* httpStatus, int redirects, bigtime_t timeout,
+	const std::string& authorization)
 {
 	BUrl address(url.c_str(), true);
 	if (!address.IsValid() || !address.HasHost())
@@ -128,7 +129,7 @@ Get(const std::string& url, const std::string& userAgent, const char* accept, st
 
 	std::string request = std::string("GET ") + target.String() + " HTTP/1.1\r\nHost: " + address.Host().String()
 		+ (address.HasPort() ? ":" + std::to_string(port) : "") + "\r\nUser-Agent: " + userAgent + "\r\nAccept: " + accept
-		+ "\r\nConnection: close\r\n\r\n";
+		+ (authorization.empty() ? "" : "\r\nAuthorization: " + authorization) + "\r\nConnection: close\r\n\r\n";
 	for (size_t sent = 0; sent < request.size();) {
 		ssize_t count = socket->Write(request.data() + sent, request.size() - sent);
 		if (count <= 0)
@@ -170,7 +171,9 @@ Get(const std::string& url, const std::string& userAgent, const char* accept, st
 		if (redirects >= kMaxRedirections)
 			return B_ERROR;
 		BUrl next(address, BString(HeaderValue(headers, "Location").c_str()));
-		return Get(next.UrlString().String(), userAgent, accept, body, httpStatus, redirects + 1, timeout);
+		// (the key goes with the request to the same host, not to another one that the answer sends it to)
+		return Get(next.UrlString().String(), userAgent, accept, body, httpStatus, redirects + 1, timeout,
+			next.Host() == address.Host() ? authorization : std::string());
 	}
 	if (code == 404)
 		return B_ENTRY_NOT_FOUND;
@@ -213,17 +216,19 @@ NeedsSocketClient(const std::string& host)
 /**
  * One GET. Redirects are followed (at most five).
  * @param accept the value of the header `Accept`
+ * @param authorization the value of the header `Authorization` (`Bearer <key>`), for a service that wants a key; empty: none. Only send it over https.
  * @param timeout how long to wait for the connection and for each part of the answer, in microseconds (20 s); a service that works out its answer first (Overpass: half a minute when it is busy) wants more
  * @param httpStatus gets the HTTP status of the last answer (0 if there was none); may be NULL
  * @return B_OK for a 2xx answer; B_ENTRY_NOT_FOUND for 404; B_NOT_ALLOWED for 401 and 403; B_BUSY for 429 and 503; B_ERROR for any other status; B_BAD_VALUE for an address that is not
  *         http or https; the error of the network (B_TIMED_OUT, ...); B_BAD_DATA for an answer that is no HTTP answer or is cut off; B_NO_MEMORY for an answer of more than 32 MiB
  */
 inline status_t
-SocketGet(const std::string& url, const std::string& userAgent, const char* accept, std::string* body, int* httpStatus, bigtime_t timeout = detail::kTimeout)
+SocketGet(const std::string& url, const std::string& userAgent, const char* accept, std::string* body, int* httpStatus, bigtime_t timeout = detail::kTimeout,
+	const std::string& authorization = std::string())
 {
 	if (httpStatus != NULL)
 		*httpStatus = 0;
-	return detail::Get(url, userAgent, accept != NULL ? accept : "*/*", body, httpStatus, 0, timeout);
+	return detail::Get(url, userAgent, accept != NULL ? accept : "*/*", body, httpStatus, 0, timeout, authorization);
 }
 
 
