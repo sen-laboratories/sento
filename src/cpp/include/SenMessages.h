@@ -317,6 +317,11 @@ inline constexpr char kDynamic[]       = "SEN:dynamic";
 /** bool: reflexive; the relation lives inside the source file (shown as "contained") */
 inline constexpr char kSelf[]          = "SEN:self";
 /**
+ * bool: working the relation out asks a service on the internet (slow, and the place of a quota or a permission): a view that
+ * shows many relations at once ("all relations") does not ask for it; opening the relation itself does. Independent of kDynamic and kSelf.
+ */
+inline constexpr char kRemote[]        = "SEN:remote";
+/**
  * strings: the relation can start only at files of these types (without it, at any file). A type is a MIME type or the
  * start of one, e.g. a supertype ("audio"), like the filters for the templates of a new file.
  */

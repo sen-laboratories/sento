@@ -85,6 +85,8 @@ inline constexpr char kRelationTargetRef[] = "SEN:REL:TRG";
 inline constexpr char kRelationLabel[] = "SEN:REL:Label";
 /** string, property of a relation: the kind of a dependency (provides, requires, uses, ...), see DependencyKind in the core ontology */
 inline constexpr char kRelationKind[]  = "SEN:REL:Kind";
+/** string, property of a relation: the code of what the relation is in a formal system that works it out, e.g. the one of the Region Connection Calculus for the spatial relations (`NTPP`, `TPP`, `EC`, `PO`, `EQ`); kRelationKind has its name for people */
+inline constexpr char kRelationRcc8[]  = "SEN:REL:Rcc8";
 /** Resource and attribute that hold the configuration of a relation type (see namespace sen::conf). */
 inline constexpr char kRelationConfig[] = "SEN:REL:CONFIG";
 /** string, resource and attribute of a type (written by the ontology installer from the slot `plural` of the class Entity, which every entity type sets): the plural of its name (`People`, `Books`, `Movies`). It names
