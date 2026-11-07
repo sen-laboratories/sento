@@ -49,7 +49,7 @@ Each inverse pair is one relation type with `label` and `inverse_label`, as the 
 (which includes the border-touching case, that is `covered by`). They are **not** the *Contains* relation of the core ontology (parts of a document); they are in the
 group *Spatial* and have MIME types of their own (`relation/x-vnd.sen-labs.relation.spatial.*`).
 
-A further dynamic relation, **point of interest** (inverse *in the area of*, `schema:containsPlace`, `remote`), lists the named things that OpenStreetMap knows in the area of a place (Overpass API, `nwr[name](south,west,north,east); out center;`, at least 500 m and
+A further dynamic relation, **nearby** (symmetric, `sen:nearby`, `remote`), lists the named things that OpenStreetMap knows around a place, each with its label (what it is) and `SEN:REL:Distance` (metres) (Overpass API, `nwr[name](south,west,north,east); out center;`, at least 500 m and
 at most 3 km across, roads and borders left out, the 100 nearest); a place file is made in the Library for each one that is not there yet (not enriched).
 
 RCC-8 is defined for regions: a point (a café) can be within, equal to or touching a region, not overlap it. The navigator checks the type of the geometry.
