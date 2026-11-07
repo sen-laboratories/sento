@@ -189,6 +189,8 @@ inline constexpr char kCount[]          = "SEN:count";
 inline constexpr char kWithProperties[] = "SEN:withProperties";
 /** bool: also return the configuration of relations */
 inline constexpr char kWithConfigs[]    = "SEN:withConfigs";
+/** bool in kRelationsGet: only the config of the type (and the SEN:ID of the source) is wanted, not the targets: answered at once also for a relation that a plugin works out slowly (the file manager makes the folder first, and asks for the targets after it) */
+inline constexpr char kConfigOnly[]     = "SEN:configOnly";
 inline constexpr char kIncludeTypes[]   = "SEN:includeTypes";
 inline constexpr char kExcludeTypes[]   = "SEN:excludeTypes";
 
