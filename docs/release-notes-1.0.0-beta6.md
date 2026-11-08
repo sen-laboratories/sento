@@ -81,7 +81,7 @@ The new group **Spatial** is in *Open related…*:
 * **The SEN menu** in the Deskbar has *Restart SEN Server* and *Restart Akita* after *Settings…*.
 * **The ontology installer** takes out the MIME types that a new version of an ontology no longer ships, with their templates (files of such a type keep it: nothing is changed on your files), and corrects a template that has the wrong type. This is how the relation *point of interest* of the first drafts of SEN Spatial went away.
 * **API additions (sento):** the flag `SEN:remote` and the property `SEN:REL:Rcc8` for relation types, `SenSocketHttp.h` (the HTTP client over a socket, with timeouts and an `Authorization` header that is never sent to another host after a redirect) shared by the plugins and Shoji, `SenMapStyles.h` (the map styles), the plugin messages `kResolve` and `kLibraries`, `kConfigOnly` (the config of a relation type, answered at once), and for settings forms `enabled_when` (with `&` and `|`) and `-` as a separator line in a choice.
-* **Ontology `0.1.0-38` (spatial)**; core and people `-33`, the others `-32`.
+* **Ontology `0.1.0-39` (spatial)**; core and people `-33`, the others `-32`.
 * **Akari, BERT and Paperboy** use the shared HTTP client (and read Wikimedia over a socket).
 * The `.DS_Store` and other macOS leftovers are never committed in any repository.
 
@@ -90,7 +90,7 @@ The new group **Spatial** is in *Open related…*:
 34 packages in the repository **Kiri**, among them:
 
 * `sen_core`: `1.0.0~beta6-3`, `sen_oni`: `1.0.0~beta6-2`, `akita`: `1.0.0~beta6-13`, `shoji`: `1.0.0~beta6-7` (`sen_filetypes` remains at `1.0.0~beta4-1`).
-* **New:** `sen_ontology_spatial` (`0.1.0-38`), `sen_plugin_place_enricher` (SUESS, `0.1.0~beta6-5`), `sen_plugin_spatial_navigator` (`0.1.0~beta6-13`; needs the HaikuPorts package `geos`). The other ontology packages are `0.1.0-32`, core and people `-33`.
+* **New:** `sen_ontology_spatial` (`0.1.0-39`), `sen_plugin_place_enricher` (SUESS, `0.1.0~beta6-5`), `sen_plugin_spatial_navigator` (`0.1.0~beta6-13`; needs the HaikuPorts package `geos`). The other ontology packages are `0.1.0-32`, core and people `-33`.
 * **Updated plugins:** Akari, BERT and Paperboy `~beta6-1`; the others stay at `~beta5`, all bundled under `sen_plugins` (`1.0.0~beta6-1`).
 
 ## Upgrading from Beta 5
@@ -122,7 +122,7 @@ Beta 6 is probably the last beta before the release candidates of SEN 1.0: bug f
 
 ## Credits
 
-Map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) (ODbL). Map styles: [OpenTopoMap](https://opentopomap.org) (CC-BY-SA), the Humanitarian OpenStreetMap Team style hosted by OpenStreetMap France, [CyclOSM](https://www.cyclosm.org). Descriptions from [Wikidata](https://www.wikidata.org) (CC0); pictures from [Wikimedia Commons](https://commons.wikimedia.org) under their own licenses. Icons: *Haikunaut* by Arti and *GCompris* by 3dEyes (MIT, [HVIF Store](https://hvif-store.art/)); *Library Folder* by Matthew McClintock (Design Science License). Geometry by [GEOS](https://libgeos.org).
+Map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) (ODbL). Map styles: [OpenTopoMap](https://opentopomap.org) (CC-BY-SA), the Humanitarian OpenStreetMap Team style hosted by OpenStreetMap France, [CyclOSM](https://www.cyclosm.org). Descriptions from [Wikidata](https://www.wikidata.org) (CC0); pictures from [Wikimedia Commons](https://commons.wikimedia.org) under their own licenses. Icons: *Maps* by zuMi (the Place), *Haikunaut* by Arti (SUESS) and *GCompris* by 3dEyes (MIT, the last two from the [HVIF Store](https://hvif-store.art/)); *Library Folder* by Matthew McClintock (Design Science License). Geometry by [GEOS](https://libgeos.org).
 
 ## Your support is essential
 
