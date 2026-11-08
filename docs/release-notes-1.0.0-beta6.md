@@ -7,7 +7,7 @@ SPDX-FileCopyrightText: 2026 SEN Labs e.U.
 
 > Everything happens somewhere.
 
-Beta 5 was about making SEN yours. Beta 6 adds the last ontology of the 1.0 line: **SEN Spatial**, for **places and locations** and the **relations between them**. A new enrichment plugin, **SUESS**, looks places up at OpenStreetMap and Wikidata and gives them a picture; a **spatial navigator** works out what is *within* what, what *touches* what, and what is **nearby**; **Shoji** shows a place with a **map**; and **Akita** opens the relations of a whole group at once, as folders that fill when you open them.
+Beta 5 was about making SEN yours and organizing your knowledge. Beta 6 introduces the final ontology for the 1.0 line: **SEN Spatial**, bringing first-class support for **places, locations, and spatial relationships**. A new enrichment plugin, **SUESS**, populates places from OpenStreetMap and Wikidata with rich metadata and photography; an intelligent **spatial navigator** dynamically evaluates topological relations (*within*, *touches*, *overlaps*) and discovers **nearby** points of interest; **Shoji** renders places with embedded, styled **maps**; and **Akita** introduces dynamic relation group folders that load on demand.
 
 **SEN (Semantic Extensions Native)** runs on **Haiku R1/beta6 nightlies (x86_64), from hrev60299 on**. If you have beta 5 installed, `pkgman update` brings you here (see *Upgrading from Beta 5* below).
 
@@ -16,43 +16,54 @@ Beta 5 was about making SEN yours. Beta 6 adds the last ontology of the 1.0 line
 
 ## Places and locations
 
-A **Place** is something with a name and an identity (*Karlskirche*, *Vienna*, *Café Central*); a **Location** is only where something is (the position of a photo, a meeting point). Both are in the **New › Spatial** menu of Akita, with the same attributes (name, other names, kind, position, bounding box, outline, address, links, picture), so one column or query works for both. They use the vocabularies of `schema.org`, Dublin Core and GeoSPARQL, and are stored, like everything in SEN, in the attributes of the file.
+Beta 6 distinguishes between two fundamental geographic concepts:
+* A **Place** represents an entity with a name and cultural identity (such as *Karlskirche*, *Vienna*, or *Café Central*).
+* A **Location** represents a pure coordinate or geographic point without inherent identity (such as the GPS position of a photo or a temporary meeting point).
+
+Both can be created directly from Akita's **New › Spatial** menu. They share a unified schema (title, aliases, place kind, coordinates, bounding box, boundary outline, street address, web links, and imagery) based on `schema.org`, Dublin Core, and GeoSPARQL vocabularies. As with everything in SEN, all geographic data is stored natively in file attributes—searchable via queries and displayable as Tracker columns.
 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.6/docs/images/beta6/new-spatial-file.png" alt="New › Spatial › Location, Place" width="640">
 
-## SUESS, the place enricher
+## SUESS: the place enricher
 
-Choose **Enrich** on a Place or Location. **SUESS** (*Semantic Urban & Environmental Spaces for SEN*, a bow to the Viennese geologist Eduard Suess) searches [OpenStreetMap](https://www.openstreetmap.org) (Nominatim) by name, address or position and writes what it finds: other names, the kind of place, position, bounding box, a simplified outline, address, links (OpenStreetMap, Wikidata, Wikipedia) and a short description. If Wikidata has the place, it adds a **picture** — a photo or coat of arms — with its license and credit.
+Select a Place or Location in Akita and choose **Enrich**. **SUESS** (*Semantic Urban & Environmental Spaces for SEN*, named in honor of Austrian geologist Eduard Suess) resolves geographic entities using [OpenStreetMap](https://www.openstreetmap.org) (Nominatim) by name, street address, or coordinates:
 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.6/docs/images/beta6/enrich-location.png" alt="OpenStreetMap found several places. Which one is yours?" width="640">
 
-* **It searches where you say.** A file that names a city, region or country is looked up in that country only: *Westbahnhof* in *Wien* never offers the one in Budapest. A position, if the file has one, ranks the answers (and is **not sent**).
-* **A metro station is told from a train station** of the same name: the chooser shows the kind, the line (*U6*) and who runs it (*Wiener Linien*).
-* **Your position stays yours.** The GPS position of a *photo* is looked up only if you switch on *Use GPS location for lookup*.
-* **No key, good manners.** At most one request a second, every answer kept for a week, an identifying User-Agent, as the public services ask.
+* **Rich place metadata**: Writes place classification, coordinates, bounding box, simplified polygon outlines, postal address, links (OpenStreetMap, Wikidata, Wikipedia), and localized descriptions. If Wikidata recognizes the place, SUESS fetches photography or heraldic crests complete with license and attribution metadata.
+* **Geographically scoped search**: If a file already specifies a city, region, or country, queries are automatically constrained to that territory (searching for *Westbahnhof* in *Wien* will never suggest Budapest). Coordinates present on the file are used to rank matches locally without broadcasting raw positions.
+* **Smart disambiguation**: When multiple candidates share a name, the candidate chooser provides context—distinguishing subway stations from railway terminals by displaying transport lines (e.g. *U6*) and transit operators (*Wiener Linien*).
+* **Respecting privacy**: GPS coordinates embedded in photos are only looked up when *Use GPS location for lookup* is explicitly enabled.
+* **Polite public querying**: Operates with built-in rate-limiting (maximum 1 request per second), persistent response caching (1 week), and transparent User-Agent identification in accordance with community usage policies—no API keys required.
 
-> Data © OpenStreetMap contributors (ODbL). Descriptions from Wikidata (CC0); pictures from Wikimedia Commons, each under its own license (written to the file with the credit).
+> Data © OpenStreetMap contributors (ODbL). Descriptions from Wikidata (CC0); pictures from Wikimedia Commons under their respective licenses.
 
-## Places in Shoji, with a map
+## Places in Shoji, with an interactive map
+
+Shoji displays Places and Locations with an integrated, high-resolution **map view** alongside standard attributes, showing the location's bounding area centered on a pin:
 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.6/docs/images/beta6/place-karlskirche-shoji.png" alt="A place in Shoji: the form, the picture and the map" width="560">
 
-Shoji shows a Place or Location as a form with a **map** beside it: the tiles around the place, zoomed to its bounding box, with a pin. Tiles come from public servers that need **no key**, are kept for two weeks and are asked for only when the map is shown. Choose the **style** with the secondary mouse button on the map:
+* **Multiple map styles**: Right-click the map to choose between diverse cartographic styles, served from keyless public tile providers and cached locally for two weeks:
+  * **OpenTopoMap**: Detailed topographic relief contours.
+  * **OpenStreetMap**: Classic standard cartography.
+  * **Humanitarian**: High-contrast, warm presentation.
+  * **CyclOSM**: Cycling infrastructure and path layouts.
 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.6/docs/images/beta6/shoji-place-westbahnhof.png" alt="The menu of map styles in Shoji" width="560">
 
-* **OpenTopoMap** (relief), **OpenStreetMap** (standard), **Humanitarian** (warm and clear) and **CyclOSM** (cycling). The style is credited on the map as its license asks; if its server does not answer, a standard tile stands in.
-* **The default** is a setting (*Settings › Plugins › Navigate › SEN Spatial Navigator › Map style*); the menu of a view only overrides it for Shoji, and its first item returns to the default.
+* **Configurable defaults**: Set your preferred default style in *Settings › Plugins › Navigate › SEN Spatial Navigator › Map style*. Context menu selections apply to the current view with an option to revert to default.
 
-## Spatial relations
+## Dynamic spatial relations
 
-The new group **Spatial** is in *Open related…*:
+The **Spatial** group in Akita's *Open related…* menu introduces dynamic, compute-on-demand relationships:
 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.6/docs/images/beta6/open-related-spatial.png" alt="Open related › Spatial: Covered By, Equal, Nearby, Overlap, Touch, Within" width="460">
 
-* **Within / Contains, Covered by / Covers, Touch, Overlap, Equal** are the relations between regions of the *Region Connection Calculus* (RCC-8), in the words of everyday use. They are **not stored**: the **spatial navigator** works them out when you open them, comparing the outlines of the places you have (with the geometry engine GEOS), and for *within* it follows Wikidata's "located in" chain up to the country (the *Stephansdom* is in *Innere Stadt*, *Vienna* and *Austria*; a place of the chain that you do not have yet is made in the Library, ready to enrich). They are never out of date after you correct an outline. Each says its **Kind** in words and carries a hidden **RCC-8** code for programs, and its **provenance** says whether the plugin or Wikidata said it.
-* **Nearby** lists the named things that OpenStreetMap knows around a place — shops, cafés, sights, stops, parks — each with what it is (*cafe*, *place of worship*) and its **distance in metres**, notable ones before shops, things that are closed or abandoned left out. Each is a Place in the Library; the first dozen with a Wikidata item are enriched in the background, with pictures. It asks the **Overpass API**: you can choose a public mirror (or your own) in the settings, together with the search radius, the most things to list and how long answers are kept (24 hours by default, as OpenStreetMap is updated).
-* **Located near** is stored: SUESS makes it for a Location or photo that it looked up.
+* **Topological relationships (RCC-8)**: Supports *Within / Contains*, *Covered by / Covers*, *Touch*, *Overlap*, and *Equal* based on Region Connection Calculus. These relations are **computed dynamically rather than stored statically**: the spatial navigator evaluates them on demand using the GEOS geometry engine against local outlines, combined with Wikidata administrative containment hierarchies (e.g. *St. Stephen's Cathedral* is within *Innere Stadt*, *Vienna*, and *Austria*). They are always fresh and never become obsolete when boundaries are edited.
+* **Nearby points of interest**: Lists points of interest surrounding a location—cafés, sights, transit stops, parks, and shops—queried dynamically via the Overpass API. Results include the place category and precise distance in meters, prioritizing prominent cultural landmarks over retail shops and filtering out closed or disused venues. Nearby places are automatically created in your Library (`~/Library/Places`), with the top results enriched with photography in the background.
+* **Persistent proximity links**: A persistent **Located near** relation is created when SUESS links a Location or geotagged photo to its recognized Place.
+* **Configurable navigation settings**: Customize Overpass server mirrors, search radii, maximum results, response cache duration, and default map styles in the settings window.
 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.6/docs/images/beta6/nearby-places.png" alt="The places nearby, in the menu of the relation" width="640">
 
@@ -60,38 +71,44 @@ The new group **Spatial** is in *Open related…*:
 
 ## Akita: relation groups as folders
 
-*Open related › Spatial* (the group itself) opens a window with a **folder for each relation** of the group — *Covered By*, *Nearby*, *Within*… — with a **globe-in-a-folder** icon:
+Selecting an entire relation group—such as *Open related › Spatial*—opens a Tracker window containing a dedicated folder for each relation in the group (*Nearby*, *Within*, *Covered By*…), marked with an identifying globe icon:
 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.6/docs/images/beta6/spatial-relations-folder.png" alt="The folders of the spatial relations of a place" width="520">
 
-* **They fill when you open them.** A relation that a plugin works out (and may ask a web service for) is **remote**: its folder is empty until you open it, then it says *Fetching relations…* and fills when the answer is in; opened again after five minutes it asks again. Nothing is asked that you do not look at. The same holds for the folder of *All relations*.
-* **Keep what you like.** Drag such a folder to your Home folder or the Desktop: the copy keeps the attributes that say where it came from and **fetches again when you open it**, so a "nearby" folder of a place stays useful.
+* **On-demand fetching**: Computed and remote relations load asynchronously only when their folder is opened, displaying a non-blocking *Fetching relations…* indicator until populated. Nothing is queried over the network unless you explicitly inspect it.
+* **Persistent kept relation folders**: Drag any relation folder (such as *Nearby*) to your Desktop or Home directory. The copied folder retains its query parameters and automatically refreshes its contents whenever opened.
 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.6/docs/images/beta6/kept-nearby-folder.png" alt="A kept folder of what is nearby, with the distance and what each thing is" width="560">
 
-* **The menu does not make you wait.** The menu of the targets of a relation opens at once with a spinner (*Fetching relations…*) and the items follow.
-* **Same names, told apart.** Targets with the same name in a folder are told apart by the names of their files, not by a number.
-* **Relation folders show the icon of their relation** (`SEN:ICON:FOLDER`), as the ontology defines it. A file that is removed while a folder is read is no longer a crash.
-* **New from a template** no longer takes over the installer's mark from the template file.
+* **Responsive menus**: Relation target menus open instantly with an inline spinner while background lookups proceed.
+* **Clean name disambiguation**: Items in relation folders sharing the same display name are distinguished by their filename rather than arbitrary numeric suffixes.
+* **Themed relation folder icons**: Relation folders now display the distinctive folder icon defined by their ontology (`SEN:ICON:FOLDER`).
+
+## Desktop integration & system polish
+
+* **Server restart shortcuts**: The Deskbar menu now includes direct commands to *Restart SEN Server* and *Restart Akita* alongside *Settings…*.
+* **Dedicated context library icons**: Library folders for individual contexts now feature dedicated styling (*Library Folder* by Matthew McClintock).
+* **Automated type retirement**: The ontology installer now cleanly deregisters obsolete MIME types and templates when an updated ontology removes them, without affecting your existing user files.
+* **Shared network stack**: Akari, BERT, and Paperboy adopt the shared, resilient HTTP socket client for improved reliability with external APIs.
 
 ## Under the hood
 
-* **Dynamic relations in the server.** Every plugin has its own channel (a looper and a queue), so a slow service does not hold up the others. A relation type that is *dynamic* is resolved by its **navigator plugin** (`kResolve`), which is given the Library folders; only a plugin that names the type is asked, for at most 90 seconds. Nine tests with a stub navigator check it.
-* **The Library folders of a context have their own icon** (*Library Folder* by Matthew McClintock, Design Science License).
-* **The SEN menu** in the Deskbar has *Restart SEN Server* and *Restart Akita* after *Settings…*.
-* **The ontology installer** takes out the MIME types that a new version of an ontology no longer ships, with their templates (files of such a type keep it: nothing is changed on your files), and corrects a template that has the wrong type. This is how the relation *point of interest* of the first drafts of SEN Spatial went away.
-* **API additions (sento):** the flag `SEN:remote` and the property `SEN:REL:Rcc8` for relation types, `SenSocketHttp.h` (the HTTP client over a socket, with timeouts and an `Authorization` header that is never sent to another host after a redirect) shared by the plugins and Shoji, `SenMapStyles.h` (the map styles), the plugin messages `kResolve` and `kLibraries`, `kConfigOnly` (the config of a relation type, answered at once), and for settings forms `enabled_when` (with `&` and `|`) and `-` as a separator line in a choice.
-* **Ontology `0.1.0-39` (spatial)**; core and people `-33`, the others `-32`.
-* **Akari, BERT and Paperboy** use the shared HTTP client (and read Wikimedia over a socket).
-* The `.DS_Store` and other macOS leftovers are never committed in any repository.
+* **Asynchronous plugin channels**: The server architecture now provides dedicated worker threads, loopers, and queues per plugin, preventing slow or remote lookups from blocking other operations.
+* **Dynamic relation protocol**: Implemented the `kResolve` and `kLibraries` protocol enabling navigator plugins to compute relations on the fly with timeout protection (up to 90 seconds).
+* **C++ developer additions (sento)**:
+  * `SenSocketHttp.h`: Lightweight socket-based HTTP client featuring strict redirect authorization isolation and configurable timeouts.
+  * `SenMapStyles.h`: Standard definitions for map tile providers and attribution.
+  * `SenSettingsForm.h`: Added conditional form dependencies (`enabled_when` supporting logical AND/OR expressions) and visual separator items.
+  * Dynamic relation flags: `SEN:remote` and RCC-8 classification property `SEN:REL:Rcc8`.
+* **Ontology updates (`0.1.0-39`)**: Introduced the Spatial ontology, updated Core and People ontologies to revision 33, added provenance attribution IRIs (such as Wikidata P131), and standardized title attributes.
 
 ## Packages
 
 34 packages in the repository **Kiri**, among them:
 
 * `sen_core`: `1.0.0~beta6-3`, `sen_oni`: `1.0.0~beta6-2`, `akita`: `1.0.0~beta6-13`, `shoji`: `1.0.0~beta6-7` (`sen_filetypes` remains at `1.0.0~beta4-1`).
-* **New:** `sen_ontology_spatial` (`0.1.0-39`), `sen_plugin_place_enricher` (SUESS, `0.1.0~beta6-5`), `sen_plugin_spatial_navigator` (`0.1.0~beta6-13`; needs the HaikuPorts package `geos`). The other ontology packages are `0.1.0-32`, core and people `-33`.
-* **Updated plugins:** Akari, BERT and Paperboy `~beta6-1`; the others stay at `~beta5`, all bundled under `sen_plugins` (`1.0.0~beta6-1`).
+* **New packages**: `sen_ontology_spatial` (`0.1.0-39`), `sen_plugin_place_enricher` (SUESS, `0.1.0~beta6-5`), and `sen_plugin_spatial_navigator` (`0.1.0~beta6-13`, linking against `geos`).
+* **Updated plugins**: Akari, BERT, and Paperboy (`0.1.0~beta6-1`), bundled under `sen_plugins` (`1.0.0~beta6-1`).
 
 ## Upgrading from Beta 5
 
@@ -101,28 +118,33 @@ Stop SEN while packages are updated, then restart the services:
 sen stop
 pkgman update
 sen start       # and, to reload Akita:  akita restart
+pkgman install sen_ontology_spatial sen_plugin_place_enricher sen_plugin_spatial_navigator
 ```
+*(Alternatively, installing `sen_plugins` pulls in all available plugins.)*
 
-SEN Spatial is an ontology like the others: install it with `pkgman install sen_ontology_spatial sen_plugin_place_enricher sen_plugin_spatial_navigator` (or `sen_plugins`, which brings the plugins). The ontologies are installed on the first start (a notification says when it is done).
-
-First-time installation? `pkgman add-repo https://kiri.sen-labs.org/x86_64`, then `pkgman install sen_core sen_plugins akita sen_filetypes shoji` along with the ontologies you like.
+First-time installation? See the *Quick Install* instructions in the beta 3 notes:
+`pkgman add-repo https://kiri.sen-labs.org/x86_64`, then run `pkgman install sen_core sen_plugins akita sen_filetypes shoji` along with your preferred ontologies.
 
 ## Known limitations
 
-* **A Location with a name only is searched worldwide.** *Westbahnhof* without a city, region or country gets the best-known one first, which can be in another country; give the city or country (a field of the file) and SUESS searches there only. A service that knows where you are is planned for the next beta.
-* **Enrich (Overwrite)** reads the OpenStreetMap object that the file already links to again, it does not search anew; to look for another place, enrich a new Location.
-* **Pictures:** places that Wikidata does not know (or whose item has no image) have none; OpenStreetMap has no pictures of its own.
-* **Overpass can be slow.** The public server may need half a minute for a busy area (a larger area than 3 km across lists nothing: a district has thousands of named things). Choose a mirror in the settings if it is often busy.
-* **Nearby shows what OpenStreetMap contributors have mapped**, including the names of small businesses; SEN stores it only in files on your own disk.
-* **BFS volumes only.** Requires Haiku nightlies `hrev60299_1` or newer. Still a beta.
+* **Unconstrained searches are worldwide**: Searching for a location by name alone without specifying a city or country queries worldwide, returning the most prominent global match first. An integrated local positioning service is planned for the next release.
+* **Re-enrichment behavior**: *Enrich (Overwrite)* refreshes data for the existing OpenStreetMap reference rather than starting a fresh search; to query a different location, enrich a new Place or Location file.
+* **Imagery availability**: Photography depends on Wikidata entries having linked Wikimedia Commons images; places mapped solely in OpenStreetMap do not include pictures.
+* **Overpass API response times**: Public Overpass servers can take up to 30 seconds in dense urban areas. You can configure alternative public mirrors or a private instance in settings.
+* **Filesystem requirements**: BFS volumes only. Requires Haiku nightlies `hrev60299_1` or newer.
 
 ## What comes next
 
-Beta 6 is probably the last beta before the release candidates of SEN 1.0: bug fixes and your feedback. Planned for the next beta: a location service that knows where you are (so that a name alone finds the place nearby first), GPX and GeoJSON extractors, and the positions of photos. In parallel, development continues on SEN 2.0 "Gnosis".
+Beta 6 represents the final major feature beta before the SEN 1.0 release candidates. Upcoming focus includes:
+* Local location awareness to automatically prioritize nearby results during unconstrained name searches.
+* GPX and GeoJSON import extractors, along with automated geotag extraction for photos.
+* Ongoing bug fixes and performance tuning based on beta 6 feedback.
+
+In parallel, architectural work continues on SEN 2.0 "Gnosis".
 
 ## Credits
 
-Map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) (ODbL). Map styles: [OpenTopoMap](https://opentopomap.org) (CC-BY-SA), the Humanitarian OpenStreetMap Team style hosted by OpenStreetMap France, [CyclOSM](https://www.cyclosm.org). Descriptions from [Wikidata](https://www.wikidata.org) (CC0); pictures from [Wikimedia Commons](https://commons.wikimedia.org) under their own licenses. Icons: *Maps* by zuMi (the Place), *Haikunaut* by Arti (SUESS) and *GCompris* by 3dEyes (MIT, the last two from the [HVIF Store](https://hvif-store.art/)); *Library Folder* by Matthew McClintock (Design Science License). Geometry by [GEOS](https://libgeos.org).
+Map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) (ODbL). Map styles: [OpenTopoMap](https://opentopomap.org) (CC-BY-SA), the Humanitarian OpenStreetMap Team style hosted by OpenStreetMap France, and [CyclOSM](https://www.cyclosm.org). Descriptions from [Wikidata](https://www.wikidata.org) (CC0); imagery from [Wikimedia Commons](https://commons.wikimedia.org) under respective licenses. Icons: *Maps* by zuMi (Place), *Haikunaut* by Arti (SUESS), *GCompris* by 3dEyes (MIT, via [HVIF Store](https://hvif-store.art/)), and *Library Folder* by Matthew McClintock (Design Science License). Computational geometry powered by [GEOS](https://libgeos.org).
 
 ## Your support is essential
 

@@ -7,23 +7,29 @@ Draft of the post for the Haiku Community forum (discuss.haiku-os.org). Not publ
 
 Beta 5 was about making SEN yours. Beta 6 is about **where things are**. Still for **Haiku R1/beta6 nightlies (x86_64)**, and still storing everything natively in file attributes.
 
-**Places and locations.** A new ontology, **SEN Spatial**, adds **Place** (*Karlskirche*, *Vienna*) and **Location** (just where something is). Choose *Enrich* and **SUESS**, the new place enricher, looks the place up at OpenStreetMap and Wikidata: other names, kind, position, bounding box, outline, address, links, and a **picture** with its license and credit. A file that names a city or country is searched in that country only (*Westbahnhof* in *Wien* no longer finds Budapest), and a metro station is told from the train station of the same name. No API key needed; your photos' GPS positions are only used if you switch that on.
+**Places and locations.** A new ontology, **SEN Spatial**, introduces **Place** (cultural landmarks and named entities: *Karlskirche*, *Vienna*) and **Location** (pure geographic points and photo positions). Choose *Enrich* and **SUESS**, the new spatial enricher, queries OpenStreetMap and Wikidata to fetch place categories, bounding boxes, boundary outlines, addresses, external links, and high-resolution **photography or crests** with license and attribution. Queries scoped to a city or country search locally (*Westbahnhof* in *Wien* won't suggest Budapest), and transit stations are cleanly distinguished by line and operator. Public querying requires no API key, and photo GPS lookups are opt-in.
 
 ![Which place is yours?](https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.6/docs/images/beta6/enrich-location.png)
 
-**A map in Shoji.** Places open in Shoji as a form with a **map** and a pin. Pick the style with the secondary mouse button: OpenTopoMap (relief), OpenStreetMap, Humanitarian or CyclOSM, all free public servers without a key; the default is a setting.
+**Interactive maps in Shoji.** Places and locations display an integrated **map view** alongside standard attributes. Right-click the map to switch styles on the fly: **OpenTopoMap** (relief), **OpenStreetMap**, **Humanitarian**, or **CyclOSM**—served from free, keyless public tile providers and cached locally for two weeks.
 
 ![A place in Shoji](https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.6/docs/images/beta6/place-karlskirche-shoji.png)
 
-**Spatial relations.** *Open related › Spatial* offers **within / contains, covered by / covers, touch, overlap, equal** (the RCC-8 relations, worked out when you open them from the outlines of your places with GEOS and from Wikidata's "located in" chain, never stored, never stale) and **nearby**: the shops, cafés, sights and stops that OpenStreetMap knows around a place, with what each is and its distance in metres, each one a Place in your Library (the Overpass server, radius and how long answers are kept are settings).
+**Dynamic spatial relations.** The new **Spatial** group in *Open related…* introduces relations that are computed on the fly rather than stored statically:
+* **Topological containment (RCC-8)**: Evaluates *within / contains*, *covered by / covers*, *touch*, *overlap*, and *equal* dynamically using the GEOS geometry engine and Wikidata administrative hierarchies. They are never out of date when borders change.
+* **Nearby points of interest**: Queries surrounding cafés, cultural sights, parks, and transit stops via the Overpass API, complete with category details and distance in meters. Nearby places are automatically created in your Library (`~/Library/Places`) and enriched with photos in the background.
 
 ![Nearby places](https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.6/docs/images/beta6/nearby-places.png)
 
-**Relation groups as folders in Akita.** Choose the group itself (*Open related › Spatial*) and a window opens with a **folder for each relation**, empty until you open it, so nothing is asked that you do not look at. Drag a folder to your Home folder or the Desktop to **keep it**: it fetches again when you open it. The menus open at once with a spinner (*Fetching relations…*) while a plugin works.
+**Relation groups as folders in Akita.** Open an entire relation group (*Open related › Spatial*) to see a window with a dedicated folder for each relation, marked with a distinctive globe icon. Folders load asynchronously on demand (*Fetching relations…*) so nothing is queried unless you inspect it. You can even drag a relation folder (like *Nearby*) to your Desktop or Home directory: the kept folder retains its parameters and re-fetches fresh data whenever opened.
 
 ![The folders of the spatial relations of a place](https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.6/docs/images/beta6/spatial-relations-folder.png)
 
-**Under the hood:** a channel for each plugin in the server and dynamic relations resolved by their navigator plugin, relation folder icons from the ontology, the installer removes types that an ontology no longer ships, a shared HTTP client, and new API headers in sento (`SenSocketHttp.h`, `SenMapStyles.h`, settings forms with `enabled_when`).
+**Desktop integration & system polish:**
+* **Restart shortcuts**: *Restart SEN Server* and *Restart Akita* directly from the SEN Deskbar menu.
+* **Dedicated context library icons**: Styled folder icons for context libraries.
+* **Non-blocking plugin architecture**: Dedicated server worker channels per plugin so remote queries never block local operations.
+* **Shared network stack**: Enhanced socket HTTP client shared across plugins with redirect protection and timeouts.
 
 **Upgrade** (stop SEN while packages are updated):
 
@@ -31,14 +37,15 @@ Beta 5 was about making SEN yours. Beta 6 is about **where things are**. Still f
 sen stop
 pkgman update
 sen start       # and, to reload Akita:  akita restart
-pkgman install sen_ontology_spatial sen_plugin_place_enricher sen_plugin_spatial_navigator   # the new parts (or sen_plugins)
+pkgman install sen_ontology_spatial sen_plugin_place_enricher sen_plugin_spatial_navigator
 ```
+*(Or install `sen_plugins` to pull in all plugins.)*
 
 New here? `pkgman add-repo https://kiri.sen-labs.org/x86_64`, then `pkgman install sen_core sen_plugins akita sen_filetypes shoji` and the ontologies you like. Requires a Haiku **nightly from hrev60299_1 on**.
 
-**Good to know:** a Location with only a name and no city or country is searched worldwide (a location service is planned for the next beta); Overpass can take half a minute for a busy area; places that Wikidata does not know have no picture. BFS volumes only; still a beta, probably the last before the release candidates.
+**Good to know:** Searching by name alone without a city or country queries worldwide (local positioning is planned for the next release); Overpass queries can take up to 30 seconds in dense areas; places not indexed in Wikidata lack photography. BFS volumes only; still a beta—likely the last before release candidates.
 
-*Map data © OpenStreetMap contributors (ODbL); descriptions from Wikidata (CC0); pictures from Wikimedia Commons under their own licenses.*
+*Map data © OpenStreetMap contributors (ODbL); descriptions from Wikidata (CC0); pictures from Wikimedia Commons under their respective licenses.*
 
 **Links:** [Release notes](https://github.com/sen-laboratories/sento/releases/tag/v1.0.0-beta.6) · [Source code](https://github.com/sen-laboratories) · Package repository `https://kiri.sen-labs.org/x86_64` · Support SEN Labs on [Liberapay](https://liberapay.com/sen-labs/).
 
