@@ -122,7 +122,7 @@ Beta 6 is probably the last beta before the release candidates of SEN 1.0: bug f
 
 ## Credits
 
-Map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) (ODbL). Map styles: [OpenTopoMap](https://opentopomap.org) (CC-BY-SA), the Humanitarian OpenStreetMap Team style hosted by OpenStreetMap France, [CyclOSM](https://www.cyclosm.org). Descriptions from [Wikidata](https://www.wikidata.org) (CC0); pictures from [Wikimedia Commons](https://commons.wikimedia.org) under their own licenses. Icons: *Haikunaut* by Arti and *GCompris* by 3dEyes (MIT, [HVIF Store](https://hvif-store.art/)); *Library Folder* by Matthew McClintock (Design Science License). Geometry by [GEOS](https://libgeos.org).
+Map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) (ODbL). Map styles: [OpenTopoMap](https://opentopomap.org) (CC-BY-SA), the Humanitarian OpenStreetMap Team style hosted by OpenStreetMap France, [CyclOSM](https://www.cyclosm.org). Descriptions from [Wikidata](https://www.wikidata.org) (CC0); pictures from [Wikimedia Commons](https://commons.wikimedia.org) under their own licenses. Icons: *Maps* by zuMi (the Place), *Haikunaut* by Arti (SUESS) and *GCompris* by 3dEyes (MIT, the last two from the [HVIF Store](https://hvif-store.art/)); *Library Folder* by Matthew McClintock (Design Science License). Geometry by [GEOS](https://libgeos.org).
 
 ## Your support is essential
 
