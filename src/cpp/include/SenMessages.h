@@ -189,6 +189,8 @@ inline constexpr char kCount[]          = "SEN:count";
 inline constexpr char kWithProperties[] = "SEN:withProperties";
 /** bool: also return the configuration of relations */
 inline constexpr char kWithConfigs[]    = "SEN:withConfigs";
+/** bool in kRelationsGet: only the config of the type (and the SEN:ID of the source) is wanted, not the targets: answered at once also for a relation that a plugin works out slowly (the file manager makes the folder first, and asks for the targets after it) */
+inline constexpr char kConfigOnly[]     = "SEN:configOnly";
 inline constexpr char kIncludeTypes[]   = "SEN:includeTypes";
 inline constexpr char kExcludeTypes[]   = "SEN:excludeTypes";
 
@@ -316,6 +318,11 @@ inline constexpr char kBidirectional[] = "SEN:bidir";
 inline constexpr char kDynamic[]       = "SEN:dynamic";
 /** bool: reflexive; the relation lives inside the source file (shown as "contained") */
 inline constexpr char kSelf[]          = "SEN:self";
+/**
+ * bool: working the relation out asks a service on the internet (slow, and the place of a quota or a permission): a view that
+ * shows many relations at once ("all relations") does not ask for it; opening the relation itself does. Independent of kDynamic and kSelf.
+ */
+inline constexpr char kRemote[]        = "SEN:remote";
 /**
  * strings: the relation can start only at files of these types (without it, at any file). A type is a MIME type or the
  * start of one, e.g. a supertype ("audio"), like the filters for the templates of a new file.

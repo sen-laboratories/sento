@@ -63,6 +63,8 @@ const char* const kAttrLabel		= "label";			///< string: the text before the cont
 const char* const kAttrHelp			= "help";			///< string: the tool tip
 const char* const kAttrKind			= "kind";			///< string: one of the kinds below
 const char* const kAttrChoices		= "choices";		///< strings: the values to choose from
+/** a choice with this value is not a choice but a line between choices in the menu (it has no text in `choice_labels`); radio buttons leave it out */
+const char* const kChoiceSeparator	= "-";
 const char* const kAttrChoiceLabels	= "choice_labels";	///< strings: the texts of the choices, in the same order (else the values are shown)
 const char* const kAttrMin			= "min";			///< double: the smallest value of a number
 const char* const kAttrMax			= "max";			///< double: the largest value of a number
@@ -72,6 +74,7 @@ const char* const kAttrStep			= "step";			///< double
 const char* const kAttrOrder		= "order";			///< int32: the place among the fields of its message (the fields without one keep the order of the message)
 const char* const kAttrRestart		= "restart";		///< bool: a change takes effect when the program is started again
 const char* const kAttrHidden		= "hidden";			///< bool: not shown
+const char* const kAttrEnabledWhen	= "enabled_when";	///< string `key=value`: the control is enabled only while the field `key` of the same message has this value; `&` joins conditions (all hold), `|` alternatives (one holds): `mode=custom&flag=true|mode=other`
 const char* const kAttrList			= "list";			///< bool: the field is a list (edited in a list) also with one value or none
 
 const char* const kKindText			= "text";
