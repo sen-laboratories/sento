@@ -87,7 +87,7 @@ The new group **Spatial** is in *Open related…*:
 
 ## Packages
 
-32 packages in the repository **Kiri**, among them:
+34 packages in the repository **Kiri**, among them:
 
 * `sen_core`: `1.0.0~beta6-3`, `sen_oni`: `1.0.0~beta6-2`, `akita`: `1.0.0~beta6-13`, `shoji`: `1.0.0~beta6-7` (`sen_filetypes` remains at `1.0.0~beta4-1`).
 * **New:** `sen_ontology_spatial` (`0.1.0-38`), `sen_plugin_place_enricher` (SUESS, `0.1.0~beta6-5`), `sen_plugin_spatial_navigator` (`0.1.0~beta6-13`; needs the HaikuPorts package `geos`). The other ontology packages are `0.1.0-32`, core and people `-33`.
