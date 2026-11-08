@@ -112,6 +112,8 @@ What SEN or a plugin makes new, such as the people of the authors of a paper, th
 - **Books** (BERT, from OpenLibrary): the attributes, the cover as the thumbnail, the authors as people.
 - **Movies** (Akari, from The Movie Database, TMDB): title, year, duration, genres, links, the poster as the thumbnail; the director, crew and cast as people, each with a **Contribution** relation (role, character, place in the credits). Akari needs a free **TMDB key**: register at themoviedb.org, copy the *API Key* (or the *API Read Access Token*) from *Settings › API* into *Settings › Plugins › Enrich › SEN Akari*.
 
+- **Places and locations** (SUESS, from OpenStreetMap and Wikidata): name, kind, position, address, links and a picture; see [Places and spatial relations](#places-and-spatial-relations).
+
 While a plugin works, a **notification** says so (*Enriching movie*, *Enriching book*, *Enriching paper*), and the result (*Movie enriched* with what was found, or why nothing was) takes its place.
 
 ![Akari: the notification at the start and at the end](images/beta5/akari-notify-start.png) ![](images/beta5/akari-notify-done.png)
@@ -123,6 +125,54 @@ If several candidates are found, a window asks which one is yours (unless you sw
 ![Contributions of a movie: role, character, place in the credits, provenance](images/beta5/akari-contributions.png)
 
 A person who has more than one Contribution to a movie (a director who is also a producer) is listed once for each, and then the entries are named by their role: *Ang Lee (Director)*, *Ang Lee (Producer)*. The **Provenance** column of a relation says which program made it. A related file that has been deleted keeps its entry in the window, with the **broken-link icon** of Haiku, and shows in the *Open related* menus as a disabled entry (*Missing file*, or the name the relation knew).
+
+## Places and spatial relations
+
+Beta 6 adds the ontology **SEN Spatial**. A **Place** is something with a name and an identity (*Karlskirche*, *Vienna*, *Café Central*); a **Location** is only *where* something is (the position of a photo, a meeting point). Both are made with *New › Spatial* in Akita, and both have a name, a kind, a position, a bounding box, an address, links and a picture.
+
+![New › Spatial › Location, Place](images/beta6/new-spatial-file.png)
+
+### Looking a place up (SUESS)
+
+Give a Place or Location a name (the title, or the name of the file) and, if you know it, the city, region or country, then choose **Enrich**. **SUESS** (the place enricher) asks [OpenStreetMap](https://www.openstreetmap.org) (Nominatim) and Wikidata and writes what it finds: the other names, what kind of place it is, the position, the bounding box and outline, the address, the links (OpenStreetMap, Wikidata, Wikipedia) and a **picture** (a photo, a coat of arms), credited with its license. If several places fit, a window asks which one is yours; the best fit is first, each with its kind, the line of a railway station or who runs it (a metro station is told from the train station of the same name) and the distance if the file has a position.
+
+![Which place is yours?](images/beta6/enrich-location.png)
+
+- **A file that says where it is** (a city, region or country field) is searched in that country only: *Westbahnhof* in *Wien* never offers the one in Budapest. Without that, the search is worldwide and the first answer may be in another country: add the city or the country.
+- A **position** that you gave is used to rank the answers; it is **not sent**. The **GPS position of another file**, such as a photo, is looked up only if you switch on *Use GPS location for lookup* in the settings of SUESS.
+- No key is needed. SUESS asks at most once a second, keeps every answer for a week and names itself, as the services ask. Data © OpenStreetMap contributors (ODbL), descriptions from Wikidata (CC0), pictures from Wikimedia Commons under their own licenses.
+
+### Places in Shoji, with a map
+
+A Place or Location opens in **Shoji** as a form with a **map** next to it and a pin where the place is (the map is zoomed to fit the bounding box). The **secondary mouse button** on the map opens a menu to choose the **style**: OpenTopoMap (relief), OpenStreetMap (standard), Humanitarian (warm, clear) or CyclOSM (cycling), all public servers that need no key, with the credit of the style written on the map; the first item goes back to the default. The default for all views is a setting: *Settings › Plugins › Navigate › SEN Spatial Navigator › Map style*. If a server does not answer, the standard map stands in.
+
+![A place in Shoji with the map and the menu of styles](images/beta6/shoji-place-westbahnhof.png)
+
+![A place with a picture (Karlskirche)](images/beta6/place-karlskirche-shoji.png)
+
+### Spatial relations
+
+Open the **Spatial** group in *Open related...* at a place:
+
+![Open related › Spatial](images/beta6/open-related-spatial.png)
+
+- **Within** and **Contains**, **Covered by** and **Covers**, **Touch**, **Overlap** and **Equal** are the relations between places and regions in the *Region Connection Calculus* (RCC-8). They are **not stored**: they are worked out when you open them, from the outlines of the places you have (with GEOS), and for *within* from Wikidata's "located in" chain (the *Stephansdom* is in *Innere Stadt*, *Vienna* and *Austria*). A place of the chain that you do not have yet is made in the Library, ready to enrich. They are always right, also after an outline was corrected. Each relation has a **Kind** in words (*non-tangential proper part*...) and a hidden **RCC-8** code; its **provenance** says whether the plugin or Wikidata said it.
+- **Nearby** lists the named things that OpenStreetMap knows around a place (shops, cafés, sights, stops, parks), each with what it is (*cafe*, *place of worship*) and its **distance in metres**, nearest first and notable ones before shops. Each one is a Place in the Library (the first dozen with a Wikidata item are enriched in the background, with picture). Things that are gone (closed, abandoned, only planned) are left out. It asks the **Overpass API**, which can take half a minute when busy: the menu opens at once with *Fetching relations…* and a turning spinner, and the items come when the answer is in. The server (several public mirrors, or your own), the search radius, the most things and how long answers are kept are settings of the spatial navigator.
+- **Located near** (stored) says where a file is: SUESS makes it for a Location or photo that it looked up.
+
+![The settings of the spatial navigator](images/beta6/geo-settings.png)
+
+![Nearby places of a place](images/beta6/nearby-places.png)
+
+### Folders of spatial relations
+
+Choose the group itself, **Open related › Spatial**: a window opens with a **folder for each spatial relation** of the place (*Covered By*, *Equal*, *Nearby*...), empty at first, with the globe-in-a-folder icon. A folder is filled **when you open it** (and again after five minutes, if you open it again), so nothing is asked that you do not look at. In *All relations*, a relation that a plugin works out (like *Nearby*) is such an empty folder too.
+
+![The spatial relations of a place](images/beta6/spatial-relations-folder.png)
+
+To **keep** one, drag it onto your Home folder or the Desktop, as for any folder. The copy keeps the attributes that say where it comes from and **fetches again when you open it**; you can sort, copy or drag out its files like those of any folder.
+
+![A kept folder of what is nearby](images/beta6/kept-nearby-folder.png)
 
 ## Shoji, the form for a file
 
