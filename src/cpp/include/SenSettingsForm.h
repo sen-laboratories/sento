@@ -26,14 +26,15 @@ const char* const kViewClass		= "ShojiMessageView";
 /** The number of the protocol of these messages, in the field `protocol` of kSetData (and of every answer). */
 const int32_t kProtocol = 1;
 
-/** Messages. To the view: kSetData, kGetData, kRevert, kDefaults. From the view (to its target): kChanged, kRefused. */
+/** Messages. To the view: kSetData, kGetData, kRevert, kDefaults. From the view (to its target): kChanged, kRefused, kAction. */
 enum : uint32_t {
 	kSetData	= 'SFsd',		///< `settings`; optional `schema`, `defaults`, `target` (BMessenger), `protocol`, `editable`, `root_label` (`layout` is not used yet); replied to if a reply is waited for
 	kGetData	= 'SFgd',		///< asks for the working copy; the reply has `settings` (do not wait for it in the thread of the window that has the form: the form is in that thread)
 	kRevert		= 'SFrv',		///< the working copy goes back to the data as it was set; answered with kChanged for the whole message
 	kDefaults	= 'SFdf',		///< the working copy becomes the defaults; answered with kChanged for the whole message
 	kChanged	= 'SFch',		///< `path` and `value` (text) of a change, or no `path` for the whole message; always `settings` (the working copy)
-	kRefused	= 'SFrf'		///< `path`, `value` (what was typed), `status` (int32) and `detail` (text): the control went back to its value
+	kRefused	= 'SFrf',		///< `path`, `value` (what was typed), `status` (int32) and `detail` (text): the control went back to its value
+	kAction		= 'SFac'		///< `path`: a button (`kind = button`) was pressed; nothing in the working copy changes
 };
 
 /** Fields of the messages. */
@@ -76,7 +77,8 @@ const char* const kAttrRestart		= "restart";		///< bool: a change takes effect w
 const char* const kAttrHidden		= "hidden";			///< bool: not shown
 const char* const kAttrEnabledWhen	= "enabled_when";	///< string `key=value`: the control is enabled only while the field `key` of the same message has this value; `&` joins conditions (all hold), `|` alternatives (one holds): `mode=custom&flag=true|mode=other`
 const char* const kAttrList			= "list";			///< bool: the field is a list (edited in a list) also with one value or none
-const char* const kAttrReadOnly		= "readonly";		///< bool: a column of a table (`kind = table`) is only shown, not edited: the name of a row
+const char* const kAttrReadOnly		= "readonly";		///< bool: a column of a table (`kind = table`) or a text field is only shown, not edited: the name of a row, a state that the owner reports
+const char* const kAttrShows			= "shows";			///< string, of a button (`kind = button`): the name of a `readonly` text field of the same message that is shown right of the button, in the same line, not in a line of its own
 const char* const kAttrColumnLabels	= "column_labels";	///< strings: the titles of the two columns of `kind = properties` (else "Name" and "Value")
 
 const char* const kKindText			= "text";
@@ -87,6 +89,7 @@ const char* const kKindSpinner		= "spinner";		///< a number with buttons for up 
 const char* const kKindRadio		= "radio";			///< the `choices` as radio buttons instead of a menu
 const char* const kKindSecret		= "secret";
 const char* const kKindColor		= "color";
+const char* const kKindButton		= "button";			///< of a field of the type bool: a button with the `label` that tells the owner that it was pressed (the owner sees the field as `true` in a change; it is never stored)
 const char* const kKindTable		= "table";			///< of a field with messages: a table with a row for each message and a column for each of their fields (see ShojiTableControl)
 const char* const kKindProperties	= "properties";		///< of a message: a table with a row for each of its fields, the name and the value
 
