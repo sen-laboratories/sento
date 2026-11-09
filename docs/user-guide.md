@@ -116,7 +116,7 @@ What SEN or a plugin makes new, such as the people of the authors of a paper, th
 - **Books** (BERT, from OpenLibrary): the attributes, the cover as the thumbnail, the authors as people.
 - **Movies** (Akari, from The Movie Database, TMDB): title, year, duration, genres, links, the poster as the thumbnail; the director, crew and cast as people, each with a **Contribution** relation (role, character, place in the credits). Akari needs a free **TMDB key**: register at themoviedb.org, copy the *API Key* (or the *API Read Access Token*) from *Settings › API* into *Settings › Plugins › Enrich › SEN Akari*.
 
-- **Places and locations** (SUESS, from OpenStreetMap and Wikidata): name, kind, position, address, links and a picture; see [Places and spatial relations](#places-and-spatial-relations).
+- **Places and locations** (Spaces, from OpenStreetMap and Wikidata): name, kind, position, address, links and a picture; see [Places and spatial relations](#places-and-spatial-relations).
 
 While a plugin works, a **notification** says so (*Enriching movie*, *Enriching book*, *Enriching paper*), and the result (*Movie enriched* with what was found, or why nothing was) takes its place.
 
@@ -136,15 +136,15 @@ Beta 6 adds the ontology **SEN Spatial**. A **Place** is something with a name a
 
 ![New › Spatial › Location, Place](images/beta6/new-spatial-file.png)
 
-### Looking a place up (SUESS)
+### Looking a place up (Spaces)
 
-Give a Place or Location a name (the title, or the name of the file) and, if you know it, the city, region or country, then choose **Enrich**. **SUESS** (the place enricher) asks [OpenStreetMap](https://www.openstreetmap.org) (Nominatim) and Wikidata and writes what it finds: the other names, what kind of place it is, the position, the bounding box and outline, the address, the links (OpenStreetMap, Wikidata, Wikipedia) and a **picture** (a photo, a coat of arms), credited with its license. If several places fit, a window asks which one is yours; the best fit is first, each with its kind, the line of a railway station or who runs it (a metro station is told from the train station of the same name) and the distance if the file has a position.
+Give a Place or Location a name (the title, or the name of the file) and, if you know it, the city, region or country, then choose **Enrich**. **Spaces** (the place enricher) asks [OpenStreetMap](https://www.openstreetmap.org) (Nominatim) and Wikidata and writes what it finds: the other names, what kind of place it is, the position, the bounding box and outline, the address, the links (OpenStreetMap, Wikidata, Wikipedia) and a **picture** (a photo, a coat of arms), credited with its license. If several places fit, a window asks which one is yours; the best fit is first, each with its kind, the line of a railway station or who runs it (a metro station is told from the train station of the same name) and the distance if the file has a position.
 
 ![Which place is yours?](images/beta6/enrich-location.png)
 
 - **A file that says where it is** (a city, region or country field) is searched in that country only: *Westbahnhof* in *Wien* never offers the one in Budapest. Without that, the search is worldwide and the first answer may be in another country: add the city or the country.
-- A **position** that you gave is used to rank the answers; it is **not sent**. The **GPS position of another file**, such as a photo, is looked up only if you switch on *Use GPS location for lookup* in the settings of SUESS.
-- No key is needed. SUESS asks at most once a second, keeps every answer for a week and names itself, as the services ask. Data © OpenStreetMap contributors (ODbL), descriptions from Wikidata (CC0), pictures from Wikimedia Commons under their own licenses.
+- A **position** that you gave is used to rank the answers; it is **not sent**. The **GPS position of another file**, such as a photo, is looked up only if you switch on *Use GPS location for lookup* in the settings of Spaces.
+- No key is needed. Spaces asks at most once a second, keeps every answer for a week and names itself, as the services ask. Data © OpenStreetMap contributors (ODbL), descriptions from Wikidata (CC0), pictures from Wikimedia Commons under their own licenses.
 
 ### Places in Shoji, with a map
 
@@ -162,7 +162,7 @@ Open the **Spatial** group in *Open related...* at a place:
 
 - **Within** and **Contains**, **Covered by** and **Covers**, **Touch**, **Overlap** and **Equal** are the relations between places and regions in the *Region Connection Calculus* (RCC-8). They are **not stored**: they are worked out when you open them, from the outlines of the places you have (with GEOS), and for *within* from Wikidata's "located in" chain (the *Stephansdom* is in *Innere Stadt*, *Vienna* and *Austria*). A place of the chain that you do not have yet is made in the Library, ready to enrich. They are always right, also after an outline was corrected. Each relation has a **Kind** in words (*non-tangential proper part*...) and a hidden **RCC-8** code; its **provenance** says whether the plugin or Wikidata said it.
 - **Nearby** lists the named things that OpenStreetMap knows around a place (shops, cafés, sights, stops, parks), each with what it is (*cafe*, *place of worship*) and its **distance in metres**, nearest first and notable ones before shops. Each one is a Place in the Library (the first dozen with a Wikidata item are enriched in the background, with picture). Things that are gone (closed, abandoned, only planned) are left out. It asks the **Overpass API**, which can take half a minute when busy: the menu opens at once with *Fetching relations…* and a turning spinner, and the items come when the answer is in. The server (several public mirrors, or your own), the search radius, the most things and how long answers are kept are settings of the spatial navigator.
-- **Located near** (stored) says where a file is: SUESS makes it for a Location or photo that it looked up.
+- **Located near** (stored) says where a file is: Spaces makes it for a Location or photo that it looked up.
 
 ![The settings of the spatial navigator](images/beta6/geo-settings.png)
 
