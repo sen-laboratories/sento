@@ -76,6 +76,8 @@ const char* const kAttrRestart		= "restart";		///< bool: a change takes effect w
 const char* const kAttrHidden		= "hidden";			///< bool: not shown
 const char* const kAttrEnabledWhen	= "enabled_when";	///< string `key=value`: the control is enabled only while the field `key` of the same message has this value; `&` joins conditions (all hold), `|` alternatives (one holds): `mode=custom&flag=true|mode=other`
 const char* const kAttrList			= "list";			///< bool: the field is a list (edited in a list) also with one value or none
+const char* const kAttrReadOnly		= "readonly";		///< bool: a column of a table (`kind = table`) is only shown, not edited: the name of a row
+const char* const kAttrColumnLabels	= "column_labels";	///< strings: the titles of the two columns of `kind = properties` (else "Name" and "Value")
 
 const char* const kKindText			= "text";
 const char* const kKindPath			= "path";
@@ -85,6 +87,8 @@ const char* const kKindSpinner		= "spinner";		///< a number with buttons for up 
 const char* const kKindRadio		= "radio";			///< the `choices` as radio buttons instead of a menu
 const char* const kKindSecret		= "secret";
 const char* const kKindColor		= "color";
+const char* const kKindTable		= "table";			///< of a field with messages: a table with a row for each message and a column for each of their fields (see ShojiTableControl)
+const char* const kKindProperties	= "properties";		///< of a message: a table with a row for each of its fields, the name and the value
 
 }	// namespace form
 }	// namespace settings
