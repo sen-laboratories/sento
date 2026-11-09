@@ -82,6 +82,8 @@ connected stand by themselves, so you see at a glance what belongs together: an 
 - **Library name**: the name of the [Library](#the-library) folder (`Library`). An existing folder is not moved.
 - **New objects belong to the current context**: see [below](#the-library).
 
+**SEN › Location** is there if the location server [Basho](https://github.com/sen-laboratories/basho) is installed (it is not part of SEN: it is a service of its own that SEN and any other program can ask where the computer is, roughly). Its settings are shown here as those of a plugin are: whether the place may be looked up from your internet address (*Ask me*, *Allow*, *Never*: the lookup tells a service on the internet your address, so you are asked first), **how much programs may know** (the city as looked up, a radius of 10 to 500 km, the region, the country only), and under that **a line for every program that has asked** where the computer is, with its own limit: more than the others, less, or *Nothing*. A change counts at once, for programs that are asking already, too. `location config` and `location grant` do the same from the shell.
+
 **Plugins** has the settings that are the same for all plugins:
 
 ![Plugins](images/beta5/settings-plugins.png)
