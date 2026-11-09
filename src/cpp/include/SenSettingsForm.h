@@ -79,6 +79,7 @@ const char* const kAttrEnabledWhen	= "enabled_when";	///< string `key=value`: th
 const char* const kAttrList			= "list";			///< bool: the field is a list (edited in a list) also with one value or none
 const char* const kAttrReadOnly		= "readonly";		///< bool: a column of a table (`kind = table`) or a text field is only shown, not edited: the name of a row, a state that the owner reports
 const char* const kAttrShows			= "shows";			///< string, of a button (`kind = button`): the name of a `readonly` text field of the same message that is shown right of the button, in the same line, not in a line of its own
+const char* const kAttrReorderable	= "reorderable";	///< bool, of a table (`kind = table`): the rows can be dragged to another place (or moved with Ctrl and the arrows up and down); the owner gets the whole message, with the array of the rows in the new order
 const char* const kAttrColumnLabels	= "column_labels";	///< strings: the titles of the two columns of `kind = properties` (else "Name" and "Value")
 
 const char* const kKindText			= "text";
