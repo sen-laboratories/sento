@@ -75,6 +75,26 @@ LoadSharedSettings()
 	return result;
 }
 
+/** Whether a plugin enriches what it needs enriched first, when the user asks for it (the setting *Enrich automatically on demand* of the node *Enrich*; default true, also without a server). */
+inline bool
+EnrichOnDemand()
+{
+	BMessenger server(sen::kServerSignature);
+	if (!server.IsValid())
+		return true;
+
+	BMessage request(sen::cmd::kCoreSettings);
+	request.AddString(sen::key::kScope, sen::key::kScopeEnrich);
+	BMessage reply;
+	if (server.SendMessage(&request, &reply, 3000000, 3000000) != B_OK)
+		return true;
+
+	BMessage settings;
+	if (reply.FindMessage(sen::settings::form::kFieldSettings, &settings) != B_OK)
+		return true;
+	return settings.GetBool(sen::key::kEnrichOnDemand, true);
+}
+
 /** Whether entities that a plugin finds are made as files of their own (the default) and not only written as names into the attributes of the file. */
 inline bool
 ExtractEntitiesIntoFiles()

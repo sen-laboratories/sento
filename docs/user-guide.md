@@ -92,6 +92,8 @@ connected stand by themselves, so you see at a glance what belongs together: an 
 - **Ask which one if several are found**: when a book, a movie or a paper has several candidates, a window lets you choose; switched off, the best is taken.
 - **Max. number of entities to extract**: how many people a plugin makes of a long list (the first ones). A slider from *None* (the left end) to *All* (the right end, no limit).
 
+**Enrich** (below *Plugins*) has the setting **Enrich automatically on demand**: when you open a relation of a place that has no position yet (the things nearby a place that you made with an address only), the place is enriched first (its address is looked up with OpenStreetMap and Wikidata) and the relation is worked out afterwards. Switched off, a notification says that the place has no position yet, and you enrich it yourself.
+
 Below **Plugins** are the kinds of plugin (*Enrich*, *Identify*...) and under them the plugins **that have settings of their own**: Paperboy (your e-mail address and the OpenAlex key for friendlier servers, which sources to ask, whether to rename the file after the paper and with which pattern) and Akari (the TMDB key and the language of the descriptions). A plugin that has nothing to set is not listed. A plugin may refuse a value and says why. A key is shown as dots.
 Choosing a heading selects the first node below it.
 
