@@ -285,12 +285,28 @@ public:
 	{
 		float spacing = be_control_look->DefaultLabelSpacing();
 		SetViewUIColor(B_PANEL_BACKGROUND_COLOR);
-		// (three spacings from the left to the picture, as TAlertView has it; above and below it the margin of the content, so that the window is never lower than that)
-		float width = fPicture != NULL ? spacing * 3 + fPicture->Bounds().Width() + 1 + spacing * 2 : spacing * 5;
-		float height = fPicture != NULL ? DialogMargin() + fPicture->Bounds().Height() + 1 + DialogMargin() : 0;
-		SetExplicitMinSize(BSize(width, height));
-		SetExplicitMaxSize(BSize(width, B_SIZE_UNLIMITED));
-		SetExplicitPreferredSize(BSize(width, height));
+		(void)spacing;
+		_FitToPicture();
+	}
+
+	/**
+	 * Another picture, for a stripe that is shown already (a thumbnail that was written after the window was opened): both are taken over, the old ones go. The stripe takes the width of the new picture,
+	 * the layout of the window follows.
+	 */
+	void
+	SetPicture(BBitmap* picture, BBitmap* full = NULL)
+	{
+		if (fEnlarged.IsValid()) {
+			fEnlarged.SendMessage(B_QUIT_REQUESTED);
+			fEnlarged = BMessenger();
+		}
+		delete fPicture;
+		delete fFull;
+		fPicture = picture;
+		fFull = full;
+		_FitToPicture();
+		InvalidateLayout();
+		Invalidate();
 	}
 
 	virtual ~StripeView()
@@ -383,6 +399,18 @@ public:
 	}
 
 private:
+	void
+	_FitToPicture()
+	{
+		float spacing = be_control_look->DefaultLabelSpacing();
+		// (three spacings from the left to the picture, as TAlertView has it; above and below it the margin of the content, so that the window is never lower than that)
+		float width = fPicture != NULL ? spacing * 3 + fPicture->Bounds().Width() + 1 + spacing * 2 : spacing * 5;
+		float height = fPicture != NULL ? DialogMargin() + fPicture->Bounds().Height() + 1 + DialogMargin() : 0;
+		SetExplicitMinSize(BSize(width, height));
+		SetExplicitMaxSize(BSize(width, B_SIZE_UNLIMITED));
+		SetExplicitPreferredSize(BSize(width, height));
+	}
+
 	/** where the picture is: the top left at three spacings from the left, as Draw() puts it */
 	BRect
 	PictureFrame() const
