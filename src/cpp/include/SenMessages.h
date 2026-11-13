@@ -169,6 +169,8 @@ inline constexpr char kResult[]     = "result";
 inline constexpr char kScope[]   = "SEN:scope";
 inline constexpr char kScopeCore[]    = "core";
 inline constexpr char kScopePlugins[] = "plugins";
+/** kScope: the settings of the feature Enrich (the node *Enrich* below *Plugins*): key::kEnrichOnDemand. Read it with sen::plugins::EnrichOnDemand(). */
+inline constexpr char kScopeEnrich[]  = "enrich";
 
 /** uint32 command to perform, sent by Tracker */
 inline constexpr char kAction[]         = "SEN:action";
@@ -230,6 +232,9 @@ inline constexpr int32 kMaxEntitiesDefault     = 10;
 inline constexpr int32 kMaxEntitiesLimit       = 100;
 /** what a plugin gets as the most entities when the setting is "All" (a number of its own so that a plugin never has to ask whether there is a limit) */
 inline constexpr int32 kMaxEntitiesInternal    = 255;
+/** bool in the settings of the scope kScopeEnrich: a plugin that needs a place or a thing to be enriched first (the spatial navigator, for a place that has no position yet) enriches it
+ *  when the user asks for what it needs (default true); off: it says what is missing and the user enriches it. Read it with sen::plugins::EnrichOnDemand(). */
+inline constexpr char kEnrichOnDemand[]        = "SEN:enrichOnDemand";
 
 // ---- relations
 /** the relations of a source: relation type names in a request, nested relation messages in a result */

@@ -563,6 +563,71 @@ SetValues(BMessage* message, const std::string& parent, const std::string& name,
 
 
 /**
+ * Moves a value of a field to another place among its values (the rows of a table that was reordered): the value at `from` is put so that it is at `to` afterwards (the others keep their
+ * order). `parent` is the path of the nested message that has the field (empty: the message itself). Works for every type, the values are moved as they are. The message is not
+ * changed if this fails: B_NAME_NOT_FOUND, B_BAD_INDEX (`from` or `to` is not an index of a value), and the errors of the path.
+ */
+inline status_t
+MoveValue(BMessage* message, const std::string& parent, const std::string& name, int32 from, int32 to)
+{
+	auto apply = [&](BMessage* target) -> status_t {
+		type_code type = 0;
+		int32 count = 0;
+		if (target->GetInfo(name.c_str(), &type, &count) != B_OK)
+			return B_NAME_NOT_FOUND;
+		if (from < 0 || from >= count || to < 0 || to >= count)
+			return B_BAD_INDEX;
+		if (from == to)
+			return B_OK;
+		struct Value {
+			std::string	bytes;
+		};
+		std::vector<Value> values;
+		for (int32 i = 0; i < count; i++) {
+			const void* data = NULL;
+			ssize_t size = 0;
+			status_t result = target->FindData(name.c_str(), type, i, &data, &size);
+			if (result != B_OK)
+				return result;
+			values.push_back(Value{std::string((const char*)data, (size_t)size)});
+		}
+		Value moved = values[from];
+		values.erase(values.begin() + from);
+		values.insert(values.begin() + to, moved);
+		const bool fixed = detail::IsText(type) && type != B_STRING_TYPE;
+		target->RemoveName(name.c_str());
+		for (const Value& value : values) {
+			status_t result = target->AddData(name.c_str(), type, value.bytes.data(), (ssize_t)value.bytes.size(), fixed);
+			if (result != B_OK)
+				return result;
+		}
+		return B_OK;
+	};
+
+	if (parent.empty()) {
+		BMessage copy(*message);
+		status_t result = apply(&copy);
+		if (result == B_OK)
+			*message = copy;
+		return result;
+	}
+	return detail::ModifyPath(message, parent, [&apply](BMessage* container, const Step& step, type_code stepType) -> status_t {
+		if (stepType != B_MESSAGE_TYPE)
+			return B_BAD_TYPE;
+		if (step.index >= step.count)
+			return B_BAD_INDEX;
+		BMessage child;
+		status_t result = container->FindMessage(step.name.c_str(), (int32)step.index, &child);
+		if (result == B_OK)
+			result = apply(&child);
+		if (result == B_OK)
+			result = container->ReplaceMessage(step.name.c_str(), (int32)step.index, &child);
+		return result;
+	});
+}
+
+
+/**
  * Puts the value that the path names into `to`, as a field called `name` (the path key, for the changes that the settings window sends: `nested.depth` is a field of
  * that name): type and bytes as they are. A field with several values gives the one that the path names. B_NAME_NOT_FOUND, B_BAD_INDEX and so on for a path that is not
  * a value; a nested message is copied as a whole.
