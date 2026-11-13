@@ -108,6 +108,17 @@ GetData(BView* form, BMessage* settings, bigtime_t timeout = 2000000)
 }
 
 
+/** The answer to a button (its @p path, as kAction gave it) did not change the data: the form ends the waiting state of that button (enables it, shows its line as it was) without being made again. */
+inline status_t
+ActionDone(BView* form, const char* path)
+{
+	BMessage done(kActionDone);
+	if (path != NULL)
+		done.AddString(kFieldPath, path);
+	return BMessenger(form).SendMessage(&done);
+}
+
+
 /** Back to the data that was set / to the defaults; the form answers with kChanged for the whole message. */
 inline status_t
 Revert(BView* form)

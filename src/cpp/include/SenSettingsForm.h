@@ -26,7 +26,7 @@ const char* const kViewClass		= "ShojiMessageView";
 /** The number of the protocol of these messages, in the field `protocol` of kSetData (and of every answer). */
 const int32_t kProtocol = 1;
 
-/** Messages. To the view: kSetData, kGetData, kRevert, kDefaults. From the view (to its target): kChanged, kRefused, kAction. */
+/** Messages. To the view: kSetData, kGetData, kRevert, kDefaults, kActionDone. From the view (to its target): kChanged, kRefused, kAction. */
 enum : uint32_t {
 	kSetData	= 'SFsd',		///< `settings`; optional `schema`, `defaults`, `target` (BMessenger), `protocol`, `editable`, `root_label` (`layout` is not used yet); replied to if a reply is waited for
 	kGetData	= 'SFgd',		///< asks for the working copy; the reply has `settings` (do not wait for it in the thread of the window that has the form: the form is in that thread)
@@ -34,7 +34,8 @@ enum : uint32_t {
 	kDefaults	= 'SFdf',		///< the working copy becomes the defaults; answered with kChanged for the whole message
 	kChanged	= 'SFch',		///< `path` and `value` (text) of a change, or no `path` for the whole message; always `settings` (the working copy)
 	kRefused	= 'SFrf',		///< `path`, `value` (what was typed), `status` (int32) and `detail` (text): the control went back to its value
-	kAction		= 'SFac'		///< `path`: a button (`kind = button`) was pressed; nothing in the working copy changes
+	kAction		= 'SFac',		///< `path`: a button (`kind = button`) was pressed; nothing in the working copy changes
+	kActionDone	= 'SFad'		///< to the view, with the `path` of the button (without it: all that wait): the owner has answered that button and the answer changes nothing in the data: the form takes the waiting state of the button away (it is greyed, and the line next to it says that a reply is awaited). An answer with other data is a kSetData, which makes the form again.
 };
 
 /** Fields of the messages. */
