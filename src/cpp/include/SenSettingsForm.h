@@ -79,9 +79,15 @@ const char* const kAttrEnabledWhen	= "enabled_when";	///< string `key=value`: th
 const char* const kAttrList			= "list";			///< bool: the field is a list (edited in a list) also with one value or none
 const char* const kAttrReadOnly		= "readonly";		///< bool: a column of a table (`kind = table`) or a text field is only shown, not edited: the name of a row, a state that the owner reports
 const char* const kAttrShows			= "shows";			///< string, of a button (`kind = button`): the name of a `readonly` text field of the same message that is shown right of the button, in the same line, not in a line of its own
+const char* const kAttrStateField	= "state_field";	///< string, of a `readonly` text field: the name of a text field of the same message that says what the text means, `info`, `warning` or `error` (kStateInfo...): the line shows the icon of that alert before the text. The field itself is `hidden`.
+const char* const kAttrDetailField	= "detail_field";	///< string, of a `readonly` text field: the name of a text field of the same message with the longer text, several lines allowed, that is the tool tip of the line (the short text of the field is the status, this is the detail). The field itself is `hidden`.
 const char* const kAttrReorderable	= "reorderable";	///< bool, of a table (`kind = table`): the rows can be dragged to another place (or moved with Ctrl and the arrows up and down); the owner gets the whole message, with the array of the rows in the new order
 const char* const kAttrBusyField		= "busy_field";		///< string, of a column of a table: the name of a bool field of the same row; while it is true the cell shows a spinner before its text (the service that is asked now)
 const char* const kAttrColumnLabels	= "column_labels";	///< strings: the titles of the two columns of `kind = properties` (else "Name" and "Value")
+
+const char* const kStateInfo		= "info";			///< the values of the field of `state_field`: it worked (the icon of an information alert)
+const char* const kStateWarning		= "warning";		///< ... something is not as it should be (the icon of a warning)
+const char* const kStateError		= "error";			///< ... it failed (the icon of an error)
 
 const char* const kKindText			= "text";
 const char* const kKindPath			= "path";
