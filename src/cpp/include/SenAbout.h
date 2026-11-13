@@ -12,8 +12,8 @@
  * B_ABOUT_REQUESTED message (it starts the plugin with it), and the plugin shows what its application resource says: the name, the version and the
  * description, with its logo, in the dialog with the stripe of SenStripeDialog.h. The application quits when the window is closed.
  *
- * The logo is a picture that the package of the plugin brings: `<data>/sen/plugins/<signature>/logo.jpg` (the data folders of the system and the user,
- * packaged or not); a plugin without one has a window without a logo.
+ * The logo is a picture that the package of the plugin brings: `<data>/sen/plugins/<signature>/logo.png` (with transparency, as the icon of the plugin made bigger) or
+ * `logo.jpg` (the data folders of the system and the user, packaged or not); a plugin without one has a window without a logo.
  *
  *     void App::AboutRequested() { sen::ShowAbout(); }
  */
@@ -44,13 +44,14 @@ LoadPluginLogo(const char* signature, float height = kPluginLogoHeight)
 	const directory_which folders[] = {B_USER_DATA_DIRECTORY, B_USER_NONPACKAGED_DATA_DIRECTORY, B_SYSTEM_DATA_DIRECTORY,
 		B_SYSTEM_NONPACKAGED_DATA_DIRECTORY};
 	for (directory_which folder : folders) {
-		BPath path;
-		if (find_directory(folder, &path) != B_OK || path.Append("sen/plugins") != B_OK || path.Append(signature) != B_OK
-				|| path.Append("logo.jpg") != B_OK)
-			continue;
-		BBitmap* logo = LoadDialogImage(path.Path(), height);
-		if (logo != NULL)
-			return logo;
+		for (const char* name : {"logo.png", "logo.jpg"}) {
+			BPath path;
+			if (find_directory(folder, &path) != B_OK || path.Append("sen/plugins") != B_OK || path.Append(signature) != B_OK || path.Append(name) != B_OK)
+				continue;
+			BBitmap* logo = LoadDialogImage(path.Path(), height);
+			if (logo != NULL)
+				return logo;
+		}
 	}
 	return NULL;
 }
