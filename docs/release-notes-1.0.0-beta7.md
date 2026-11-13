@@ -67,7 +67,7 @@ Shoji brings people and places closer together while expanding its form engine f
 * **Enrich automatically on demand**: A new shared setting in *Settings › Plugins › Enrich* automatically triggers enrichment when you open a dynamic relation (such as *Nearby* on an unpositioned place, or *Status* on an unenriched person) so results appear in one step.
 * **Quick Library access & everyday polish**: The SEN Deskbar menu now features a **Library** submenu right below *Context* for jumping straight to your entity folders. About and Info dialogs display the exact package revision (such as `1.0.0-beta.7-7`), tooltips across all settings pages are more concise, and pressing Escape while editing a list or table cell cleanly cancels the edit without closing the window.
 
-<img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.7/docs/images/beta7/about-version.png" alt="About Shoji: Version 1.0.0-beta.7-11, the version and the revision of the package" width="460">
+<img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.7/docs/images/beta7/about-version.png" alt="About Shoji: the version and the revision of the package" width="460">
 
 ## Under the hood
 
@@ -79,9 +79,9 @@ Shoji brings people and places closer together while expanding its form engine f
 
 <!-- to be filled from Kiri at the release: sen_core, sen_oni, akita, shoji, basho, the plugins (Robin, Spaces, personal relation navigator, spatial navigator, Akari, Paperboy) -->
 
-* **Core & UI**: `sen_core` (`1.0.0~beta7-7`), `akita` (`1.0.0~beta7-3`), `shoji` (`1.0.0~beta7-11`), `sen_oni` (`1.0.0~beta6-2`), `sen_filetypes` (`1.0.0~beta4-1`).
+* **Core & UI**: `sen_core` (`1.0.0~beta7-7`), `akita` (`1.0.0~beta7-3`), `shoji` (`1.0.0~beta7-12`), `sen_oni` (`1.0.0~beta6-2`), `sen_filetypes` (`1.0.0~beta4-1`).
 * **Location service (new)**: `basho` and `basho_devel` (`0.1.0~develop.1-6`).
-* **Plugins (`sen_plugins` `1.0.0~beta7-1`)**: **New:** `sen_plugin_person_enricher` (Robin, `0.1.0~beta7-8`). **Updated:** `sen_plugin_place_enricher` (Spaces, `0.1.0~beta7-9`), `sen_plugin_personal_relation_navigator` (`0.1.0~beta7-1`), `sen_plugin_spatial_navigator` (`0.1.0~beta7-1`), `sen_plugin_movie_enricher` (Akari, `0.1.0~beta6-2`), and `sen_plugin_paperboy` (`0.1.0~beta6-2`).
+* **Plugins (`sen_plugins` `1.0.0~beta7-1`)**: **New:** `sen_plugin_person_enricher` (Robin, `0.1.0~beta7-8`). **Updated:** `sen_plugin_place_enricher` (Spaces, `0.1.0~beta7-9`), `sen_plugin_personal_relation_navigator` (`0.1.0~beta7-1`), `sen_plugin_spatial_navigator` (`0.1.0~beta7-1`), `sen_plugin_movie_enricher` (Akari, `0.1.0~beta7-1`), and `sen_plugin_paperboy` (`0.1.0~beta7-1`).
 * **Ontologies**: `sen_ontology_people` (`0.1.0-36`) and `sen_ontology_spatial` (`0.1.0-41`).
 
 ## Upgrading from Beta 6
