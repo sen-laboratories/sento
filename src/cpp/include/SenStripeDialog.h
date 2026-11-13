@@ -173,6 +173,8 @@ public:
 			B_NOT_RESIZABLE | B_NOT_ZOOMABLE | B_NOT_MINIMIZABLE | B_ASYNCHRONOUS_CONTROLS)
 	{
 		AddChild(new View(Bounds(), picture));
+		// (a modal window gets no click that is made elsewhere, in a window of the application or on the desktop: the view looks at the mouse, so that a click outside puts the picture away)
+		SetPulseRate(40000);
 	}
 
 	virtual void
@@ -217,8 +219,9 @@ private:
 	public:
 		View(BRect frame, BBitmap* picture)
 			:
-			BView(frame, "picture", B_FOLLOW_ALL, B_WILL_DRAW),
-			fPicture(picture)
+			BView(frame, "picture", B_FOLLOW_ALL, B_WILL_DRAW | B_PULSE_NEEDED),
+			fPicture(picture),
+			fReleased(false)
 		{
 			SetViewColor(B_TRANSPARENT_COLOR);
 		}
@@ -251,6 +254,19 @@ private:
 			Window()->PostMessage(B_QUIT_REQUESTED);
 		}
 
+		/** A button that is pressed outside of the picture puts it away. The click that opened the picture is not one: the first press counts after the buttons were let go once. */
+		virtual void
+		Pulse()
+		{
+			BPoint where;
+			uint32 buttons = 0;
+			GetMouse(&where, &buttons, false);
+			if (buttons == 0)
+				fReleased = true;
+			else if (fReleased && !Bounds().Contains(where))
+				Window()->PostMessage(B_QUIT_REQUESTED);
+		}
+
 		virtual void
 		KeyDown(const char* bytes, int32 numBytes)
 		{
@@ -262,6 +278,7 @@ private:
 
 	private:
 		BBitmap*	fPicture;
+		bool		fReleased;
 	};
 };
 
