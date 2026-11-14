@@ -22,24 +22,30 @@
  * has one) and `custom` (false). A text that is not a value is not sent: Enter with it passes on to the field and the dialog as it does without the menu, the owner reads the text of the field (as
  * for any field), and `IsAcceptable(text)` tells whether it may be taken.
  *
+ * A small arrow at the right end of the field (the field is a combo box) tells that there are values and opens the whole list when it is clicked; `SetShowArrow(false)` leaves it out.
+ *
  * Flags: `allow_custom` (other text may be entered) is what the ontology says per attribute; `allow_multiple` (several values at once) is kept for a later use of the control and has no effect yet.
  *
  * Threads: the menu is edited from the thread of the window of the field; the pick comes back to that thread by a message (the menu never locks the window of the field).
  */
 
 #include <Beep.h>
+#include <ControlLook.h>
 #include <InterfaceDefs.h>
 #include <Handler.h>
 #include <Looper.h>
 #include <MenuItem.h>
 #include <Message.h>
+#include <OS.h>
 #include <MessageFilter.h>
 #include <Messenger.h>
 #include <PopUpMenu.h>
 #include <String.h>
 #include <TextView.h>
+#include <View.h>
 #include <Window.h>
 
+#include <math.h>
 #include <string.h>
 #include <string>
 #include <vector>
@@ -57,8 +63,14 @@ public:
 		fMessage(message),
 		fText(NULL),
 		fFilter(NULL),
+		fArrow(NULL),
+		fSavedRightInset(0),
+		fShowArrow(true),
+		fShowAll(false),
 		fAllowCustom(false),
 		fAllowMultiple(false),
+		fEnterAfterPick(false),
+		fPassEnter(false),
 		fNavigated(false)
 	{
 	}
@@ -93,6 +105,12 @@ public:
 	void SetAllowMultiple(bool allow) { fAllowMultiple = allow; }
 	bool AllowMultiple() const { return fAllowMultiple; }
 
+	/** Where the list is for a field that ends its edit with Enter (the file manager): after a pick the menu sends that Enter itself, so that one key stores the value. */
+	void SetEnterAfterPick(bool send) { fEnterAfterPick = send; }
+
+	/** The arrow in the field (on by default; set before AttachTo). */
+	void SetShowArrow(bool show) { fShowArrow = show; }
+
 	/** Where a pick goes. */
 	void SetTargetForChoice(const BMessenger& target) { fTarget = target; }
 	void SetTargetForChoice(const BHandler* handler, const BLooper* looper = NULL) { fTarget = BMessenger(handler, looper); }
@@ -117,6 +135,19 @@ public:
 		BWindow* window = textView->Window();
 		if (window->Lock()) {
 			window->AddCommonFilter(fFilter);
+			if (fShowArrow && !fTexts.empty() && textView->Parent() != NULL) {
+				// the arrow is at the right end of the field, the text stops before it
+				const float width = ceilf(textView->LineHeight() * 1.1f);
+				BRect frame = textView->Frame();
+				frame.left = frame.right - width + 1;
+				frame.InsetBy(0, 1);
+				float left, top, right, bottom;
+				textView->GetInsets(&left, &top, &right, &bottom);
+				fSavedRightInset = right;
+				textView->SetInsets(left, top, right + width, bottom);
+				fArrow = new Arrow(this, frame);
+				textView->Parent()->AddChild(fArrow);
+			}
 			window->Unlock();
 		}
 	}
@@ -124,16 +155,33 @@ public:
 	void DetachFromText()
 	{
 		HideList();
-		if (fFilter != NULL && fText != NULL) {
-			BWindow* window = fText->Window();
-			if (window != NULL && window->Lock()) {
-				window->RemoveCommonFilter(fFilter);
-				window->Unlock();
-			}
-		}
-		delete fFilter;
+		Hook* hook = fFilter;
+		BLooper* looper = NULL;
+		fWindow.Target(&looper);
+		BTextView* text = fText;
+		Arrow* arrow = fArrow;
 		fFilter = NULL;
 		fText = NULL;
+		fArrow = NULL;
+		if (hook != NULL) {
+			BWindow* window = dynamic_cast<BWindow*>(looper);
+			if (window != NULL && window->Lock()) {
+				window->RemoveCommonFilter(hook);
+				if (arrow != NULL) {
+					arrow->fMenu = NULL;
+					arrow->RemoveSelf();
+					delete arrow;
+					if (text != NULL) {
+						float left, top, right, bottom;
+						text->GetInsets(&left, &top, &right, &bottom);
+						text->SetInsets(left, top, fSavedRightInset, bottom);
+					}
+				}
+				window->Unlock();
+			}
+			delete hook;
+		}
+		fWindow = BMessenger();
 	}
 
 	/** Shows the list for the text of the field now (the keys do it by themselves; call it for a change that did not come from a key). */
@@ -142,7 +190,7 @@ public:
 		if (fText == NULL)
 			return;
 		std::vector<int32> matches;
-		_Matches(fText->Text(), &matches);
+		_Matches(fShowAll ? "" : fText->Text(), &matches);
 		if (matches.empty()) {
 			HideList();
 			return;
@@ -163,6 +211,14 @@ public:
 		}
 	}
 
+	/** Opens the list with all values (what the arrow does); typing filters it from then on. */
+	void ShowAll()
+	{
+		fShowAll = true;
+		fLastText = "";
+		Refresh();
+	}
+
 	/** Closes the list (as Escape closes a menu). */
 	void HideList()
 	{
@@ -175,10 +231,74 @@ public:
 private:
 	enum { kRefresh = 'FMrf', kPick = 'FMpk' };
 
+	/** The arrow at the right end of the field: a view over the text field that opens the whole list. */
+	class Arrow : public BView {
+	public:
+		Arrow(FilterPopUpMenu* menu, BRect frame)
+			:
+			BView(frame, "values arrow", B_FOLLOW_RIGHT | B_FOLLOW_TOP, B_WILL_DRAW),
+			fMenu(menu)
+		{
+			SetViewColor(B_TRANSPARENT_COLOR);
+		}
+
+		virtual ~Arrow()
+		{
+			if (fMenu != NULL && fMenu->fArrow == this)
+				fMenu->fArrow = NULL;
+		}
+
+		virtual void Draw(BRect updateRect)
+		{
+			if (fMenu == NULL || fMenu->fText == NULL)
+				return;
+			const rgb_color base = fMenu->fText->ViewColor();
+			SetHighColor(base);
+			FillRect(Bounds());
+			if (!fMenu->fText->IsEditable())
+				return;
+			// a small triangle pointing down, in the middle
+			const BRect bounds(Bounds());
+			const float half = ceilf(be_plain_font->Size() * 0.4f);
+			const float cx = roundf((bounds.left + bounds.right) / 2);
+			const float cy = roundf((bounds.top + bounds.bottom) / 2);
+			SetHighColor(tint_color(base, B_DARKEN_3_TINT));
+			FillTriangle(BPoint(cx - half, cy - half / 2), BPoint(cx + half, cy - half / 2), BPoint(cx, cy + half / 2 + 1));
+		}
+
+		virtual void MouseDown(BPoint)
+		{
+			if (fMenu == NULL || fMenu->fText == NULL || !fMenu->fText->IsEditable())
+				return;
+			fMenu->fText->MakeFocus(true);
+			if (fMenu->IsOpen())
+				fMenu->HideList();
+			else
+				fMenu->ShowAll();
+		}
+
+	private:
+		friend class FilterPopUpMenu;
+		FilterPopUpMenu*	fMenu;
+	};
+
 	/** Looks at the keys that go to the field, before the field does. */
 	class Hook : public BMessageFilter {
 	public:
 		Hook(FilterPopUpMenu* menu) : BMessageFilter(B_ANY_DELIVERY, B_ANY_SOURCE), fMenu(menu) {}
+
+		// (a window deletes its filters when it goes: the menu must not look at the window or the field after that)
+		virtual ~Hook()
+		{
+			if (fMenu != NULL && fMenu->fFilter == this) {
+				fMenu->fFilter = NULL;
+				fMenu->fText = NULL;
+				if (fMenu->fArrow != NULL)
+					fMenu->fArrow->fMenu = NULL;
+				fMenu->fArrow = NULL;
+				fMenu->fWindow = BMessenger();
+			}
+		}
 
 		virtual filter_result Filter(BMessage* message, BHandler** target)
 		{
@@ -333,6 +453,10 @@ private:
 
 	filter_result _Enter()
 	{
+		if (fPassEnter) {
+			fPassEnter = false;
+			return B_DISPATCH_MESSAGE;
+		}
 		const char* text = fText->Text();
 		if (IsOpen() && fNavigated) {
 			// the selected item: the menu takes it as for any menu
@@ -368,6 +492,7 @@ private:
 		if (fLastText == fText->Text() && IsOpen())
 			return;
 		fLastText = "";
+		fShowAll = false;
 		Refresh();
 	}
 
@@ -381,6 +506,18 @@ private:
 		fText->SetText(fTexts[index].c_str());
 		fText->Select(fText->TextLength(), fText->TextLength());
 		fLastText = fText->Text();
+
+		if (fEnterAfterPick) {
+			BMessage enter(B_KEY_DOWN);
+			enter.AddInt64("when", system_time());
+			enter.AddInt32("key", 0x47);
+			enter.AddInt32("modifiers", 0);
+			enter.AddInt32("raw_char", B_ENTER);
+			enter.AddString("bytes", "\n");
+			enter.AddInt8("byte", B_ENTER);
+			fPassEnter = true;
+			fWindow.SendMessage(&enter);
+		}
 
 		BMessage* message = fMessage != NULL ? new BMessage(*fMessage) : new BMessage();
 		message->RemoveName("value");
@@ -402,8 +539,14 @@ private:
 	BTextView*					fText;
 	Hook*						fFilter;
 	BString						fLastText;
+	Arrow*						fArrow;			///< the arrow in the field (a child of the parent of the text view)
+	float						fSavedRightInset;
+	bool						fShowArrow;
+	bool						fShowAll;		///< the list shows all values, as the arrow was clicked, until the text is edited
 	bool						fAllowCustom;
 	bool						fAllowMultiple;
+	bool						fEnterAfterPick;
+	bool						fPassEnter;		///< the Enter that was sent after a pick goes to the field
 	bool						fNavigated;		///< an arrow key has selected an item since the list was filled
 };
 
