@@ -9,7 +9,7 @@
 #
 # The icon is 64x64 units. What is drawn is scaled to fill it (with a margin of 2 units, centred); with --no-fit the viewBox of the SVG is scaled to it. Every path of the SVG is a shape, in the order of the document, with its colour
 # (and fill-opacity); a path of several subpaths (holes) is a shape of several paths. Curves are cubic Beziers (c, C), lines (l, L, h, H, v, V).
-# Gradients (userSpaceOnUse, with a gradientTransform) are written as gradient styles; for a radial one the circle of the radius 64 of Icon-O-Matic's own SVG export maps to the radius
+# Arcs (A, a) are made cubic curves. Gradients (userSpaceOnUse, with a gradientTransform) are written as gradient styles; for a radial one the circle of the radius 64 of Icon-O-Matic's own SVG export maps to the radius
 # of the gradient, as it does there (r of any other value is scaled to it). A path that has only a stroke (fill:none) becomes a filled shape that is the path grown about its centre by half the
 # stroke width on every side: right for a circle or any shape that is round about its centre (the outline under a globe), not for other shapes.
 
@@ -226,10 +226,85 @@ def subpaths(d, matrix):
             point[2], point[3] = tx(*c2)
             points.append(point)
             x, y = p
+        elif c == 'A':
+            rx, ry, rotation, large, sweep = number(), number(), number(), number(), number()
+            p = (number(), number())
+            if rel:
+                p = (x + p[0], y + p[1])
+            for c1, c2, end in arc_to_cubics(x, y, rx, ry, rotation, large != 0, sweep != 0, p[0], p[1]):
+                out = tx(*c1)
+                points[-1][4], points[-1][5] = out
+                point = new_point(*end)
+                point[2], point[3] = tx(*c2)
+                points.append(point)
+            x, y = p
         else:
             raise ValueError('path command not supported: ' + cmd)
     finish(False)
     return result
+
+
+def arc_to_cubics(x1, y1, rx, ry, phi_degrees, large, sweep, x2, y2):
+    """an elliptical arc of a path (SVG implementation notes F.6.5) as cubic Bezier curves [(c1, c2, end), ...], one for each quarter turn at most"""
+    import math
+    if (x1, y1) == (x2, y2):
+        return []
+    rx, ry = abs(rx), abs(ry)
+    if rx == 0 or ry == 0:
+        return [((x1, y1), (x2, y2), (x2, y2))]		# (a straight line)
+    phi = math.radians(phi_degrees)
+    cos_phi, sin_phi = math.cos(phi), math.sin(phi)
+    dx, dy = (x1 - x2) / 2.0, (y1 - y2) / 2.0
+    x1p = cos_phi * dx + sin_phi * dy
+    y1p = -sin_phi * dx + cos_phi * dy
+    lam = (x1p * x1p) / (rx * rx) + (y1p * y1p) / (ry * ry)
+    if lam > 1:
+        scale = math.sqrt(lam)
+        rx, ry = rx * scale, ry * scale
+    numerator = rx * rx * ry * ry - rx * rx * y1p * y1p - ry * ry * x1p * x1p
+    denominator = rx * rx * y1p * y1p + ry * ry * x1p * x1p
+    factor = math.sqrt(max(0.0, numerator / denominator)) if denominator else 0.0
+    if bool(large) == bool(sweep):
+        factor = -factor
+    cxp = factor * rx * y1p / ry
+    cyp = -factor * ry * x1p / rx
+    cx = cos_phi * cxp - sin_phi * cyp + (x1 + x2) / 2.0
+    cy = sin_phi * cxp + cos_phi * cyp + (y1 + y2) / 2.0
+
+    def angle(ux, uy, vx, vy):
+        a = math.atan2(ux * vy - uy * vx, ux * vx + uy * vy)
+        return a
+
+    theta = angle(1, 0, (x1p - cxp) / rx, (y1p - cyp) / ry)
+    delta = angle((x1p - cxp) / rx, (y1p - cyp) / ry, (-x1p - cxp) / rx, (-y1p - cyp) / ry)
+    if not sweep and delta > 0:
+        delta -= 2 * math.pi
+    elif sweep and delta < 0:
+        delta += 2 * math.pi
+    count = max(1, int(math.ceil(abs(delta) / (math.pi / 2) - 1e-9)))
+    step = delta / count
+    t = 4.0 / 3.0 * math.tan(step / 4.0)
+    curves = []
+    a0 = theta
+    for _ in range(count):
+        a1 = a0 + step
+        cos0, sin0, cos1, sin1 = math.cos(a0), math.sin(a0), math.cos(a1), math.sin(a1)
+        # the points on the unit circle, then scaled, turned and moved
+        p0 = (cos0, sin0)
+        p3 = (cos1, sin1)
+        p1 = (cos0 - t * sin0, sin0 + t * cos0)
+        p2 = (cos1 + t * sin1, sin1 - t * cos1)
+
+        def place(point):
+            px, py = point[0] * rx, point[1] * ry
+            return (cos_phi * px - sin_phi * py + cx, sin_phi * px + cos_phi * py + cy)
+
+        curves.append((place(p1), place(p2), place(p3)))
+        a0 = a1
+    # (the last point is exactly the end that the path names)
+    c1, c2, _ = curves[-1]
+    curves[-1] = (c1, c2, (x2, y2))
+    return curves
 
 
 def coord(value):
@@ -286,7 +361,11 @@ def convert(svg_file, fit=True):
     for element in root.iter():
         if element.tag.replace(NS, '') in ('linearGradient', 'radialGradient') and element.get('id'):
             GRADIENTS[element.get('id')] = element
-    box = [float(v) for v in re.split(r'[\s,]+', root.get('viewBox').strip())]
+    if root.get('viewBox'):
+        box = [float(v) for v in re.split(r'[\s,]+', root.get('viewBox').strip())]
+    else:
+        # (no viewBox: the size of the drawing is its width and height, in the units of the paths; `64px` and the like are read as numbers)
+        box = [0.0, 0.0, float(re.sub(r'[^0-9.]', '', root.get('width') or '64') or 64), float(re.sub(r'[^0-9.]', '', root.get('height') or '64') or 64)]
     scale = 64.0 / max(box[2], box[3])
     base = (scale, 0, 0, scale, -box[0] * scale, -box[1] * scale)
 
