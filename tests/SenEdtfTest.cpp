@@ -83,6 +83,22 @@ TEST(WhatIsStored)
 	CHECK(!ForStart("tomorrow", &stored));
 }
 
+static long long OneHourAhead(long long) { return 3600; }
+
+TEST(LocalTimeWhenAsked)
+{
+	// a time of day without a zone is UTC, or the local time if the offset is given; a zone that is given wins, a period of days is not moved
+	Value utc, local, zoned, day;
+	Parse("2026-11-07T12:00", &utc);
+	Parse("2026-11-07T12:00", &local, OneHourAhead);
+	Parse("2026-11-07T12:00:00Z", &zoned, OneHourAhead);
+	Parse("2026-11-07", &day, OneHourAhead);
+	CHECK(utc.earliest == 1794052800LL && local.earliest == 1794049200LL && zoned.earliest == 1794052800LL);
+	CHECK(day.earliest == 1794009600LL && day.latest == 1794095999LL);
+	Stored stored;
+	CHECK(ForStart("2026-11-07 12:00", &stored, OneHourAhead) && stored.time == 1794049200LL && stored.edtf.empty());
+}
+
 TEST(FormatTime)
 {
 	CHECK_STR(FormatTime(1794049200LL).c_str(), "2026-11-07T11:00:00Z");

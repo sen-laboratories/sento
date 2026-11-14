@@ -10,7 +10,8 @@
  *
  * What is understood (the subset that people type; levels 0 and 1 of EDTF, without intervals and negative years):
  *
- *     2026-11-07T11:00:00Z   an instant (a time of day: `T` or a space, hh:mm or hh:mm:ss, then `Z` or an offset +hh[:mm] / -hh[:mm]; no zone means UTC)
+ *     2026-11-07T11:00:00Z   an instant (a time of day: `T` or a space, hh:mm or hh:mm:ss, then `Z` or an offset +hh[:mm] / -hh[:mm]; no zone means UTC, or the local time
+ *                            if the caller gives the function that says the offset of the local time zone: a person who types 11:00 means their own clock)
  *     2026-11-07             a day            1994-05   a month            1994   a year   (a period, not an instant)
  *     1994?  1994-05~  1994%  uncertain, approximate, both: the period WIDENED by one of its units on each side (1994-05~ is April to June 1994)
  *     202X  19XX  2020-XX  2020-12-XX   digits that are not known: the values that fit (202X is 2020 to 2029)
@@ -115,8 +116,11 @@ inline bool TwoDigits(const std::string& s, size_t at, int* value)
 }	// namespace detail
 
 
-/** Reads a time as it is typed or stored. @return false if the text is none (the value is not valid then). */
-inline bool Parse(const std::string& input, Value* result)
+/** The offset of the local time zone from UTC in seconds, at a moment (seconds since 1970-01-01T00:00:00Z): +3600 for Wien in winter. For Parse(), to read a time without a zone as local time. */
+typedef long long (*LocalOffset)(long long utcSeconds);
+
+/** Reads a time as it is typed or stored. @return false if the text is none (the value is not valid then). A time of day without a zone is read as UTC, or as local time with @p localOffset. */
+inline bool Parse(const std::string& input, Value* result, LocalOffset localOffset = nullptr)
 {
 	using namespace detail;
 	Value value;
@@ -207,7 +211,9 @@ inline bool Parse(const std::string& input, Value* result)
 			value.precision = Precision::Second;
 		}
 		long long offset = 0;
+		bool zoneGiven = false;
 		if (at < timeText.size()) {
+			zoneGiven = true;
 			if (timeText[at] == 'Z' && at + 1 == timeText.size()) {
 				// UTC
 			} else if (timeText[at] == '+' || timeText[at] == '-') {
@@ -229,7 +235,14 @@ inline bool Parse(const std::string& input, Value* result)
 				return false;
 			}
 		}
-		first = first + hours * 3600LL + minutes * 60LL + seconds - offset;
+		const long long naive = first + hours * 3600LL + minutes * 60LL + seconds;
+		long long utc = naive - offset;
+		if (!zoneGiven && localOffset != nullptr) {
+			// (the offset depends on the moment, which depends on the offset: twice is enough, except for the hour that does not exist or happens twice)
+			utc = naive - localOffset(naive);
+			utc = naive - localOffset(utc);
+		}
+		first = utc;
 		last = first;
 	}
 
@@ -298,10 +311,10 @@ struct Stored {
 };
 
 /** The start of an event from the text of the user: its earliest moment, and the text if the value is fuzzy. */
-inline bool ForStart(const std::string& text, Stored* stored)
+inline bool ForStart(const std::string& text, Stored* stored, LocalOffset localOffset = nullptr)
 {
 	Value value;
-	if (!Parse(text, &value))
+	if (!Parse(text, &value, localOffset))
 		return false;
 	stored->time = value.earliest;
 	stored->edtf = value.IsExact() ? std::string() : std::string(text, text.find_first_not_of(" \t"), text.find_last_not_of(" \t") - text.find_first_not_of(" \t") + 1);
@@ -309,10 +322,10 @@ inline bool ForStart(const std::string& text, Stored* stored)
 }
 
 /** The end of an event: its latest moment, and the text if the value is fuzzy. */
-inline bool ForEnd(const std::string& text, Stored* stored)
+inline bool ForEnd(const std::string& text, Stored* stored, LocalOffset localOffset = nullptr)
 {
 	Value value;
-	if (!Parse(text, &value))
+	if (!Parse(text, &value, localOffset))
 		return false;
 	stored->time = value.latest;
 	stored->edtf = value.IsExact() ? std::string() : std::string(text, text.find_first_not_of(" \t"), text.find_last_not_of(" \t") - text.find_first_not_of(" \t") + 1);
