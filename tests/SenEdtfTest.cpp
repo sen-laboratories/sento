@@ -99,6 +99,28 @@ TEST(LocalTimeWhenAsked)
 	CHECK(ForStart("2026-11-07 12:00", &stored, OneHourAhead) && stored.time == 1794049200LL && stored.edtf.empty());
 }
 
+TEST(PeriodsEndWhereTheNextBegins)
+{
+	CHECK(P("2026-11-14").IsPeriod() && P("2026-11-14").EndMoment() == P("2026-11-15").earliest);	// (two days meet)
+	CHECK(P("1994-05").EndMoment() == P("1994-06").earliest && P("1994").EndMoment() == P("1995").earliest);
+	CHECK(!P("2026-11-14T10:00:00Z").IsPeriod() && P("2026-11-14T10:00:00Z").EndMoment() == P("2026-11-14T10:00:00Z").latest);
+	CHECK(P("1994-05~").IsPeriod());
+}
+
+TEST(Durations)
+{
+	long long seconds = 0;
+	CHECK(DurationSeconds("PT2H", &seconds) && seconds == 7200);
+	CHECK(DurationSeconds("PT1H55M", &seconds) && seconds == 6900);
+	CHECK(DurationSeconds("P3D", &seconds) && seconds == 259200);
+	CHECK(DurationSeconds("P1W", &seconds) && seconds == 604800);
+	CHECK(DurationSeconds("P1DT12H", &seconds) && seconds == 129600);
+	CHECK(DurationSeconds("PT30S", &seconds) && seconds == 30);
+	const char* bad[] = {"", "P", "PT", "2H", "P1Y", "P1M", "PT1.5H", "P1DT", "PTH", "p1d"};
+	for (const char* text : bad)
+		CHECK(!DurationSeconds(text, &seconds));
+}
+
 TEST(FormatTime)
 {
 	CHECK_STR(FormatTime(1794049200LL).c_str(), "2026-11-07T11:00:00Z");

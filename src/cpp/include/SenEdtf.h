@@ -17,8 +17,8 @@
  *     202X  19XX  2020-XX  2020-12-XX   digits that are not known: the values that fit (202X is 2020 to 2029)
  *
  * A value has an earliest and a latest moment (seconds since 1970-01-01T00:00:00Z, the last second of the period for a period): an instant has the same for both. A value that is an
- * instant, with no qualifier and no unknown digit, is EXACT; every other is fuzzy. The start of an event is stored as its earliest moment, the end as its latest, so that both sort in the columns of the
- * file manager; a fuzzy value is also kept as text (the attributes `SEN:startDateEdtf` and `SEN:endDateEdtf`), and an exact one has none (ForStart(), ForEnd()).
+ * instant, with no qualifier and no unknown digit, is EXACT; every other is fuzzy. The start of an event is stored as its earliest moment, the end as its latest, so that both sort and are found with a
+ * query (BFS indexes a time as a 64-bit integer); a fuzzy value is also kept as text (the attributes `SEN:startDateEdtf` and `SEN:endDateEdtf`), and an exact one has none (ForStart(), ForEnd()).
  */
 
 #include <stdio.h>
