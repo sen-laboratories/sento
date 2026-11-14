@@ -8,7 +8,7 @@
  * @file SenTimeAttributes.h
  * @brief The start and the end of anything that has a time (`schema:startDate`, `schema:endDate`), kept as a time attribute with the text of a fuzzy value beside it (Haiku only, header only).
  *
- * The time attribute (B_TIME_TYPE) holds the earliest moment of a start and the latest moment of an end, so that they sort and are found with a query. A value that is not exact (a day, a
+ * The time attribute (B_TIME_TYPE) holds the earliest moment of a start and the latest moment of an end, so that they sort in the columns of the file manager (BFS cannot index the type, so a query cannot ask for a date). A value that is not exact (a day, a
  * month, `1994-05~`, `202X`: see SenEdtf.h) is also kept as text in the attribute beside it (`SEN:startDateEdtf`, `SEN:endDateEdtf`); an exact one has none. Shoji, Akita and the
  * temporal navigator write and read them through this header, so they all do it the same way:
  *

@@ -17,8 +17,8 @@
  *     202X  19XX  2020-XX  2020-12-XX   digits that are not known: the values that fit (202X is 2020 to 2029)
  *
  * A value has an earliest and a latest moment (seconds since 1970-01-01T00:00:00Z, the last second of the period for a period): an instant has the same for both. A value that is an
- * instant, with no qualifier and no unknown digit, is EXACT; every other is fuzzy. The start of an event is stored as its earliest moment, the end as its latest, so that both sort and are found
- * with a query; a fuzzy value is also kept as text (the attributes `SEN:startDateEdtf` and `SEN:endDateEdtf`), and an exact one has none (ForStart(), ForEnd()).
+ * instant, with no qualifier and no unknown digit, is EXACT; every other is fuzzy. The start of an event is stored as its earliest moment, the end as its latest, so that both sort in the columns of the
+ * file manager; a fuzzy value is also kept as text (the attributes `SEN:startDateEdtf` and `SEN:endDateEdtf`), and an exact one has none (ForStart(), ForEnd()).
  */
 
 #include <stdio.h>
@@ -44,6 +44,15 @@ struct Value {
 	{
 		return valid && !uncertain && !approximate && !unspecified && (precision == Precision::Minute || precision == Precision::Second);
 	}
+
+	/** a year, a month or a day (also with qualifiers): it has an extent, and ends where the next one begins */
+	bool IsPeriod() const
+	{
+		return valid && (precision == Precision::Year || precision == Precision::Month || precision == Precision::Day);
+	}
+
+	/** where the value ends, as the moment that the next period begins (for a period: the last second plus one, so that 2026-11-14 and 2026-11-15 meet); for an instant its own moment */
+	long long EndMoment() const { return IsPeriod() ? latest + 1 : latest; }
 };
 
 namespace detail {
@@ -286,6 +295,55 @@ inline bool Parse(const std::string& input, Value* result, LocalOffset localOffs
 	value.latest = last;
 	value.valid = true;
 	*result = value;
+	return true;
+}
+
+
+/** The seconds of an ISO 8601 duration that has a length of its own: P[n]W[n]D[T[n]H[n]M[n]S] (PT2H, P3D, PT1H55M). False for years and months, and for a text that is none. */
+inline bool DurationSeconds(const std::string& text, long long* seconds)
+{
+	if (text.size() < 3 || text[0] != 'P')
+		return false;
+	size_t i = 1;
+	bool timePart = false, any = false;
+	long long total = 0;
+	while (i < text.size()) {
+		if (text[i] == 'T') {
+			if (timePart)
+				return false;
+			timePart = true;
+			i++;
+			continue;
+		}
+		const size_t start = i;
+		while (i < text.size() && text[i] >= '0' && text[i] <= '9')
+			i++;
+		if (i == start || i >= text.size() || i - start > 9)
+			return false;
+		const long long n = std::stoll(text.substr(start, i - start));
+		const char unit = text[i++];
+		if (!timePart) {
+			if (unit == 'W')
+				total += n * 7 * 86400;
+			else if (unit == 'D')
+				total += n * 86400;
+			else
+				return false;
+		} else {
+			if (unit == 'H')
+				total += n * 3600;
+			else if (unit == 'M')
+				total += n * 60;
+			else if (unit == 'S')
+				total += n;
+			else
+				return false;
+		}
+		any = true;
+	}
+	if (!any || text.back() == 'T')
+		return false;
+	*seconds = total;
 	return true;
 }
 
