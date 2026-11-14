@@ -113,6 +113,8 @@ inline constexpr char kPlural[] = "SEN:PLURAL";
 inline constexpr char kLibraryPath[] = "SEN:libraryPath";
 /** Resource of a relation type with the vector icon of its relation folder. */
 inline constexpr char kRelationFolderIcon[] = "SEN:ICON:FOLDER";
+/** message, attribute of the entry of a type in the MIME database: the common values of its attributes that have an enum in the schema, keyed by the name of the attribute (see SenAttrValues.h) */
+inline constexpr char kAttributeValues[] = "SEN:ATTR:VALUES";
 
 // ---- ontologies (written by the ontology installer)
 
