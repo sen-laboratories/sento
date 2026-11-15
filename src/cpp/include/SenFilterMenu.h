@@ -26,6 +26,9 @@
  *
  * Flags: `allow_custom` (other text may be entered) is what the ontology says per attribute; `allow_multiple` (several values at once) is kept for a later use of the control and has no effect yet.
  *
+ * Keys: while the list is open Haiku gives the keyboard to the window of the menu, so the menu passes every key that is not its own (arrows, Enter, Escape) on to the field, through the filters of the
+ * field as a key from the keyboard would go (the file manager's editor ends its edit with Enter and Tab by a filter).
+ *
  * Threads: the menu is edited from the thread of the window of the field; the pick comes back to that thread by a message (the menu never locks the window of the field).
  */
 
@@ -33,6 +36,7 @@
 #include <ControlLook.h>
 #include <InterfaceDefs.h>
 #include <Handler.h>
+#include <List.h>
 #include <Looper.h>
 #include <MenuItem.h>
 #include <Message.h>
@@ -228,8 +232,39 @@ public:
 
 	bool IsOpen() { return Window() != NULL; }
 
+	/** Called by the window of the menu while the list is open (it has the keyboard then): the menu keeps the keys of a list and gives the others to the field. */
+	virtual void KeyDown(const char* bytes, int32 numBytes)
+	{
+		if (fText == NULL || !fWindow.IsValid() || bytes == NULL || numBytes <= 0) {
+			BPopUpMenu::KeyDown(bytes, numBytes);
+			return;
+		}
+		const unsigned char key = (unsigned char)bytes[0];
+		if (numBytes == 1 && (key == B_UP_ARROW || key == B_DOWN_ARROW)) {
+			fNavigated = true;
+			BPopUpMenu::KeyDown(bytes, numBytes);
+			return;
+		}
+		if (numBytes == 1 && key == B_ESCAPE) {
+			BPopUpMenu::KeyDown(bytes, numBytes);
+			return;
+		}
+		if (numBytes == 1 && key == B_ENTER) {
+			if (fNavigated)
+				BPopUpMenu::KeyDown(bytes, numBytes);		// the selected item
+			else
+				fWindow.SendMessage(kEnterKey);			// the field decides (exact value, custom text)
+			return;
+		}
+		// the rest (letters, Backspace, Delete, Left/Right, Tab...) is for the field
+		BMessage through(kKeyThrough);
+		through.AddString("bytes", std::string(bytes, (size_t)numBytes).c_str());
+		through.AddInt32("modifiers", ::modifiers());
+		fWindow.SendMessage(&through);
+	}
+
 private:
-	enum { kRefresh = 'FMrf', kPick = 'FMpk' };
+	enum { kRefresh = 'FMrf', kPick = 'FMpk', kKeyThrough = 'FMky', kEnterKey = 'FMen' };
 
 	/** The arrow at the right end of the field: a view over the text field that opens the whole list. */
 	class Arrow : public BView {
@@ -319,6 +354,20 @@ private:
 				case kPick:
 					fMenu->_Pick(message);
 					return B_SKIP_MESSAGE;
+				case kKeyThrough:
+				{
+					// (the menu and this filter can be gone when the key has been handled: nothing is touched afterwards)
+					FilterPopUpMenu* menu = fMenu;
+					menu->_PassKey(message->GetString("bytes", ""), message->GetInt32("modifiers", 0));
+					return B_SKIP_MESSAGE;
+				}
+				case kEnterKey:
+				{
+					FilterPopUpMenu* menu = fMenu;
+					if (menu->_Enter() == B_DISPATCH_MESSAGE)
+						menu->_PassKey("\n", 0);
+					return B_SKIP_MESSAGE;
+				}
 				default:
 					return B_DISPATCH_MESSAGE;
 			}
@@ -405,6 +454,38 @@ private:
 		if (locked)
 			menuWindow->Unlock();
 		fLastText = current;
+	}
+
+	/**
+	 * A key that the menu got instead of the field: it goes to the field as a key from the keyboard would, through the filters of the field (they may end the edit: the menu may be deleted by
+	 * then, so nothing is touched after a filter has skipped the key), and the list follows the new text.
+	 */
+	void _PassKey(const char* bytes, int32 modifiers)
+	{
+		BTextView* text = fText;
+		if (text == NULL || bytes == NULL || bytes[0] == '\0')
+			return;
+		BMessage key(B_KEY_DOWN);
+		key.AddInt64("when", system_time());
+		key.AddInt32("key", 0);
+		key.AddInt32("modifiers", modifiers);
+		key.AddInt32("raw_char", (unsigned char)bytes[0]);
+		key.AddString("bytes", bytes);
+		for (const char* b = bytes; *b != '\0'; b++)
+			key.AddInt8("byte", *b);
+		if ((unsigned char)bytes[0] >= 0x20 && bytes[0] != 0x7F)
+			fWindow.SendMessage(kRefresh);		// (queued behind this key)
+		BHandler* target = text;
+		BList* filters = text->FilterList();
+		for (int32 i = 0; filters != NULL && i < filters->CountItems(); i++) {
+			BMessageFilter* filter = static_cast<BMessageFilter*>(filters->ItemAt(i));
+			if (filter->FiltersAnyCommand() || filter->Command() == B_KEY_DOWN) {
+				if (filter->Filter(&key, &target) == B_SKIP_MESSAGE)
+					return;
+			}
+		}
+		text->KeyDown(bytes, (int32)strlen(bytes));
+		fWindow.SendMessage(kRefresh);
 	}
 
 	/** A key for the field, seen before the field. */
