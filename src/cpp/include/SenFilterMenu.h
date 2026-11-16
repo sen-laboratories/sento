@@ -377,6 +377,23 @@ private:
 		FilterPopUpMenu*	fMenu;
 	};
 
+	/**
+	 * A disabled item without size. BMenu cannot select the only item of a menu with the arrow keys (its search for the next item loops over the OTHER items, of which there are none),
+	 * so a list of one value gets this one as a second item to make the arrow find the first.
+	 */
+	class Companion : public BMenuItem {
+	public:
+		Companion() : BMenuItem("", NULL) { SetEnabled(false); }
+
+		virtual void GetContentSize(float* width, float* height)
+		{
+			*width = 0;
+			*height = 0;
+		}
+
+		virtual void DrawContent() {}
+	};
+
 	/** The item of a value: invoked (in the thread of the menu) it only tells the window of the field. */
 	class ValueItem : public BMenuItem {
 	public:
@@ -450,6 +467,8 @@ private:
 				value->SetMarked(true);
 			AddItem(value);
 		}
+		if (matches.size() == 1)
+			AddItem(new Companion());
 		fNavigated = false;
 		if (locked)
 			menuWindow->Unlock();
