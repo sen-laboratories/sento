@@ -474,6 +474,52 @@ FileTypes is a single launch application, so there is one instance, and it is no
 * the **FileTypes of Haiku** is started with `-type` if it is not running (and an attribute is then opened by scripting it like a person would: "Item n of View listview attr of Window w", with
   the window found by the list it has), or only brought to the front if it is running.
 
+### Enrichers write attributes
+
+An enricher (`enrich`, the message `sensei::cmd::kEnrich`, or Tracker's *Enrich*, which sends `B_REFS_RECEIVED` without `SEN:self`) reads what it can about a file, from the file itself or from a service, and writes it into the **attributes of the file**. What a
+person or another program put there stays (`wipe`, Shift in the menu, or `--overwrite` replaces it); the notification of Tracker says what is being enriched and the answer replaces it with what was found. Examples: `paperboy` (a paper), `movie-enricher`, `person-enricher`, `place-enricher`
+(their shared base is `sensei/common/BaseEnricher`). An enricher that does not need the network reads the content of the file: the attributes are then a view of what the file says. An enricher that creates other things (the cast of a movie, the authors of a book) makes **entity files** for them
+(below) and relates them to the file.
+
+### Choosing the path: which feature for which relation
+
+The server has **four paths to a plugin**; the flags of the relation type in its ontology (`dynamic`, `self`, `source_types`, `app`, see section 3.3) decide which one a relation takes, and the plugin declares the matching feature:
+
+| What the plugin does | Feature | Relation type | Request and answer |
+|---|---|---|---|
+| says what a file *is* (the semantic type) | `identify` | none | `'SEid'`; the reply has `META:TYPE` |
+| writes what the file says or what a service knows into its attributes | `enrich` | none (it may create relations and entities) | `'SEer'` / `B_REFS_RECEIVED` |
+| lists the **parts of the file itself** (outline, declarations): contained relations | `extract` | `self` (and `dynamic`) | `B_REFS_RECEIVED` with `SEN:self`; a tree of items (`_label`, `_type`, `_to`, `_itemId` and `_item`), see above |
+| works out a relation **between files** when the user opens it, nothing stored: `within`, `nearby`, `before`, attendees | `navigate` | `dynamic`, **not** `self` | `sensei::cmd::kResolve` (`Sensei.h`); a message `kTargets` for each related file |
+
+The rule in the server is `dynamic && !self`: a relation that is `dynamic` and not `self` is resolved by the navigator that is the preferred application of the type (`app:` in the ontology), at the files of the types in `source_types`. A plugin may have several features and the
+same signature serves all of them (Paperboy identifies and enriches); the navigator of a relation type can be the plugin that also enriches the files that the relation starts at.
+
+### Dynamic relations and entities in the temporary relation folder
+
+When the user opens a dynamic relation (*Open related*), the server starts the navigator with `kResolve`: `refs` is the source, `sen::key::kRelationType` the type, and `sensei::key::kLibraries` has the Library folder of each entity type that the relation is between. The plugin
+works the relation out and answers with `kResult` and one `kTargets` message for each related file: `sen::key::kTargetRef` (a ref to an existing file) and the properties of the relation seen from the source (`SEN:REL:Label`, the label of the direction: a type has `label` and `inverse_label`;
+`SEN:REL:Kind`, `SEN:REL:Provenance`, any other attribute of the type). The server adds the `SEN:ID`s and answers as for a stored relation, so the menus and the relation views need nothing of their own. A relation folder of such a relation is **temporary**: it
+shows what was true when it was opened (peek); a folder that the user keeps (dragged to the Desktop or Home) keeps the query and works the relation out again each time it is opened.
+
+The targets do not have to exist yet: the plugin makes the **entity files** it needs with `sensei::FindOrCreateEntityFile()` (`common/EntityFile.h`) in the Library folder that came with the request (a person in `~/Library/People`, a place in `Places`), or finds the one that is there and
+updates it in place, so that nothing is made twice. The attendees of an event are people and its location a place: they are entities in the relation folder, and they are the Person and Place of the Library from then on. The new entities can be handed to the enrichers afterwards (`sen::cmd::kEnrichRefs`
+with `auto`), as the spatial navigator does for the places that it made. A plugin never writes anything else: the relation itself is never stored.
+
+### Several relations to one file: places inside it
+
+A file can be the target of many relations, each at **another place in it**: the pages of a PDF that a document refers to (`docref`), the lines of a source file, the events of a calendar. The place is part of the relation, not of the file: the target is the same file and a
+**selector** (W3C Web Annotation: `oa:hasTarget` with `oa:hasSelector`, a `oa:FragmentSelector` `page=3`, a text quote, an EPUB CFI; section 3.2) says where. The navigator of the relation type opens the file at that place (`document-reference-navigator` gives the page to the viewer that is installed). A relation
+type that points *into* a file needs no new file for each place; one that points to **another thing** (a person, a place) points to an entity file.
+
+### A new plugin: the steps
+
+1. Name the folder for what it does (`sensei/plugins/<name>`); signature `application/x-vnd.sen-plugin.sen-labs.<name>`; the features it needs; `file_types`; `Resources.rdef` (the version in `app_version`, nowhere else).
+2. Put what can be tested without Haiku into a plain C++ `core/` (no BeAPI) with `tests/run.sh` on the Mac; the application (`App.cpp`) only translates between messages and the core.
+3. Features: `identify` sets `META:TYPE` and makes sure `BEOS:TYPE` exists; `enrich` writes attributes with the names of `SenOnto<Name>.h` (never string literals); a relation type that the plugin resolves needs an entry in the ontology (`sen-oni`, section 8) with `dynamic`, `source_types`, `label`, `inverse_label`, `app`.
+4. Settings (if any) through `common/SettingsSession.h` and the form of Shoji (spec in `spec-settings-and-message-template.md`); a plugin without settings has `SEN:plugin:hasSettings` false or no such attribute.
+5. `./build.sh` in the VM, `REVISION=N ./package.sh <name>`; the plugin lists itself in `PLUGINS.md` (generated: `tools/overview.py`).
+
 ## 7. Code conventions
 
 - C++20; native Haiku API at the boundary (BMessage, BNode, BQuery, BEntry), the standard library for internal logic.
