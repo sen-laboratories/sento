@@ -182,7 +182,7 @@ To **keep** one, drag it onto your Home folder or the Desktop, as for any folder
 
 An invitation or a calendar entry (`.ics`, also the old `.vcs`; from Google, Outlook, Apple, Thunderbird and others) is an **event** once SEN has read it. Select the file in Akita and choose **Enrich**: the file is typed as an *Event*, its
 time, place, organizer, status, the link of an online meeting (and its service: Zoom, Google Meet, Microsoft Teams, Webex, Jitsi, GoToMeeting, Whereby, Skype) and the rest are written into its attributes, so that you can show them as columns,
-sort by them and search for them, and the file is **named after the event with its date and time**: `2026-11-12_0930_Planning.ics`. The description is kept as a **Markdown file** beside it (`2026-11-12_0930_Planning.md`) with its links and formatting.
+sort by them and search for them, and the file is **named after the event with its date and time**: `2026-11-12_0930_Planning.ics`. You can change the name in the settings of the calendar extractor (*Name pattern*, with the tokens `{date}` `{time}` `{year}` `{month}` `{day}` `{hour}` `{minute}` `{title}`; the default is `{date}_{time}_{title}`). The description is kept as a **Markdown file** beside it (`2026-11-12_0930_Planning.md`) with its links and formatting.
 The times in the attributes do not depend on your time zone setting: Akita shows them in the zone that you set. Nothing is sent over the network.
 
 A file with **several events** (an export of a calendar) becomes a **Calendar** that holds them: it has the name of the calendar, the number of events and the time that they cover.

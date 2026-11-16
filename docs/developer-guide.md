@@ -423,6 +423,19 @@ A plugin with the feature `identify` finds out what a file is and sets its **sem
 makes sure that the file has its Haiku type (`BEOS:TYPE`) first: Haiku takes a file with `META:TYPE` and without `BEOS:TYPE` for an entry of the MIME database. The type is returned in the reply as `sensei::key::kSemanticType`. The source code
 extractor of sensei is an example: Haiku gives every source file `text/x-source-code`, the plugin names the language and then reads the references with the scanner of that language.
 
+### Two types: the technical type stays, the semantic type is added
+
+A file has a **technical type**, `BEOS:TYPE` (`application/pdf`, `text/calendar`, `text/x-source-code`): what Haiku, its applications and the preferred-application lookup go by, and a **semantic type**, `META:TYPE` (`document/scientific-paper`,
+`entity/x-vnd.sen-labs.entity.event`): what the file means. The rules:
+
+- **A plugin only adds the semantic type**, in `identify` or `enrich`; it never changes the technical type. It sets `BEOS:TYPE` only when the file has none (then from the guess of the MIME database, or the one type of its format), because a file with
+  `META:TYPE` and without `BEOS:TYPE` is taken for an entry of the MIME database. The files that a plugin makes itself (an entity in the Library, the Markdown file of a description) get their own technical type.
+- **Whatever is looked up by a type is looked up by both**, the technical type first, then the semantic type if the file has one that is another (`RelationHandler::GetTypesForRef`; the enrichment of the server does the same): a type names a file if either does.
+  This holds for the types of a **relation** (`SEN:sourceTypes`, `SEN:targetTypes` and what they exclude: the relation is offered at the file if either type fits, and excluded if either is excluded) and for the `file_types` of a **plugin**
+  (which plugin enriches or extracts a file). A relation or a plugin may therefore name what it means: a generic `application/pdf`, or the abstract `document/scientific-paper`, or both. The matching is by prefix (`document/`, `audio`).
+- The split keeps the semantic layer independent of the platform: the technical type is what the operating system says (a MIME type on Haiku, a UTI such as `public.calendar-event` on macOS, and a UTI conforms to others as a prefix does), the semantic type is SEN's own, so a port needs a mapping for the first only.
+- The ontologies need no list of file types for the entity (`entity/x-vnd.sen-labs.entity.event` is enough for a `.ics` that was enriched as an event); older entries that name both the entity and its file type (`application/x-person`) are harmless.
+
 ### Extractors look *inside* a file, and return normal and contained relations
 
 An extractor reads a file's content and may find **both** kinds of relation:
