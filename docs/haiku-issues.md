@@ -69,7 +69,7 @@ TZ=Not/AZone        tm_zone=[GMT]   gmtoff=0 isdst=0 tzname=[GMT,GMT]           
 `FileTypes -type <mime>` selects the type in the list, but only when the process starts and opens its window (`FileTypes::MessageReceived`, `kMsgOpenTypesWindow`: `fArgvType` is applied once).
 When FileTypes runs already, the argument arrives as `B_ARGV_RECEIVED`, the type is stored and nothing changes on the screen. A bare MIME type as argument is taken for a path and ignored. The
 window understands `kMsgSelectNewType` with a string field `type`, but no message that selects a type that exists.
-Expected: opening FileTypes again with `-type` shows that type (and brings the window to the front). **SEN:** Shoji's link on `META:TYPE` uses `-type`; the extended FileTypes of SEN can take it any time.
+Expected: opening FileTypes again with `-type` shows that type (and brings the window to the front). **SEN:** the FileTypes of SEN (`sen_filetypes`, signature `application/x-vnd.sen-labs.FileTypes`) is asked by a message (`sen::cmd::kOpenMimeAttribute`) and selects the type also when it runs; the SEN server decides which of the two to ask (`kUiOpenType`, the setting *Use the FileTypes of SEN*), and Shoji's link on `META:TYPE` sends that message to the server (without a server it starts the one of Haiku with `-type`).
 
 ## 4. `BPropertyInfo::FindMatch` and index specifiers
 
