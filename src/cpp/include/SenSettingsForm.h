@@ -26,7 +26,7 @@ const char* const kViewClass		= "ShojiMessageView";
 /** The number of the protocol of these messages, in the field `protocol` of kSetData (and of every answer). */
 const int32_t kProtocol = 1;
 
-/** Messages. To the view: kSetData, kGetData, kRevert, kDefaults, kActionDone. From the view (to its target): kChanged, kRefused, kAction. */
+/** Messages. To the view: kSetData, kGetData, kRevert, kDefaults, kActionDone. From the view (to its target): kChanged, kRefused, kAction. From a detail to its master: kUpdated. */
 enum : uint32_t {
 	kSetData	= 'SFsd',		///< `settings`; optional `schema`, `defaults`, `target` (BMessenger), `protocol`, `editable`, `root_label` (`layout` is not used yet); replied to if a reply is waited for
 	kGetData	= 'SFgd',		///< asks for the working copy; the reply has `settings` (do not wait for it in the thread of the window that has the form: the form is in that thread)
@@ -35,7 +35,8 @@ enum : uint32_t {
 	kChanged	= 'SFch',		///< `path` and `value` (text) of a change, or no `path` for the whole message; always `settings` (the working copy)
 	kRefused	= 'SFrf',		///< `path`, `value` (what was typed), `status` (int32) and `detail` (text): the control went back to its value
 	kAction		= 'SFac',		///< `path`: a button (`kind = button`) was pressed; nothing in the working copy changes
-	kActionDone	= 'SFad'		///< to the view, with the `path` of the button (without it: all that wait): the owner has answered that button and the answer changes nothing in the data: the form takes the waiting state of the button away (it is greyed, and the line next to it says that a reply is awaited). An answer with other data is a kSetData, which makes the form again.
+	kActionDone	= 'SFad',		///< to the view, with the `path` of the button (without it: all that wait): the owner has answered that button and the answer changes nothing in the data: the form takes the waiting state of the button away (it is greyed, and the line next to it says that a reply is awaited). An answer with other data is a kSetData, which makes the form again.
+	kUpdated	= 'SFup'		///< from a detail to its master (the messenger in `reply_to` of the update, see the master/detail contract below): the user changed the control. `command` (int32) of the update that it answers, and its part (the field id) with `value`
 };
 
 /** Fields of the messages. */
@@ -83,14 +84,40 @@ const char* const kAttrShows			= "shows";			///< string, of a button (`kind = bu
 const char* const kAttrStateField	= "state_field";	///< string, of a `readonly` text field: the name of a text field of the same message that says what the text means, `info`, `warning` or `error` (kStateInfo...): the line shows the icon of that alert before the text. The field itself is `hidden`.
 const char* const kAttrDetailField	= "detail_field";	///< string, of a `readonly` text field: the name of a text field of the same message with the longer text, several lines allowed, that is the tool tip of the line (the short text of the field is the status, this is the detail). The field itself is `hidden`.
 const char* const kAttrReorderable	= "reorderable";	///< bool, of a table (`kind = table`): the rows can be dragged to another place (or moved with Ctrl and the arrows up and down); the owner gets the whole message, with the array of the rows in the new order
-const char* const kAttrFollowsTable	= "follows_table";	///< string, of a text field: the name of a table (a field with messages) of the same message; the field shows and edits the cell of the selected row that its column names (`follows_column`), and is disabled while no row is selected. The owner sees the change as that of the cell (`table_02.key`), so the value belongs to the row
-const char* const kAttrFollowsColumn	= "follows_column";	///< string, of a text field with `follows_table`: the field of the rows (it may be `hidden` as a column of the table)
+const char* const kAttrUpdateMsg		= "update_msg";		///< string of four characters (a message command, `what`), of a control that is the source of an update (a table: when another row is selected, or none): it tells its observers with a message of that command, see the master/detail contract below
+const char* const kAttrBindToUpdateMsg	= "bind_to_update_msg";	///< string of four characters, of any control: it listens to the updates of that command and updates itself from them (the detail of a master/detail pair); `field_id` names the part of the message that is meant for it (default: the name of the control)
+const char* const kAttrFieldId		= "field_id";		///< string, of a control with `bind_to_update_msg`: the key of the update message that holds what is meant for this control (default: its own name)
 const char* const kAttrBusyField		= "busy_field";		///< string, of a column of a table: the name of a bool field of the same row; while it is true the cell shows a spinner before its text (the service that is asked now)
 const char* const kAttrColumnLabels	= "column_labels";	///< strings: the titles of the two columns of `kind = properties` (else "Name" and "Value")
 
 const char* const kStateInfo		= "info";			///< the values of the field of `state_field`: it worked (the icon of an information alert)
 const char* const kStateWarning		= "warning";		///< ... something is not as it should be (the icon of a warning)
 const char* const kStateError		= "error";			///< ... it failed (the icon of an error)
+const char* const kStateOk			= "ok";				///< ... it works (a green check mark)
+
+// Master and detail: a control (the master, a table) and controls that depend on it (the details) are tied by a message command, nothing else.
+//  - the master has `update_msg` = a command; when its state changes (another row of a table is selected, or none) it tells its observers (BHandler::SendNotices, the public observer calls of
+//    Handler.h) with a message of that command: `master->SendNotices(command, &update)`. A form has one handler for this (`StartWatching` of every master) and passes the notice to the details.
+//  - the details have `bind_to_update_msg` = that command; each is updated from the part of the message that has its `field_id`.
+//  - the update has `kUpdateReplyTo` (a BMessenger: where the answers go: a notice has no return address of its own) and for each detail a message with the field id as its name; in it the
+//    well-known keys `kUpdateValue` (what the control shows, of the type that the master holds: a bool for a check box, a number for a spinner, text for a field) and `kUpdateEnabled` (a bool:
+//    whether it can be used). A message without the part of a detail (no row is selected) empties and disables that detail. The master does not know which controls listen, a detail does
+//    not know what the master holds (a table: the rows have these messages as fields of their own, so the master puts the fields of the selected row in the message and nothing else).
+//  - when the user changes a detail it sends a `kUpdated` message to the messenger of the update: `kUpdateCommand` (the command that it belongs to) and its part with `kUpdateValue` (the new
+//    value, of the type that it got). Nothing else is handed back: what the value is for (a table: the field of the row that is selected) is the master's own state. The master changes itself
+//    from the answer, as for any change of its own, tells its owner, and tells its observers again, so the detail shows what the master holds (also when the master refused the value).
+const char* const kUpdateReplyTo	= "reply_to";
+const char* const kUpdateCommand	= "command";
+const char* const kUpdateValue		= "value";
+const char* const kUpdateEnabled	= "enabled";
+
+/** The command of a message from the four characters of the schema (`OVrw`); 0 if there are not four. */
+inline uint32_t UpdateCommand(const char* text)
+{
+	if (text == NULL || text[0] == '\0' || text[1] == '\0' || text[2] == '\0' || text[3] == '\0' || text[4] != '\0')
+		return 0;
+	return ((uint32_t)(uint8_t)text[0] << 24) | ((uint32_t)(uint8_t)text[1] << 16) | ((uint32_t)(uint8_t)text[2] << 8) | (uint32_t)(uint8_t)text[3];
+}
 
 const char* const kKindText			= "text";
 const char* const kKindPath			= "path";
