@@ -87,6 +87,8 @@ const char* const kAttrReorderable	= "reorderable";	///< bool, of a table (`kind
 const char* const kAttrUpdateMsg		= "update_msg";		///< string of four characters (a message command, `what`), of a control that is the source of an update (a table: when another row is selected, or none): it tells its observers with a message of that command, see the master/detail contract below
 const char* const kAttrBindToUpdateMsg	= "bind_to_update_msg";	///< string of four characters, of any control: it listens to the updates of that command and updates itself from them (the detail of a master/detail pair); `field_id` names the part of the message that is meant for it (default: the name of the control)
 const char* const kAttrFieldId		= "field_id";		///< string, of a control with `bind_to_update_msg`: the key of the update message that holds what is meant for this control (default: its own name)
+const char* const kAttrAllowCustom	= "allow_custom";	///< bool, of a `popup` field: other text than the choices may be entered (default true)
+const char* const kAttrAllowMultiple	= "allow_multiple";	///< bool, of a `popup` field: several values at once (default false; kept for later, the list offers one)
 const char* const kAttrBeside		= "beside";			///< string, of a button (`kind = button`) or of a text field: the name of another field of the same message: it stands in the line of that field instead of in a line of its own. A button: at the right end of the line of a text field, or in the column of the controls in the line of the label of a table; a text field: in the column of the controls, in the line of a check box (the check box, then the field)
 const char* const kAttrBusyField		= "busy_field";		///< string, of a column of a table: the name of a bool field of the same row; while it is true the cell shows a spinner before its text (the service that is asked now)
 const char* const kAttrColumnLabels	= "column_labels";	///< strings: the titles of the two columns of `kind = properties` (else "Name" and "Value")
@@ -129,6 +131,7 @@ const char* const kKindChoice		= "choice";
 const char* const kKindSlider		= "slider";			///< a number with `min` and `max` (and `step`) on a track
 const char* const kKindSpinner		= "spinner";		///< a number with buttons for up and down; the default for a number with `min` and `max`
 const char* const kKindRadio		= "radio";			///< the `choices` as radio buttons instead of a menu
+const char* const kKindPopup		= "popup";			///< a text field with a list that follows what is typed (sen::FilterPopUpMenu): the `choices` are the values; other text is accepted unless `allow_custom` is false
 const char* const kKindSecret		= "secret";
 const char* const kKindColor		= "color";
 const char* const kKindButton		= "button";			///< of a field of the type bool: a button with the `label` that tells the owner that it was pressed (the owner sees the field as `true` in a change; it is never stored)

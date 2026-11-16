@@ -476,8 +476,8 @@ FileTypes is a single launch application, so there is one instance, and it is no
 
 ### Enrichers write attributes
 
-An enricher (`enrich`, the message `sensei::cmd::kEnrich`, or Tracker's *Enrich*, which sends `B_REFS_RECEIVED` without `SEN:self`) reads what it can about a file, from the file itself or from a service, and writes it into the **attributes of the file**. What a
-person or another program put there stays (`wipe`, Shift in the menu, or `--overwrite` replaces it); the notification of Tracker says what is being enriched and the answer replaces it with what was found. Examples: `paperboy` (a paper), `movie-enricher`, `person-enricher`, `place-enricher`
+An enricher (`enrich`, the message `sensei::cmd::kEnrich`, or the *Enrich* of the file manager (Akita), which sends `B_REFS_RECEIVED` without `SEN:self`) reads what it can about a file, from the file itself or from a service, and writes it into the **attributes of the file**. What a
+person or another program put there stays (`wipe`, Shift in the menu, or `--overwrite` replaces it); a notification says what is being enriched and the answer replaces it with what was found. Examples: `paperboy` (a paper), `movie-enricher`, `person-enricher`, `place-enricher`
 (their shared base is `sensei/common/BaseEnricher`). An enricher that does not need the network reads the content of the file: the attributes are then a view of what the file says. An enricher that creates other things (the cast of a movie, the authors of a book) makes **entity files** for them
 (below) and relates them to the file.
 

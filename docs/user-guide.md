@@ -178,6 +178,28 @@ To **keep** one, drag it onto your Home folder or the Desktop, as for any folder
 
 ![A kept folder of what is nearby](images/beta6/kept-nearby-folder.png)
 
+## Calendar files and events
+
+An invitation or a calendar entry (`.ics`, also the old `.vcs`; from Google, Outlook, Apple, Thunderbird and others) is an **event** once SEN has read it. Select the file in Akita and choose **Enrich**: the file is typed as an *Event*, its
+time, place, organizer, status, the link of an online meeting (and its service: Zoom, Google Meet, Microsoft Teams, Webex, Jitsi, GoToMeeting, Whereby, Skype) and the rest are written into its attributes, so that you can show them as columns,
+sort by them and search for them, and the file is **named after the event with its date and time**: `2026-11-12_0930_Planning.ics`. The description is kept as a **Markdown file** beside it (`2026-11-12_0930_Planning.md`) with its links and formatting.
+The times in the attributes do not depend on your time zone setting: Akita shows them in the zone that you set. Nothing is sent over the network.
+
+A file with **several events** (an export of a calendar) becomes a **Calendar** that holds them: it has the name of the calendar, the number of events and the time that they cover.
+
+Open the relations of an event (*Open related*, group *Event*):
+
+- **Attendee** lists the people of the event, each with their role (organizer, required, optional, resource) and their *response* to the invitation (accepted, declined, tentative, needs action). The response belongs to the relation between the event and the person, not to
+  the person. Each person is a *Person* in the Library (found by the e-mail address, so the same person is not made twice); the person that you are is marked *you* (set **Myself** in the settings of the calendar extractor).
+- **Takes place at** is the place of the event, a *Place* in the Library (with its coordinates if the file has them; Spaces looks it up).
+- **Series** shows the instance of a repeating event just **before** and **after** this one, as the rule of the file says (with its exceptions and the instances that were moved).
+- **Description** opens the Markdown file of the event.
+- **Events**, at a calendar, lists the events that it holds.
+
+The folders of these relations are made when you open them: look at them (peek), or keep them. The instances of a series and the events of a calendar are places in the same calendar file, as the pages of a PDF are.
+
+In the settings (*Plugins*, under *Enrich*, *Identify* or *Navigate*: *SEN Calendar Extractor*) you can switch the renaming and the Markdown file off and set **Myself**: type your name and address (`Name <address>`) or choose yourself from the list of the people that SEN knows.
+
 ## Shoji, the form for a file
 
 Shoji opens a file (a paper, a person, a movie...) as a form: the Deskbar menu of SEN and *Open With... Shoji* start it, and in its settings it can be made the application for more types. A few things to know:
