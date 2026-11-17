@@ -187,14 +187,14 @@ The times in the attributes do not depend on your time zone setting: Akita shows
 
 A file with **several events** (an export of a calendar) becomes a **Calendar** that holds them: it has the name of the calendar, the number of events and the time that they cover.
 
-Open the relations of an event (*Open related*, group *Event*):
+Open the relations of an event (*Open related*, group *Temporal*, where the relations between events are as well):
 
 - **Attendee** lists the people of the event, each with their role (organizer, required, optional, resource) and their *response* to the invitation (accepted, declined, tentative, needs action). The response belongs to the relation between the event and the person, not to
   the person. Each person is a *Person* in the Library (found by the e-mail address, so the same person is not made twice); the person that you are is marked *you* (set **Myself** in the settings of the calendar extractor).
 - **Takes place at** is the place of the event, a *Place* in the Library (with its coordinates if the file has them; Spaces looks it up).
 - **Series** shows the instance of a repeating event just **before** and **after** this one, as the rule of the file says (with its exceptions and the instances that were moved).
 - **Description** opens the Markdown file of the event.
-- **Events**, at a calendar, lists the events that it holds.
+- **Events**, at a calendar, are the events that it holds. They are contained in the file as the outline of a document is: the menu of the calendar shows them as a list, in order of their start. The window of an event (Shoji) shows what the file says, also how it repeats (in words), the people with their roles and answers, the status and the links of the page and of the online meeting (click the label).
 
 The folders of these relations are made when you open them: look at them (peek), or keep them. The instances of a series and the events of a calendar are places in the same calendar file, as the pages of a PDF are.
 

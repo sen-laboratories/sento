@@ -434,6 +434,7 @@ A file has a **technical type**, `BEOS:TYPE` (`application/pdf`, `text/calendar`
   This holds for the types of a **relation** (`SEN:sourceTypes`, `SEN:targetTypes` and what they exclude: the relation is offered at the file if either type fits, and excluded if either is excluded) and for the `file_types` of a **plugin**
   (which plugin enriches or extracts a file). A relation or a plugin may therefore name what it means: a generic `application/pdf`, or the abstract `document/scientific-paper`, or both. The matching is by prefix (`document/`, `audio`).
 - The split keeps the semantic layer independent of the platform: the technical type is what the operating system says (a MIME type on Haiku, a UTI such as `public.calendar-event` on macOS, and a UTI conforms to others as a prefix does), the semantic type is SEN's own, so a port needs a mapping for the first only.
+- A navigator opens the target the way the file manager does (`sensei/common/OpenTarget.h`, also used by `TargetOpenerApp`): a file with an entity type as its semantic type opens with the application of that type, any other file with the one of its technical type.
 - The ontologies need no list of file types for the entity (`entity/x-vnd.sen-labs.entity.event` is enough for a `.ics` that was enriched as an event); older entries that name both the entity and its file type (`application/x-person`) are harmless.
 
 ### Extractors look *inside* a file, and return normal and contained relations
