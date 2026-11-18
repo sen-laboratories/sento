@@ -9,7 +9,7 @@
  * @brief A pop-up menu of values that follows what the user types into a text field (header only, Haiku only).
  *
  * FilterPopUpMenu is a BPopUpMenu: it looks and works as every other menu (mouse, selection, marked value) and is attached to a BTextView. It stays out of the way: the text field keeps the keyboard
- * and the caret and is edited as always; the menu opens BELOW the field while the user types and shows the values that contain the text (case does not matter), and follows every change. The keys
+ * and the caret and is edited as always; the menu opens BELOW the field while the user types and shows the values that BEGIN with the text (case does not matter), or, if there are none, those that have it anywhere; the part that matched is drawn in bold. It follows every change. The keys
  * belong to the field except these: Down/Up move through the list (Down opens it again), Enter takes the selected value, Escape closes the list. Enter without a selection takes the value that
  * the text names (or the only one that is left); text that is none of the values is accepted if `allow_custom` says so, otherwise Enter beeps and the field keeps the text.
  *
@@ -34,10 +34,13 @@
 
 #include <Beep.h>
 #include <ControlLook.h>
+#include <Cursor.h>
+#include <Font.h>
 #include <InterfaceDefs.h>
 #include <Handler.h>
 #include <List.h>
 #include <Looper.h>
+#include <Menu.h>
 #include <MenuItem.h>
 #include <Message.h>
 #include <OS.h>
@@ -75,7 +78,9 @@ public:
 		fAllowMultiple(false),
 		fEnterAfterPick(false),
 		fPassEnter(false),
-		fNavigated(false)
+		fNavigated(false),
+		fHand(false),
+		fArrowPressed(false)
 	{
 	}
 
@@ -193,15 +198,16 @@ public:
 	{
 		if (fText == NULL)
 			return;
-		std::vector<int32> matches;
-		_Matches(fShowAll ? "" : fText->Text(), &matches);
+		std::vector<int32> matches, offsets;
+		const char* filter = fShowAll ? "" : fText->Text();
+		_Matches(filter, &matches, &offsets);
 		if (matches.empty()) {
 			HideList();
 			return;
 		}
 		if (!openIfClosed && !IsOpen())
 			return;
-		_Fill(matches);
+		_Fill(matches, offsets, (int32)strlen(filter));
 		if (!IsOpen()) {
 			const BRect bounds = _FieldFrame();
 			Go(BPoint(bounds.left, bounds.bottom + 1), true, true, bounds, true);
@@ -266,7 +272,11 @@ public:
 private:
 	enum { kRefresh = 'FMrf', kPick = 'FMpk', kKeyThrough = 'FMky', kEnterKey = 'FMen', kShowAllValues = 'FMsa' };
 
-	/** The arrow at the right end of the field: a view over the text field that opens the whole list. */
+	/**
+	 * The arrow at the right end of the field: a view over the text field that only DRAWS. The mouse is not left to it: the field and its control are laid out after the menu is attached, and
+	 * the cursor stayed the I beam of the field and a click did nothing whenever the arrow did not lie where it is drawn, so the filter of the window looks at the mouse by the frame of the
+	 * arrow (`_MouseDown()` and the others), which is always where it is drawn.
+	 */
 	class Arrow : public BView {
 	public:
 		Arrow(FilterPopUpMenu* menu, BRect frame)
@@ -286,6 +296,9 @@ private:
 		virtual void Draw(BRect updateRect)
 		{
 			if (fMenu == NULL || fMenu->fText == NULL)
+				return;
+			// (the field was laid out since: the arrow moves to where the field has its right end now, and is drawn there)
+			if (fMenu->_PlaceArrow())
 				return;
 			const rgb_color base = fMenu->fText->ViewColor();
 			SetHighColor(base);
@@ -307,35 +320,9 @@ private:
 			PopState();
 		}
 
-		// The list opens when the button is released, as a button does: a menu that is opened while the button is still down is in the state of a menu that is dragged over (it is
-		// closed or takes the item under the pointer at the release), and the click that was meant to show the list did nothing.
-		virtual void MouseDown(BPoint)
-		{
-			if (fMenu == NULL || fMenu->fText == NULL || !fMenu->fText->IsEditable())
-				return;
-			fMenu->fText->MakeFocus(true);
-			fPressed = true;
-			SetMouseEventMask(B_POINTER_EVENTS, B_NO_POINTER_HISTORY);
-		}
-
-		virtual void MouseUp(BPoint where)
-		{
-			if (!fPressed)
-				return;
-			fPressed = false;
-			if (fMenu == NULL || fMenu->fText == NULL || !fMenu->fText->IsEditable() || !Bounds().Contains(where))
-				return;
-			// (the list opens from a message of its own: not in the middle of the mouse event, whatever state the window or the file manager is in then)
-			if (fMenu->IsOpen())
-				fMenu->HideList();
-			else
-				fMenu->fWindow.SendMessage(kShowAllValues);
-		}
-
 	private:
 		friend class FilterPopUpMenu;
 		FilterPopUpMenu*	fMenu;
-		bool				fPressed = false;
 	};
 
 	/** Looks at the keys that go to the field, before the field does. */
@@ -369,6 +356,15 @@ private:
 				case B_QUIT_REQUESTED:
 					fMenu->HideList();
 					return B_DISPATCH_MESSAGE;
+				case B_WINDOW_RESIZED:
+					fMenu->_PlaceArrow();
+					return B_DISPATCH_MESSAGE;
+				case B_MOUSE_DOWN:
+					return fMenu->_MouseDown(message);
+				case B_MOUSE_UP:
+					return fMenu->_MouseUp(message);
+				case B_MOUSE_MOVED:
+					return fMenu->_MouseMoved(message);
 				case kRefresh:
 					fMenu->_Edited();
 					return B_SKIP_MESSAGE;
@@ -418,10 +414,64 @@ private:
 		virtual void DrawContent() {}
 	};
 
-	/** The item of a value: invoked (in the thread of the menu) it only tells the window of the field. */
+	/**
+	 * The item of a value: invoked (in the thread of the menu) it only tells the window of the field. The part of the label that the text of the field matched is drawn in bold, so that
+	 * it can be seen why the value is in the list (the label is drawn in pieces, with the font of the menu and its bold face).
+	 */
 	class ValueItem : public BMenuItem {
 	public:
-		ValueItem(FilterPopUpMenu* menu, int32 index, const char* label) : BMenuItem(label, NULL), fMenu(menu), fIndex(index) {}
+		ValueItem(FilterPopUpMenu* menu, int32 index, const char* label, int32 matchOffset, int32 matchLength)
+			:
+			BMenuItem(label, NULL),
+			fMenu(menu),
+			fIndex(index),
+			fMatchOffset(matchOffset),
+			fMatchLength(matchLength)
+		{
+		}
+
+		virtual void GetContentSize(float* width, float* height)
+		{
+			BMenuItem::GetContentSize(width, height);
+			BMenu* menu = Menu();
+			if (menu == NULL || fMatchOffset < 0 || fMatchLength <= 0)
+				return;
+			BFont font, bold;
+			_Fonts(menu, &font, &bold);
+			const BString label(Label());
+			BString before, match, after;
+			_Pieces(label, &before, &match, &after);
+			*width = font.StringWidth(before.String()) + bold.StringWidth(match.String()) + font.StringWidth(after.String());
+		}
+
+		virtual void DrawContent()
+		{
+			BMenu* menu = Menu();
+			if (menu == NULL || fMatchOffset < 0 || fMatchLength <= 0) {
+				BMenuItem::DrawContent();
+				return;
+			}
+			BFont font, bold;
+			_Fonts(menu, &font, &bold);
+			const BString label(Label());
+			BString before, match, after;
+			_Pieces(label, &before, &match, &after);
+
+			menu->PushState();
+			menu->SetHighColor(ui_color(IsSelected() ? B_MENU_SELECTED_ITEM_TEXT_COLOR : B_MENU_ITEM_TEXT_COLOR));
+			// (the pen is on the baseline: the label is in the middle of the height of the item)
+			font_height height;
+			font.GetHeight(&height);
+			const BRect frame = Frame();
+			menu->MovePenTo(BPoint(ContentLocation().x, frame.top + (frame.Height() + 1 - (height.ascent + height.descent)) / 2 + height.ascent));
+			menu->SetFont(&font);
+			menu->DrawString(before.String());
+			menu->SetFont(&bold);
+			menu->DrawString(match.String());
+			menu->SetFont(&font);
+			menu->DrawString(after.String());
+			menu->PopState();
+		}
 
 		virtual status_t Invoke(BMessage* message = NULL)
 		{
@@ -431,9 +481,103 @@ private:
 		}
 
 	private:
+		static void _Fonts(BMenu* menu, BFont* font, BFont* bold)
+		{
+			menu->GetFont(font);
+			*bold = *font;
+			bold->SetFace(B_BOLD_FACE);
+		}
+
+		void _Pieces(const BString& label, BString* before, BString* match, BString* after) const
+		{
+			label.CopyInto(*before, 0, fMatchOffset);
+			label.CopyInto(*match, fMatchOffset, fMatchLength);
+			label.CopyInto(*after, fMatchOffset + fMatchLength, label.Length() - fMatchOffset - fMatchLength);
+		}
+
 		FilterPopUpMenu*	fMenu;
 		int32				fIndex;
+		int32				fMatchOffset;	///< where the text of the field is in the label (-1: nowhere, the whole label is plain)
+		int32				fMatchLength;
 	};
+
+	/** The frame that the arrow has at the right end of the text view (in the coordinates of the parent of the view): where the view is now, which is not where it was when the menu was attached. */
+	BRect _ArrowFrame() const
+	{
+		const float width = ceilf(fText->LineHeight() * 1.1f);
+		BRect frame = fText->Frame();
+		frame.left = frame.right - width + 1;
+		frame.InsetBy(0, 1);
+		return frame;
+	}
+
+	/** Puts the arrow where it belongs; true if it had to be moved (it is drawn again there). */
+	bool _PlaceArrow()
+	{
+		if (fText == NULL || fArrow == NULL || fText->Window() == NULL)
+			return false;
+		const BRect frame = _ArrowFrame();
+		if (frame == fArrow->Frame())
+			return false;
+		fArrow->MoveTo(frame.LeftTop());
+		fArrow->ResizeTo(frame.Width(), frame.Height());
+		fArrow->Invalidate();
+		return true;
+	}
+
+	/** Whether the pointer of the mouse message is over the arrow (by the frame that the arrow has). */
+	bool _OverArrow(const BMessage* message)
+	{
+		if (fText == NULL || fArrow == NULL || fArrow->IsHidden() || fArrow->Parent() == NULL || fText->Window() == NULL || !fText->IsEditable())
+			return false;
+		BPoint where;
+		if (message->FindPoint("where", &where) != B_OK)
+			return false;
+		_PlaceArrow();
+		return fArrow->Frame().Contains(fArrow->Parent()->ConvertFromScreen(fText->Window()->ConvertToScreen(where)));
+	}
+
+	void _ShowHand(bool hand)
+	{
+		if (fText == NULL || fHand == hand)
+			return;
+		fHand = hand;
+		// (the text view sets the I beam again when the pointer is over its text)
+		const BCursor cursor(hand ? B_CURSOR_ID_FOLLOW_LINK : B_CURSOR_ID_I_BEAM);
+		fText->SetViewCursor(&cursor);
+	}
+
+	/** The press on the arrow is the arrow's (the list is closed if it is open); the list opens when the button is released, as a button acts. */
+	filter_result _MouseDown(BMessage* message)
+	{
+		if (!_OverArrow(message))
+			return B_DISPATCH_MESSAGE;
+		fText->MakeFocus(true);
+		if (IsOpen()) {
+			HideList();
+			fArrowPressed = false;
+		} else
+			fArrowPressed = true;
+		return B_SKIP_MESSAGE;
+	}
+
+	filter_result _MouseUp(BMessage* message)
+	{
+		if (!fArrowPressed)
+			return B_DISPATCH_MESSAGE;
+		fArrowPressed = false;
+		// (opened by a message of its own: not in the middle of the mouse event, whatever state the window or the file manager is in then)
+		if (_OverArrow(message))
+			fWindow.SendMessage(kShowAllValues);
+		return B_SKIP_MESSAGE;
+	}
+
+	filter_result _MouseMoved(BMessage* message)
+	{
+		const bool over = _OverArrow(message);
+		_ShowHand(over);
+		return over ? B_SKIP_MESSAGE : B_DISPATCH_MESSAGE;
+	}
 
 	/** Gives a key to the menu as if it had the keyboard. A key that ends the tracking (Escape, Enter) deletes the window of the menu while it is locked: it is not unlocked then. */
 	bool _ForwardKey(const char* bytes)
@@ -469,15 +613,27 @@ private:
 		return -1;
 	}
 
-	void _Matches(const char* text, std::vector<int32>* matches) const
+	/**
+	 * The values for the text: those that BEGIN with it; if there are none, those that have it anywhere (case does not matter). `offsets` (if given) has where the text is in each of them.
+	 */
+	void _Matches(const char* text, std::vector<int32>* matches, std::vector<int32>* offsets = NULL) const
 	{
 		const BString filter(text != NULL ? text : "");
-		for (size_t i = 0; i < fTexts.size(); i++)
-			if (filter.Length() == 0 || BString(fTexts[i].c_str()).IFindFirst(filter) >= 0)
+		for (int pass = 0; pass < 2 && matches->empty(); pass++) {
+			for (size_t i = 0; i < fTexts.size(); i++) {
+				const int32 at = filter.Length() == 0 ? 0 : BString(fTexts[i].c_str()).IFindFirst(filter);
+				if (at < 0 || (pass == 0 && at != 0))
+					continue;
 				matches->push_back((int32)i);
+				if (offsets != NULL)
+					offsets->push_back(filter.Length() == 0 ? -1 : at);
+			}
+			if (filter.Length() == 0)
+				break;
+		}
 	}
 
-	void _Fill(const std::vector<int32>& matches)
+	void _Fill(const std::vector<int32>& matches, const std::vector<int32>& offsets, int32 filterLength)
 	{
 		BWindow* menuWindow = Window();
 		const bool locked = menuWindow != NULL && menuWindow->Lock();
@@ -486,7 +642,7 @@ private:
 			delete item;
 		const BString current(fText->Text());
 		for (size_t i = 0; i < matches.size(); i++) {
-			BMenuItem* value = new ValueItem(this, matches[i], fTexts[matches[i]].c_str());
+			BMenuItem* value = new ValueItem(this, matches[i], fTexts[matches[i]].c_str(), i < offsets.size() ? offsets[i] : -1, filterLength);
 			if (_SameText(fTexts[matches[i]], current.String()))
 				value->SetMarked(true);
 			AddItem(value);
@@ -672,6 +828,8 @@ private:
 	bool						fEnterAfterPick;
 	bool						fPassEnter;		///< the Enter that was sent after a pick goes to the field
 	bool						fNavigated;		///< an arrow key has selected an item since the list was filled
+	bool						fHand;			///< the pointer is over the arrow and the field shows the hand
+	bool						fArrowPressed;	///< the press was on the arrow
 };
 
 }	// namespace sen
