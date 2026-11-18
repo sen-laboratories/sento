@@ -301,11 +301,24 @@ private:
 			FillTriangle(BPoint(cx - half, cy - half / 2), BPoint(cx + half, cy - half / 2), BPoint(cx, cy + half / 2 + 1));
 		}
 
+		// The list opens when the button is released, as a button does: a menu that is opened while the button is still down is in the state of a menu that is dragged over (it is
+		// closed or takes the item under the pointer at the release), and the click that was meant to show the list did nothing.
 		virtual void MouseDown(BPoint)
 		{
 			if (fMenu == NULL || fMenu->fText == NULL || !fMenu->fText->IsEditable())
 				return;
 			fMenu->fText->MakeFocus(true);
+			fPressed = true;
+			SetMouseEventMask(B_POINTER_EVENTS, B_NO_POINTER_HISTORY);
+		}
+
+		virtual void MouseUp(BPoint where)
+		{
+			if (!fPressed)
+				return;
+			fPressed = false;
+			if (fMenu == NULL || fMenu->fText == NULL || !fMenu->fText->IsEditable() || !Bounds().Contains(where))
+				return;
 			if (fMenu->IsOpen())
 				fMenu->HideList();
 			else
@@ -315,6 +328,7 @@ private:
 	private:
 		friend class FilterPopUpMenu;
 		FilterPopUpMenu*	fMenu;
+		bool				fPressed = false;
 	};
 
 	/** Looks at the keys that go to the field, before the field does. */
