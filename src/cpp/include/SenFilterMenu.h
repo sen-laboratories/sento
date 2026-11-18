@@ -264,7 +264,7 @@ public:
 	}
 
 private:
-	enum { kRefresh = 'FMrf', kPick = 'FMpk', kKeyThrough = 'FMky', kEnterKey = 'FMen' };
+	enum { kRefresh = 'FMrf', kPick = 'FMpk', kKeyThrough = 'FMky', kEnterKey = 'FMen', kShowAllValues = 'FMsa' };
 
 	/** The arrow at the right end of the field: a view over the text field that opens the whole list. */
 	class Arrow : public BView {
@@ -292,13 +292,19 @@ private:
 			FillRect(Bounds());
 			if (!fMenu->fText->IsEditable())
 				return;
-			// a small triangle pointing down, in the middle
+			// the filled triangle pointing down that the lists of Tracker and the date fields have (BControlLook::DrawArrowShape()), in the middle
 			const BRect bounds(Bounds());
-			const float half = ceilf(be_plain_font->Size() * 0.4f);
-			const float cx = roundf((bounds.left + bounds.right) / 2);
-			const float cy = roundf((bounds.top + bounds.bottom) / 2);
-			SetHighColor(tint_color(base, B_DARKEN_3_TINT));
-			FillTriangle(BPoint(cx - half, cy - half / 2), BPoint(cx + half, cy - half / 2), BPoint(cx, cy + half / 2 + 1));
+			const float side = ceilf(be_plain_font->Size() * 0.7f);
+			const float x = floorf(bounds.left + (bounds.Width() + 1 - side) / 2);
+			const float y = floorf(bounds.top + (bounds.Height() + 1 - side) / 2);
+			const rgb_color panel = ui_color(B_PANEL_BACKGROUND_COLOR);
+			float tint = B_DARKEN_4_TINT;
+			if (panel.red + panel.green + panel.blue <= 128 * 3)
+				tint = B_LIGHTEN_2_TINT;
+			PushState();
+			BRect arrow(x, y, x + side - 1, y + side - 1);
+			be_control_look->DrawArrowShape(this, arrow, updateRect, base, BControlLook::B_DOWN_ARROW, 0, tint);
+			PopState();
 		}
 
 		// The list opens when the button is released, as a button does: a menu that is opened while the button is still down is in the state of a menu that is dragged over (it is
@@ -319,10 +325,11 @@ private:
 			fPressed = false;
 			if (fMenu == NULL || fMenu->fText == NULL || !fMenu->fText->IsEditable() || !Bounds().Contains(where))
 				return;
+			// (the list opens from a message of its own: not in the middle of the mouse event, whatever state the window or the file manager is in then)
 			if (fMenu->IsOpen())
 				fMenu->HideList();
 			else
-				fMenu->ShowAll();
+				fMenu->fWindow.SendMessage(kShowAllValues);
 		}
 
 	private:
@@ -364,6 +371,9 @@ private:
 					return B_DISPATCH_MESSAGE;
 				case kRefresh:
 					fMenu->_Edited();
+					return B_SKIP_MESSAGE;
+				case kShowAllValues:
+					fMenu->ShowAll();
 					return B_SKIP_MESSAGE;
 				case kPick:
 					fMenu->_Pick(message);
