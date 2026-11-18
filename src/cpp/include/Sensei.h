@@ -50,6 +50,20 @@ inline constexpr uint32_t kResult   = 'SErs';
  */
 inline constexpr uint32_t kResolve  = 'SErv';
 
+/**
+ * Make the entity that an item of a contained relation stands for (a relation type with `SEN:materialiseAs`, see sen::conf::kMaterialiseAs; asked by the server for sen::cmd::kRelationsMaterialise).
+ * The plugin is the one that extracts the relation (its preferred application).
+ *
+ * Request: `refs` is the file that holds the items (a ref), sen::key::kRelationType the relation type, key::kLibraries the folders to make entities in (one for the entity type), and key::kItems
+ * a message for each item, with its properties as the file of the item has them as attributes (the identifier `dc:identifier`, the times, sen::key::kItemId).
+ *
+ * Reply: kResult, and kTargets: one message for each item that has an entity now, with sen::key::kTargetRef (the file of the entity, found if it was made earlier: the plugin recognizes an
+ * entity by what makes it the same, the identifier) and sen::key::kItemId of the item. Any other field of the message is kept as a property of the relation Contains that the server stores
+ * between the file and the entity (the file contains the entity, the entity is contained by the file): the plugin puts the identifier of the item there (`dc:identifier`), which finds the
+ * item again. The id of the item itself is made new at every listing and is not kept. Every entity has a `SEN:ID`, which the server gives it.
+ */
+inline constexpr uint32_t kMaterialise = 'SEmt';
+
 // ---- the settings of a plugin (see docs/spec-settings-and-message-template.md in sento). The plugin keeps and validates its settings itself, in the place and
 // format of its choice; SEN never reads or writes them. The settings window starts the plugin with kSettings if it is not running.
 /** Ask for the settings. The reply has `settings`, `schema` and `defaults` (messages, see SenSettingsForm.h; the last two may be left out), and `result`. This starts a settings
@@ -128,8 +142,10 @@ inline constexpr char kReplyTo[] = "reply_to";
  * Use it with sensei::FindOrCreateEntityFile() (the parameter @p library).
  */
 inline constexpr char kLibraries[] = "SEN:libraries";
-/** the reply to kResolve: a message for each related file (see there) */
+/** the reply to kResolve and kMaterialise: a message for each related file or entity (see there) */
 inline constexpr char kTargets[] = "SEN:targets";
+/** in a kMaterialise request: a message for each item, with its properties (the attributes of the file of the item) */
+inline constexpr char kItems[] = "SEN:items";
 /** shortcut for the relation target id: a `SEN:ID` or one of the placeholders below */
 inline constexpr char kTo[]     = "_to";
 

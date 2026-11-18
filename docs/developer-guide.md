@@ -184,6 +184,7 @@ Defined in the ontology resource `SEN:REL:CONFIG` of the relation type, in a mes
 | `SEN:bidir` (default **true**) | relations are always bidirectional unless declared otherwise: SEN writes the opposite relation to the target, using `SEN:inverse` for its label and properties. |
 | `SEN:dynamic` | resolved at run time (by a plugin or a query), never stored, read-only. |
 | `SEN:self` | reflexive: the relation lives *inside* the source file (headings of a document, includes of a source file, files of an archive). Resolved by `extract` plugins; Tracker shows these in a separate menu (currently "Open self...", to be called **"Open contained..."**). Self relations are what allow looking *into* a file. |
+| `SEN:materialiseAs` | an entity type (`entity/x-vnd.sen-labs.entity.event`): what an *item* of the relation stands for. A contained item is a place in the file of the source, not a file of its own; with this flag the plugin of the relation can make the entity (see "Items that are entities" below). Without it the relation file is what is kept (a deep link). Schema annotation `materialise_as`. |
 | `SEN:relation` | config of the forward direction (label, ...) |
 | `SEN:inverse` | config of the opposite direction (label, ...) |
 
@@ -525,6 +526,22 @@ with `auto`), as the spatial navigator does for the places that it made. A plugi
 A file can be the target of many relations, each at **another place in it**: the pages of a PDF that a document refers to (`docref`), the lines of a source file, the events of a calendar. The place is part of the relation, not of the file: the target is the same file and a
 **selector** (W3C Web Annotation: `oa:hasTarget` with `oa:hasSelector`, a `oa:FragmentSelector` `page=3`, a text quote, an EPUB CFI; section 3.2) says where. The navigator of the relation type opens the file at that place (`document-reference-navigator` gives the page to the viewer that is installed). A relation
 type that points *into* a file needs no new file for each place; one that points to **another thing** (a person, a place) points to an entity file.
+
+### Items that are entities: `SEN:materialiseAs`
+
+The items of a contained relation are places in the file of the source (`SEN:REL:TRG` is that file). For the references into a PDF that is what is wanted: a copy of the relation file is a deep link, and the target is always the same PDF. For the events of a calendar it is not: they
+are **entities** in their own right, which a person wants to keep, search and relate (before, after, overlaps). A relation type that says so (`materialise_as: entity/...` in the schema, `SEN:materialiseAs` in its config) has its items turned into the entities **when they are needed, never when
+they are listed** (a peek makes no files):
+
+- the server command `sen::cmd::kRelationsMaterialise` (`refs` the file that holds the items, `kRelationType`, and one `kRelationProperties` message for each item, with its attributes). The server asks the plugin of the relation (its preferred application) with `sensei::cmd::kMaterialise`: `refs`, `kRelationType`,
+  `kLibraries` (the Library folder of the entity type) and `sensei::key::kItems` (the properties of the items). The plugin answers `kResult` and a `kTargets` message for each item that has an entity now, with `sen::key::kTargetRef` and the `sen::key::kItemId` of the item. A relation without
+  `SEN:materialiseAs` is answered with `B_NOT_SUPPORTED`. The server gives every entity its `SEN:ID` and stores the relation **Contains** of the core ontology between the file and the entity (the file *contains* the entity, the entity is *contained by* the file: the relation is reused, not made again
+  for each ontology); the properties of that relation are the fields of the `kTargets` message besides the entity and the item (the plugin puts the identifier there, which is what finds the item again; the id of the item is new at every listing and is not kept).
+- the entity is **found by its identifier** (`dc:identifier`, the UID of a calendar event; an event without one gets a key made of what it says, `sen-<hash>`), so that keeping an event twice finds the file that is there; the plugin writes it again if the source says it differently now. The technical type of
+  the file stays what it is (`text/calendar`); the plugin adds the semantic type like any enrichment (see "Two types").
+- `sen::key::kDestinationRef` (optional) is a folder to make the entities in: **dragging items out of a relation view** (or *Copy to* / *Move to*) makes them in the folder they were dropped in, a copy of one that is kept in the Library too (the plugin finds only what is in that folder, so dropping twice makes no second file). Links and the Trash are not affected; the other files of a selection are copied as before.
+- When an entity that was deleted (or is in the Trash) is made again it is a new file with a new `SEN:ID`: the server takes the stored relation to the old one away (same identifier, target gone) and stores the new one, so there is one relation for the item.
+- Akita does it for *Copy to Library* (the menu item for items of such a relation) and for *Open related* on an item: the menu asks for the relations of the entity, not of the file that holds it. `TrackerSenRelations::IsMaterialisableItem()` tells whether an item is one (the config of its type in the MIME database).
 
 ### A new plugin: the steps
 

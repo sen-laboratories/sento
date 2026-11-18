@@ -74,6 +74,16 @@ inline constexpr uint32_t kRelationsGet                 = 'SRge';
 inline constexpr uint32_t kRelationsGetAll              = 'SRga';
 /** contained (self) relations of one type */
 inline constexpr uint32_t kRelationsGetSelf             = 'SRsg';
+/**
+ * Make the entities that the items of a relation stand for (a relation with `SEN:materialiseAs`, see conf::kMaterialiseAs: the events of a calendar). Request: key::kSourceRef is the
+ * file that holds the items (the calendar), key::kRelationType the relation type, and key::kRelationProperties one message for each item, as the file of the item has its attributes
+ * (the identifier, the times, key::kItemId). An entity that is there already (found by its identifier) is found again, none is made twice. Answered with sen::key::kResult and one
+ * sensei::key::kTargets message for each item that has an entity now, with key::kTargetRef (the entity file) and key::kItemId (the item). B_NOT_SUPPORTED: the relation makes no entities
+ * (it has no `SEN:materialiseAs`): what is kept is the file of the relation. Optional: key::kDestinationRef, a folder to make the entities in (what is dropped in a folder is made there,
+ * and a copy of an entity that is kept elsewhere is made too); without it they are made in the Library of the entity type, and an entity that is kept is found. The server also stores the
+ * relation Contains between the file and each entity, and takes away such a relation to an entity of the same item that is gone (deleted, or in the Trash).
+ */
+inline constexpr uint32_t kRelationsMaterialise         = 'SRmt';
 inline constexpr uint32_t kRelationsGetAllSelf          = 'SRsa';
 inline constexpr uint32_t kRelationsGetCompatible       = 'SRgc';
 inline constexpr uint32_t kRelationsGetCompatibleTypes  = 'SRgt';
@@ -276,6 +286,8 @@ inline constexpr char kSourceRef[]          = "refs";
 inline constexpr char kSourceId[]           = "SEN:sourceId";
 inline constexpr char kTargetId[]           = "SEN:targetId";
 inline constexpr char kTargetRef[]          = "SEN:targetRef";
+/** where the entities of a materialise request are made (an entry_ref of a folder), instead of the Library of their type */
+inline constexpr char kDestinationRef[]     = "SEN:destination";
 /** the type of a target, used to find compatible relations */
 inline constexpr char kTargetType[]         = "SEN:targetType";
 /** maps `SEN:ID` to entry_refs, sent in relation replies */
@@ -323,6 +335,12 @@ inline constexpr char kBidirectional[] = "SEN:bidir";
 inline constexpr char kDynamic[]       = "SEN:dynamic";
 /** bool: reflexive; the relation lives inside the source file (shown as "contained") */
 inline constexpr char kSelf[]          = "SEN:self";
+/**
+ * string: the entity type (`entity/x-vnd.sen-labs.entity.event`) that an item of the relation stands for. The items of a contained relation are places in the file of the source (the
+ * events of a calendar file), not files of their own. With this the plugin of the relation can make the entity of an item (see cmd::kRelationsMaterialise): an item that is kept in the
+ * Library is the entity, and the relations of the entity are those of the item. Without it the file of the relation is what is kept (a deep link: the references of a PDF).
+ */
+inline constexpr char kMaterialiseAs[] = "SEN:materialiseAs";
 /**
  * bool: working the relation out asks a service on the internet (slow, and the place of a quota or a permission): a view that
  * shows many relations at once ("all relations") does not ask for it; opening the relation itself does. Independent of kDynamic and kSelf.

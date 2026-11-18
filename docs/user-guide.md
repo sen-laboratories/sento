@@ -196,6 +196,8 @@ Open the relations of an event (*Open related*, group *Temporal*, where the rela
 - **Description** opens the Markdown file of the event.
 - **Events**, at a calendar, are the events that it holds. They are contained in the file as the outline of a document is: the menu of the calendar shows them as a list, in order of their start. The window of an event (Shoji) shows what the file says, also how it repeats (in words), the people with their roles and answers, the status and the links of the page and of the online meeting (click the label).
 
+The events in the folder of the Events relation are only **items** at first: a copy of such a file would copy the relation. To **keep an event as an event**, select it (or several) and choose **Copy to Library**: the calendar extractor makes the event a calendar file of its own in the Library (`Events`), named after its date and time, enriched like an event that you received alone. Keeping it again finds the file that is there. You can also **drag the events out** of the folder (or use *Copy to*): they become events in the folder where you drop them. Choosing **Open related** on such an item shows the relations of the event, for example the events before and after it.
+
 The folders of these relations are made when you open them: look at them (peek), or keep them. The instances of a series and the events of a calendar are places in the same calendar file, as the pages of a PDF are.
 
 In the settings (*Plugins*, under *Enrich*, *Identify* or *Navigate*: *SEN Calendar Extractor*) you can switch the renaming and the Markdown file off and set **Myself**: type your name and address (`Name <address>`) or choose yourself from the list of the people that SEN knows.
