@@ -53,9 +53,6 @@
 #include <Window.h>
 
 #include <math.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <unistd.h>
 #include <string.h>
 #include <string>
 #include <vector>
@@ -83,8 +80,7 @@ public:
 		fPassEnter(false),
 		fNavigated(false),
 		fHand(false),
-		fArrowPressed(false),
-		fPressedAt(0)
+		fArrowPressed(false)
 	{
 	}
 
@@ -212,7 +208,6 @@ public:
 		if (!openIfClosed && !IsOpen())
 			return;
 		_Fill(matches, offsets, (int32)strlen(filter));
-		_Log("Refresh: %d matches, open=%d", (int)matches.size(), (int)IsOpen());
 		if (!IsOpen()) {
 			const BRect bounds = _FieldFrame();
 			Go(BPoint(bounds.left, bounds.bottom + 1), true, true, bounds, true);
@@ -229,7 +224,6 @@ public:
 	/** Opens the list with all values (what the arrow does); typing filters it from then on. */
 	void ShowAll()
 	{
-		_Log("ShowAll");
 		fShowAll = true;
 		fLastText = "";
 		Refresh();
@@ -238,7 +232,6 @@ public:
 	/** Closes the list (as Escape closes a menu). */
 	void HideList()
 	{
-		_Log("HideList open=%d", (int)IsOpen());
 		_ForwardKey("\x1b");
 		fNavigated = false;
 	}
@@ -280,15 +273,14 @@ private:
 	enum { kRefresh = 'FMrf', kPick = 'FMpk', kKeyThrough = 'FMky', kEnterKey = 'FMen', kShowAllValues = 'FMsa', kPlaceArrow = 'FMpa' };
 
 	/**
-	 * The arrow at the right end of the field: a view over the text field that only DRAWS. The mouse is not left to it: the field and its control are laid out after the menu is attached, and
-	 * the cursor stayed the I beam of the field and a click did nothing whenever the arrow did not lie where it is drawn, so the filter of the window looks at the mouse by the frame of the
-	 * arrow (`_MouseDown()` and the others), which is always where it is drawn.
+	 * The arrow at the right end of the field: a view over the text field that only draws. The mouse is handled by the filter of the window (`_MouseDown()` and the others), by the frame that
+	 * the arrow has: the text view lies under the arrow and is the target of the mouse there.
 	 */
 	class Arrow : public BView {
 	public:
 		Arrow(FilterPopUpMenu* menu, BRect frame)
 			:
-			BView(frame, "values arrow", B_FOLLOW_RIGHT | B_FOLLOW_TOP, B_WILL_DRAW),
+			BView(frame, "values arrow", B_FOLLOW_NONE, B_WILL_DRAW),
 			fMenu(menu)
 		{
 			SetViewColor(B_TRANSPARENT_COLOR);
@@ -304,8 +296,8 @@ private:
 		{
 			if (fMenu == NULL || fMenu->fText == NULL)
 				return;
-			// (the field was laid out since: the arrow moves to where the field has its right end now, by a message: a view is not moved while it is drawn)
-			if (fMenu->_ArrowMisplaced())
+			// (the field is laid out after the menu was attached: the arrow moves to the right end of the field, by a message, as a view is not moved while it is drawn)
+			if (fMenu->_ArrowFrame() != Frame())
 				fMenu->fWindow.SendMessage(kPlaceArrow);
 			const rgb_color base = fMenu->fText->ViewColor();
 			SetHighColor(base);
@@ -367,9 +359,9 @@ private:
 					fMenu->_PlaceArrow();
 					return B_DISPATCH_MESSAGE;
 				case B_MOUSE_DOWN:
-					return fMenu->_MouseDown(message);
+					return fMenu->_MouseDown();
 				case B_MOUSE_UP:
-					return fMenu->_MouseUp(message);
+					return fMenu->_MouseUp();
 				case B_MOUSE_MOVED:
 					return fMenu->_MouseMoved(message);
 				case kRefresh:
@@ -511,24 +503,7 @@ private:
 		int32				fMatchLength;
 	};
 
-	/** What the arrow does, into /tmp/sen-filtermenu.log, while the file /tmp/sen-filtermenu.debug exists (to see what a real click does). */
-	static void _Log(const char* format, ...)
-	{
-		if (access("/tmp/sen-filtermenu.debug", F_OK) != 0)
-			return;
-		FILE* file = fopen("/tmp/sen-filtermenu.log", "a");
-		if (file == NULL)
-			return;
-		fprintf(file, "%lld ", (long long)(system_time() / 1000));
-		va_list arguments;
-		va_start(arguments, format);
-		vfprintf(file, format, arguments);
-		va_end(arguments);
-		fputc('\n', file);
-		fclose(file);
-	}
-
-	/** The frame that the arrow has at the right end of the text view (in the coordinates of the parent of the view): where the view is now, which is not where it was when the menu was attached. */
+	/** The frame that the arrow has at the right end of the text view, in the coordinates of the parent of the view. */
 	BRect _ArrowFrame() const
 	{
 		const float width = ceilf(fText->LineHeight() * 1.1f);
@@ -538,43 +513,32 @@ private:
 		return frame;
 	}
 
-	bool _ArrowMisplaced() const
-	{
-		return fText != NULL && fArrow != NULL && fText->Window() != NULL && _ArrowFrame() != fArrow->Frame();
-	}
-
-	/** Puts the arrow where it belongs; true if it had to be moved (it is drawn again there). */
-	bool _PlaceArrow()
+	/** Puts the arrow where it belongs. */
+	void _PlaceArrow()
 	{
 		if (fText == NULL || fArrow == NULL || fText->Window() == NULL)
-			return false;
+			return;
 		const BRect frame = _ArrowFrame();
 		if (frame == fArrow->Frame())
-			return false;
+			return;
 		fArrow->MoveTo(frame.LeftTop());
 		fArrow->ResizeTo(frame.Width(), frame.Height());
 		fArrow->Invalidate();
-		return true;
 	}
 
 	/**
-	 * Whether the pointer is over the arrow (by the frame that the arrow has): by the position in the message, or, for a press and a release (`pointerNow`), also by where the pointer is now (a
-	 * click on the arrow that was taken for a click elsewhere did nothing, and what a press and a release carry is not what a move carries: either position counts).
+	 * Whether the pointer is over the arrow, by the frame that the arrow has now. The position is asked from the window: the position in a mouse message is relative to the window, to the
+	 * view or to the screen, depending on the message and the field.
 	 */
-	bool _OverArrow(const BMessage* message, bool pointerNow = false)
+	bool _OverArrow()
 	{
 		if (fText == NULL || fArrow == NULL || fArrow->IsHidden() || fArrow->Parent() == NULL || fText->Window() == NULL || !fText->IsEditable())
 			return false;
-		const BRect frame = fArrow->Frame();
+		_PlaceArrow();
 		BPoint where;
-		bool byMessage = false;
-		if (message->FindPoint("where", &where) == B_OK)
-			byMessage = frame.Contains(fArrow->Parent()->ConvertFromScreen(fText->Window()->ConvertToScreen(where)));
-		if (byMessage || !pointerNow)
-			return byMessage;
 		uint32 buttons;
 		fArrow->Parent()->GetMouse(&where, &buttons, false);
-		return frame.Contains(where);
+		return fArrow->Frame().Contains(where);
 	}
 
 	void _ShowHand(bool hand)
@@ -588,50 +552,30 @@ private:
 	}
 
 	/**
-	 * The press and the release on the arrow open the list, as a button does (on the release). Nothing is taken from the window: a press and a release always go on (the file manager waits for
-	 * the release of every press that it got), the press only puts the caret into the field, and the state of ours is cleared by every press that is not on the arrow.
+	 * A press and a release on the arrow open the list, as a button does (on the release). They always go on to the window: the file manager waits for the release of every press that it got.
 	 */
-	filter_result _MouseDown(BMessage* message)
+	filter_result _MouseDown()
 	{
-		const bool over = _OverArrow(message, true);
-		_Log("mouse down over=%d open=%d (message has where: %d, be:view_where: %d)", (int)over, (int)IsOpen(), (int)message->HasPoint("where"), (int)message->HasPoint("be:view_where"));
-		fArrowPressed = false;
-		if (!over)
-			return B_DISPATCH_MESSAGE;
-		if (IsOpen())
-			HideList();
-		else {
-			fArrowPressed = true;
-			fPressedAt = system_time();
-		}
+		fArrowPressed = _OverArrow();
 		return B_DISPATCH_MESSAGE;
 	}
 
-	filter_result _MouseUp(BMessage* message)
+	filter_result _MouseUp()
 	{
-		const bool over = _OverArrow(message, true);
-		_Log("mouse up pressed=%d over=%d", (int)fArrowPressed, (int)over);
 		if (fArrowPressed) {
 			fArrowPressed = false;
 			// (opened by a message of its own: not in the middle of the mouse event, whatever state the window or the file manager is in then)
-			if (over)
+			if (_OverArrow())
 				fWindow.SendMessage(kShowAllValues);
 		}
 		return B_DISPATCH_MESSAGE;
 	}
 
+	/** The hand is the field's to keep while the pointer is over the arrow (the text view would set the I beam); a drag that was started elsewhere goes on. */
 	filter_result _MouseMoved(BMessage* message)
 	{
-		const bool over = _OverArrow(message);
+		const bool over = _OverArrow();
 		_ShowHand(over);
-		// a press on the arrow whose release did not come to the window: the buttons are up and the pointer is still there, so the click is complete
-		if (fArrowPressed && message->GetInt32("buttons", 0) == 0 && system_time() - fPressedAt > 150000) {
-			fArrowPressed = false;
-			_Log("release was lost: over=%d", (int)over);
-			if (over)
-				fWindow.SendMessage(kShowAllValues);
-		}
-		// (the hand is the field's to keep while the pointer is over the arrow; a drag that was started elsewhere goes on)
 		return over && message->GetInt32("buttons", 0) == 0 ? B_SKIP_MESSAGE : B_DISPATCH_MESSAGE;
 	}
 
@@ -643,7 +587,8 @@ private:
 			return false;
 		const BMessenger alive(menuWindow);
 		KeyDown(bytes, 1);
-		if (alive.IsValid() && Window() == menuWindow)
+		// (a window that is still there is unlocked, also when the menu has left it by now: the thread that tracks the menu waits for this lock, and the one that deletes the menu waits for that thread)
+		if (alive.IsValid())
 			menuWindow->Unlock();
 		return true;
 	}
@@ -886,7 +831,6 @@ private:
 	bool						fNavigated;		///< an arrow key has selected an item since the list was filled
 	bool						fHand;			///< the pointer is over the arrow and the field shows the hand
 	bool						fArrowPressed;	///< the press was on the arrow
-	bigtime_t					fPressedAt;
 };
 
 }	// namespace sen
