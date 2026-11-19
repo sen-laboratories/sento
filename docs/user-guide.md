@@ -202,6 +202,40 @@ The folders of these relations are made when you open them: look at them (peek),
 
 In the settings (*Plugins*, under *Enrich*, *Identify* or *Navigate*: *SEN Calendar Extractor*) you can switch the renaming and the Markdown file off and set **Myself**: type your name and address (`Name <address>`) or choose yourself from the list of the people that SEN knows.
 
+### Event types
+
+An event has a **type** (the field *Event Type*, the attribute `SEN:eventType`): what kind of event it is. The ontology knows the common kinds and maps them to Wikidata: *Meeting, Conference, Telephone call, Video conference, Party, Birthday, Anniversary, Wedding anniversary, Jubilee, Death anniversary, Wedding, Funeral, Graduation, Baptism, Dinner party, Housewarming, Farewell party, Baby shower, Ceremony* and, since beta 8, the days of the calendar: **Holiday, Public holiday, National day, Religious holiday, Festival** and **Observance**. You are not limited to them: any other text may be typed.
+
+The type is a field with a **list that follows what you type** (the same in Shoji and in the list view of Akita): it opens below the field and shows the types that **begin** with your text; if there are none, those that **contain** it anywhere. The characters that matched are drawn **bold**. Use the arrow keys to move in the list, **Enter** to take the selected entry (or the one that the text names), **Escape** to close it. The small **arrow** at the right end of the field opens the whole list, also while the field is empty.
+
+### Days and times in Shoji
+
+The **Start** and the **End** of an event (or of anything else that has a time) have a control for the **day** (in the order and with the separator of your locale; type it as it is written, or click the arrow button next to it for a calendar) and one for the **time of day**. **All day** leaves the time out (the time field is dimmed). Typing is a *pending* change: **Enter**, leaving the control, choosing a day in the calendar or checking *All day* completes it; **Escape** puts back what is stored. **Enter** keeps the edit in every field of the form, **Escape** reverts it.
+
+**The end of an event is never before its start.** If you type an end that is before the start, it becomes the start; if you move the start past the end, the end moves with it and keeps the length that the event had.
+
+A time that is **not exact** (*about May 1994*, *some year of the 2020s*) is written in the *Extended Date/Time Format* (EDTF): `1994-05~` (about), `1994?` (uncertain), `202X` (some year of the 2020s). SEN keeps it as the **earliest** moment of a start (the **latest** of an end), so that sorting and searching work, and keeps the text beside it (`SEN:startDateEdtf`, `SEN:endDateEdtf`). Such a value is typed as text in the field of an event that already has one; the date and time controls are for exact times.
+
+### Temporal relations: before, meets, overlaps
+
+*Open related*, group **Temporal**, at an event, shows how it lies in time to the other events (and to any file that has a start): the relations of **Allen's interval algebra**, worked out when you open them (they are not stored, so they are right after you corrected a time):
+
+- **Between** (the files *before* and *after* the event), **Meets** (one ends where the other begins), **Overlaps**, **During** (and *contains*), **Equals**. Each file in the folder says how it is related *as seen from the event you opened*.
+- Two days in a row **meet**; a time that is not exact counts with its widest extent, so a relation is never claimed that the time does not allow.
+- A **calendar** (the umbrella of its events) is left out: its time is the time that its events cover.
+
+<!-- screenshot to add: images/beta8/temporal-relations.png (Open related, group Temporal, at an event) -->
+<!-- screenshot to add: images/beta8/shoji-event.png (an event in Shoji: Event Type list, Start/End controls) -->
+<!-- screenshot to add: images/beta8/akita-edit-cell.png (the outlined cell and the list of event types in the list view) -->
+
+## Editing an attribute in the list
+
+In the list view of Akita, **the whole cell** of an editable attribute is the place to click (an empty one too), as in a spreadsheet. A click selects the file and **outlines the cell at once** (a dotted grey line); after a short pause the edit starts, and the field fills the cell. A double click that is faster than the pause still opens the file. **Enter** accepts the edit, **Escape** reverts it, clicking another cell accepts it and starts the next. The **name** keeps the area of its text (the empty space after it starts a rubber band selection): its first click selects, a second one renames. Shift and Command clicks only select.
+
+## Updating Akita
+
+A running Akita does not notice a new version of its program by itself. Since beta 8 it **watches its package**: when `pkgman update` has installed a new Akita, a small alert asks *Later* or *Restart*; *Restart* starts the new Akita and quits the old one (its windows come back as they were).
+
 ## Shoji, the form for a file
 
 Shoji opens a file (a paper, a person, a movie...) as a form: the Deskbar menu of SEN and *Open With... Shoji* start it, and in its settings it can be made the application for more types. A few things to know:
