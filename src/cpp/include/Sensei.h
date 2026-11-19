@@ -59,7 +59,7 @@ inline constexpr uint32_t kResolve  = 'SErv';
  *
  * Reply: kResult, and kTargets: one message for each item that has an entity now, with sen::key::kTargetRef (the file of the entity, found if it was made earlier: the plugin recognizes an
  * entity by what makes it the same, the identifier) and sen::key::kItemId of the item. Any other field of the message is kept as a property of the relation Contains that the server stores
- * between the file and the entity (the file contains the entity, the entity is contained by the file): the plugin puts the identifier of the item there (`dc:identifier`), which finds the
+ * between the file and the entity (the file contains the entity, the entity is contained in the file): the plugin puts the identifier of the item there (`dc:identifier`), which finds the
  * item again. The id of the item itself is made new at every listing and is not kept. Every entity has a `SEN:ID`, which the server gives it.
  */
 inline constexpr uint32_t kMaterialise = 'SEmt';
