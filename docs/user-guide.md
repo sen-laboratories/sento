@@ -202,6 +202,10 @@ The folders of these relations are made when you open them: look at them (peek),
 
 In the settings (*Plugins*, under *Enrich*, *Identify* or *Navigate*: *SEN Calendar Extractor*) you can switch the renaming and the Markdown file off and set **Myself**: type your name and address (`Name <address>`) or choose yourself from the list of the people that SEN knows.
 
+### How an event repeats, and what the file says
+
+*Repeats* is a field with a list (every day, every weekday, every week, every month, every year; other words are allowed, such as *every 2 weeks*). **What is in the attributes of the event counts**: the *Series* relation (the next and the previous time, seen from today) and *Takes place at* use *Repeats*, the start, the end and the *Location* as they are now, also when they differ from the calendar file that the event was made from, which is never changed. An event that you made by hand, with no calendar file behind it, has a series, too.
+
 ### Event types
 
 An event has a **type** (the field *Event Type*, the attribute `SEN:eventType`): what kind of event it is. The ontology knows the common kinds and maps them to Wikidata: *Meeting, Conference, Telephone call, Video conference, Party, Birthday, Anniversary, Wedding anniversary, Jubilee, Death anniversary, Wedding, Funeral, Graduation, Baptism, Dinner party, Housewarming, Farewell party, Baby shower, Ceremony* and, since beta 8, the days of the calendar: **Holiday, Public holiday, National day, Religious holiday, Festival** and **Observance**. You are not limited to them: any other text may be typed.

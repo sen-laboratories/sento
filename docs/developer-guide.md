@@ -510,6 +510,19 @@ The server has **four paths to a plugin**; the flags of the relation type in its
 The rule in the server is `dynamic && !self`: a relation that is `dynamic` and not `self` is resolved by the navigator that is the preferred application of the type (`app:` in the ontology), at the files of the types in `source_types`. A plugin may have several features and the
 same signature serves all of them (Paperboy identifies and enriches); the navigator of a relation type can be the plugin that also enriches the files that the relation starts at.
 
+### Attributes before content (a contract of every plugin)
+
+After a file has been extracted, **the attributes of the file are what is true about the thing; the content of the file is only what the attributes were made from.** The original file is never written back to: the user changes
+what is known about it in the attributes (the form of Shoji, a cell of the list of Akita, the popup of values), and the semantic type says how to read them. So a plugin that works with a file that has been extracted
+(it resolves a relation, enriches again, reads a value) **reads the attributes of the ontology first and the content only for what the attributes do not have**:
+
+- a relation that is worked out from the file (the series of an event, the place of an event) uses the attributes as they are NOW (`schema:repeatFrequency`, `schema:startDate`, `schema:location`...), also when they differ from the content of the file;
+- an object that has no content that the plugin knows (an event made by hand in Shoji, a person made by hand) is read from its attributes alone and must work, too: no content is not an error, and an empty result is an empty relation;
+- an attribute that the plugin wrote itself from the content is not a reason to read the content again: Enrich (without Overwrite) keeps what is there, Enrich (Overwrite) is the user's decision to take the content again;
+- a value that is only said in words by an attribute (`every 2 weeks`) is turned into what the plugin needs (a rule) by the plugin; a value that it cannot read leaves the content as it was.
+
+The calendar extractor is the reference: `SeriesEventOf()` and `ResolvePlace()` in `plugins/calendar-extractor/CalendarService.cpp` (start, end, how it repeats and the location come from the attributes; the file content fills what is missing; `RuleFromWords()` reads the field Repeats).
+
 ### Dynamic relations and entities in the temporary relation folder
 
 When the user opens a dynamic relation (*Open related*), the server starts the navigator with `kResolve`: `refs` is the source, `sen::key::kRelationType` the type, and `sensei::key::kLibraries` has the Library folder of each entity type that the relation is between. The plugin

@@ -8,6 +8,7 @@
 
 /**
  * @file Sensei.h
+ * @note Contract of every plugin: the attributes of a file that has been extracted come before its content (the original file is never written back to). See "Attributes before content" in the developer guide.
  * @brief The plugin protocol of SENSEI: features, commands, message fields.
  *
  * A plugin is an application that carries the plugin type (sen::mime::kPlugin) and one boolean attribute per supported
