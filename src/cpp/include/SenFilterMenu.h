@@ -47,6 +47,7 @@
 #include <MessageFilter.h>
 #include <Messenger.h>
 #include <PopUpMenu.h>
+#include <SeparatorItem.h>
 #include <String.h>
 #include <TextView.h>
 #include <View.h>
@@ -129,6 +130,18 @@ public:
 		fArrowTarget = target;
 		fArrowMessage = message;
 		fHasArrowMessage = true;
+	}
+
+	/**
+	 * An item below the values that is always in the list (not a value: it does not fill the field): a click or Enter on it sends this message to the target (a list of repeat cycles ends with
+	 * `Custom...`, which opens a window of its own). Set before the list is shown.
+	 */
+	void SetExtraItem(const char* label, const BMessenger& target, const BMessage& message)
+	{
+		fExtraLabel = label != NULL ? label : "";
+		fExtraTarget = target;
+		fExtraMessage = message;
+		fHasExtra = !fExtraLabel.empty();
 	}
 
 	/** Where a pick goes. */
@@ -275,17 +288,31 @@ public:
 			if (fNavigated)
 				BPopUpMenu::KeyDown(bytes, numBytes);		// the selected item
 			else
-				fWindow.SendMessage(kEnterKey);			// the field decides (exact value, custom text)
+				_Send(kEnterKey);			// the field decides (exact value, custom text)
 			return;
 		}
 		// the rest (letters, Backspace, Delete, Left/Right, Tab...) is for the field
 		BMessage through(kKeyThrough);
 		through.AddString("bytes", std::string(bytes, (size_t)numBytes).c_str());
 		through.AddInt32("modifiers", ::modifiers());
-		fWindow.SendMessage(&through);
+		_Send(&through);
 	}
 
 private:
+	/** Sends a message of this list to its window; it carries the list, so that the filters of the other lists of the window leave it alone. */
+	status_t _Send(uint32 what)
+	{
+		BMessage message(what);
+		return _Send(&message);
+	}
+
+	status_t _Send(BMessage* message)
+	{
+		message->RemoveName("sen:menu");
+		message->AddPointer("sen:menu", this);
+		return fWindow.SendMessage(message);
+	}
+
 	enum { kRefresh = 'FMrf', kPick = 'FMpk', kKeyThrough = 'FMky', kEnterKey = 'FMen', kShowAllValues = 'FMsa', kPlaceArrow = 'FMpa' };
 
 	/**
@@ -314,7 +341,7 @@ private:
 				return;
 			// (the field is laid out after the menu was attached: the arrow moves to the right end of the field, by a message, as a view is not moved while it is drawn)
 			if (fMenu->_ArrowFrame() != Frame())
-				fMenu->fWindow.SendMessage(kPlaceArrow);
+				fMenu->_Send(kPlaceArrow);
 			const rgb_color base = fMenu->fText->ViewColor();
 			SetHighColor(base);
 			FillRect(Bounds());
@@ -360,6 +387,15 @@ private:
 
 		virtual filter_result Filter(BMessage* message, BHandler** target)
 		{
+			// (all the lists of a window have their filters in the same chain: a message of the list of another field is left to that one)
+			switch (message->what) {
+				case kRefresh: case kPlaceArrow: case kShowAllValues: case kPick: case kKeyThrough: case kEnterKey:
+					if (message->GetPointer("sen:menu", (void*)NULL) != (void*)fMenu)
+						return B_DISPATCH_MESSAGE;
+					break;
+				default:
+					break;
+			}
 			switch (message->what) {
 				case B_KEY_DOWN:
 					return fMenu->_KeyDown(message);
@@ -432,6 +468,22 @@ private:
 		virtual void DrawContent() {}
 	};
 
+	/** The item below the values (SetExtraItem()): invoked, it tells the window of the field, which sends its message. */
+	class ExtraItem : public BMenuItem {
+	public:
+		ExtraItem(FilterPopUpMenu* menu, const char* label) : BMenuItem(label, NULL), fMenu(menu) {}
+
+		virtual status_t Invoke(BMessage* message = NULL)
+		{
+			BMessage pick(kPick);
+			pick.AddBool("extra", true);
+			return fMenu->_Send(&pick);
+		}
+
+	private:
+		FilterPopUpMenu*	fMenu;
+	};
+
 	/**
 	 * The item of a value: invoked (in the thread of the menu) it only tells the window of the field. The part of the label that the text of the field matched is drawn in bold, so that
 	 * it can be seen why the value is in the list (the label is drawn in pieces, with the font of the menu and its bold face).
@@ -495,7 +547,7 @@ private:
 		{
 			BMessage pick(kPick);
 			pick.AddInt32("index", fIndex);
-			return fMenu->fWindow.SendMessage(&pick);
+			return fMenu->_Send(&pick);
 		}
 
 	private:
@@ -582,7 +634,7 @@ private:
 			fArrowPressed = false;
 			// (opened by a message of its own: not in the middle of the mouse event, whatever state the window or the file manager is in then)
 			if (_OverArrow())
-				fWindow.SendMessage(kShowAllValues);
+				_Send(kShowAllValues);
 		}
 		return B_DISPATCH_MESSAGE;
 	}
@@ -664,7 +716,10 @@ private:
 				value->SetMarked(true);
 			AddItem(value);
 		}
-		if (matches.size() == 1)
+		if (fHasExtra) {
+			AddItem(new BSeparatorItem());
+			AddItem(new ExtraItem(this, fExtraLabel.c_str()));
+		} else if (matches.size() == 1)
 			AddItem(new Companion());
 		fNavigated = false;
 		if (locked)
@@ -690,7 +745,7 @@ private:
 		for (const char* b = bytes; *b != '\0'; b++)
 			key.AddInt8("byte", *b);
 		if ((unsigned char)bytes[0] >= 0x20 && bytes[0] != 0x7F)
-			fWindow.SendMessage(kRefresh);		// (queued behind this key)
+			_Send(kRefresh);		// (queued behind this key)
 		BHandler* target = text;
 		BList* filters = text->FilterList();
 		for (int32 i = 0; filters != NULL && i < filters->CountItems(); i++) {
@@ -701,7 +756,7 @@ private:
 			}
 		}
 		text->KeyDown(bytes, (int32)strlen(bytes));
-		fWindow.SendMessage(kRefresh);
+		_Send(kRefresh);
 	}
 
 	/** A key for the field, seen before the field. */
@@ -744,7 +799,7 @@ private:
 		}
 
 		// anything else is for the field; look at the text after the field has had it
-		fWindow.SendMessage(kRefresh);
+		_Send(kRefresh);
 		return B_DISPATCH_MESSAGE;
 	}
 
@@ -796,6 +851,12 @@ private:
 	/** A value has been picked (by Enter or the mouse): into the field, and to the target. */
 	void _Pick(BMessage* pick)
 	{
+		if (pick->GetBool("extra", false)) {
+			HideList();
+			BMessage message(fExtraMessage);
+			fExtraTarget.SendMessage(&message);
+			return;
+		}
 		const int32 index = pick->GetInt32("index", -1);
 		if (index < 0 || (size_t)index >= fTexts.size() || fText == NULL)
 			return;
@@ -833,6 +894,10 @@ private:
 	std::vector<std::string>	fMeanings;
 	BMessenger					fTarget;
 	BMessenger					fArrowTarget;
+	std::string					fExtraLabel;	///< SetExtraItem()
+	BMessenger					fExtraTarget;
+	BMessage					fExtraMessage;
+	bool						fHasExtra = false;
 	BMessage					fArrowMessage;
 	bool						fHasArrowMessage = false;
 	BMessenger					fWindow;

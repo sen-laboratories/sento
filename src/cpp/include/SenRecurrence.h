@@ -105,6 +105,149 @@ RuleFromWords(const std::string& text, std::string* rule)
 	return true;
 }
 
+/**
+ * What the picker of a repeat cycle (SenRepeatPicker.h) lets a person say: every N days, weeks, months or years, on which weekdays (for weeks), and how long (always, N times, until a day).
+ * More than that (the second Tuesday of the month, 5 May) is written by the calendar extractor from a calendar file and stays as it is.
+ */
+struct Spec {
+	enum Unit { kDay = 0, kWeek, kMonth, kYear };
+	enum End { kNever = 0, kCount, kUntil };
+
+	int			unit = kWeek;
+	int			interval = 1;
+	int			weekdays = 0;		///< for weeks: bit 0 Monday ... bit 6 Sunday; none: the weekday of the start
+	int			end = kNever;
+	int			count = 1;			///< for kCount
+	std::string	until;				///< for kUntil: the last day, YYYY-MM-DD
+};
+
+namespace detail {
+inline const char* const kUnitNames[] = {"day", "week", "month", "year"};
+inline const char* const kUnitFreq[] = {"DAILY", "WEEKLY", "MONTHLY", "YEARLY"};
+inline const char* const kWeekdayWords[] = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
+inline const char* const kWeekdayCodes[] = {"MO", "TU", "WE", "TH", "FR", "SA", "SU"};
+}	// namespace detail
+
+/** The RRULE of a spec. */
+inline std::string
+RuleOf(const Spec& spec)
+{
+	std::string rule = std::string("FREQ=") + detail::kUnitFreq[spec.unit < 0 || spec.unit > 3 ? 1 : spec.unit];
+	if (spec.interval > 1)
+		rule += ";INTERVAL=" + std::to_string(spec.interval);
+	if (spec.unit == Spec::kWeek && spec.weekdays != 0) {
+		std::string days;
+		for (int i = 0; i < 7; i++) {
+			if ((spec.weekdays & (1 << i)) != 0)
+				days += std::string(days.empty() ? "" : ",") + detail::kWeekdayCodes[i];
+		}
+		rule += ";BYDAY=" + days;
+	}
+	if (spec.end == Spec::kCount && spec.count > 0)
+		rule += ";COUNT=" + std::to_string(spec.count);
+	else if (spec.end == Spec::kUntil && spec.until.size() == 10)
+		rule += ";UNTIL=" + spec.until.substr(0, 4) + spec.until.substr(5, 2) + spec.until.substr(8, 2);
+	return rule;
+}
+
+/** The words of a spec, as the calendar extractor says the same rule (`every 2 weeks on Monday and Wednesday, 10 times`; the usual ones are the values of the list: every day, every weekday...). */
+inline std::string
+WordsOf(const Spec& spec)
+{
+	const int unit = spec.unit < 0 || spec.unit > 3 ? 1 : spec.unit;
+	if (unit == Spec::kWeek && spec.interval <= 1 && spec.weekdays == 0x1F && spec.end == Spec::kNever)
+		return "every weekday";
+	std::string text = spec.interval > 1 ? "every " + std::to_string(spec.interval) + " " + detail::kUnitNames[unit] + "s" : std::string("every ") + detail::kUnitNames[unit];
+	if (unit == Spec::kWeek && spec.weekdays != 0) {
+		std::string days;
+		int left = 0;
+		for (int i = 0; i < 7; i++)
+			left += (spec.weekdays >> i) & 1;
+		for (int i = 0; i < 7; i++) {
+			if ((spec.weekdays & (1 << i)) == 0)
+				continue;
+			days += detail::kWeekdayWords[i];
+			left--;
+			if (left > 1)
+				days += ", ";
+			else if (left == 1)
+				days += " and ";
+		}
+		text += " on " + days;
+	}
+	if (spec.end == Spec::kCount && spec.count > 0)
+		text += spec.count == 1 ? std::string(", once") : ", " + std::to_string(spec.count) + " times";
+	else if (spec.end == Spec::kUntil && spec.until.size() == 10)
+		text += ", until " + spec.until;
+	return text;
+}
+
+/**
+ * The spec of an RRULE, if the picker can say all of it (FREQ, INTERVAL, BYDAY with plain weekdays for weeks, COUNT, UNTIL as a day). False for a rule with more in it: the second Tuesday of the month, a
+ * day of the month, a month...
+ */
+inline bool
+SpecOf(const std::string& rule, Spec* spec)
+{
+	Spec found;
+	bool hasFrequency = false;
+	std::istringstream in(rule);
+	std::string part;
+	while (std::getline(in, part, ';')) {
+		const size_t equals = part.find('=');
+		if (equals == std::string::npos)
+			return false;
+		std::string key, value;
+		for (size_t i = 0; i < equals; i++)
+			key += (char)toupper((unsigned char)part[i]);
+		for (size_t i = equals + 1; i < part.size(); i++)
+			value += (char)toupper((unsigned char)part[i]);
+		if (key == "FREQ") {
+			int unit = -1;
+			for (int i = 0; i < 4; i++) {
+				if (value == detail::kUnitFreq[i])
+					unit = i;
+			}
+			if (unit < 0)
+				return false;
+			found.unit = unit;
+			hasFrequency = true;
+		} else if (key == "INTERVAL") {
+			found.interval = atoi(value.c_str());
+			if (found.interval < 1)
+				return false;
+		} else if (key == "BYDAY") {
+			std::istringstream days(value);
+			std::string day;
+			while (std::getline(days, day, ',')) {
+				int index = -1;
+				for (int i = 0; i < 7; i++) {
+					if (day == detail::kWeekdayCodes[i])
+						index = i;
+				}
+				if (index < 0)
+					return false;		// (an ordinal such as 2TU: more than the picker says)
+				found.weekdays |= 1 << index;
+			}
+		} else if (key == "COUNT") {
+			found.end = Spec::kCount;
+			found.count = atoi(value.c_str());
+			if (found.count < 1)
+				return false;
+		} else if (key == "UNTIL") {
+			if (value.size() < 8)
+				return false;
+			found.end = Spec::kUntil;
+			found.until = value.substr(0, 4) + "-" + value.substr(4, 2) + "-" + value.substr(6, 2);
+		} else if (key != "WKST")
+			return false;
+	}
+	if (!hasFrequency || (found.weekdays != 0 && found.unit != Spec::kWeek))
+		return false;
+	*spec = found;
+	return true;
+}
+
 #ifdef __HAIKU__
 
 /** Writes the technical rule (an empty one says: does not repeat). */
