@@ -83,7 +83,8 @@ public:
 		fPassEnter(false),
 		fNavigated(false),
 		fHand(false),
-		fArrowPressed(false)
+		fArrowPressed(false),
+		fPressedAt(0)
 	{
 	}
 
@@ -556,19 +557,24 @@ private:
 		return true;
 	}
 
-	/** Whether the pointer is over the arrow (by the frame that the arrow has): the position of the message, or where the pointer is now if the message has none. */
-	bool _OverArrow(const BMessage* message)
+	/**
+	 * Whether the pointer is over the arrow (by the frame that the arrow has): by the position in the message, or, for a press and a release (`pointerNow`), also by where the pointer is now (a
+	 * click on the arrow that was taken for a click elsewhere did nothing, and what a press and a release carry is not what a move carries: either position counts).
+	 */
+	bool _OverArrow(const BMessage* message, bool pointerNow = false)
 	{
 		if (fText == NULL || fArrow == NULL || fArrow->IsHidden() || fArrow->Parent() == NULL || fText->Window() == NULL || !fText->IsEditable())
 			return false;
+		const BRect frame = fArrow->Frame();
 		BPoint where;
-		if (message->FindPoint("where", &where) == B_OK) {
-			where = fArrow->Parent()->ConvertFromScreen(fText->Window()->ConvertToScreen(where));
-		} else {
-			uint32 buttons;
-			fArrow->Parent()->GetMouse(&where, &buttons, false);
-		}
-		return fArrow->Frame().Contains(where);
+		bool byMessage = false;
+		if (message->FindPoint("where", &where) == B_OK)
+			byMessage = frame.Contains(fArrow->Parent()->ConvertFromScreen(fText->Window()->ConvertToScreen(where)));
+		if (byMessage || !pointerNow)
+			return byMessage;
+		uint32 buttons;
+		fArrow->Parent()->GetMouse(&where, &buttons, false);
+		return frame.Contains(where);
 	}
 
 	void _ShowHand(bool hand)
@@ -578,7 +584,7 @@ private:
 		fHand = hand;
 		// (the text view sets the I beam again when the pointer is over its text)
 		const BCursor cursor(hand ? B_CURSOR_ID_FOLLOW_LINK : B_CURSOR_ID_I_BEAM);
-		fText->SetViewCursor(&cursor, false);
+		fText->SetViewCursor(&cursor);
 	}
 
 	/**
@@ -587,25 +593,28 @@ private:
 	 */
 	filter_result _MouseDown(BMessage* message)
 	{
-		const bool over = _OverArrow(message);
-		_Log("mouse down over=%d open=%d", (int)over, (int)IsOpen());
+		const bool over = _OverArrow(message, true);
+		_Log("mouse down over=%d open=%d (message has where: %d, be:view_where: %d)", (int)over, (int)IsOpen(), (int)message->HasPoint("where"), (int)message->HasPoint("be:view_where"));
 		fArrowPressed = false;
 		if (!over)
 			return B_DISPATCH_MESSAGE;
 		if (IsOpen())
 			HideList();
-		else
+		else {
 			fArrowPressed = true;
+			fPressedAt = system_time();
+		}
 		return B_DISPATCH_MESSAGE;
 	}
 
 	filter_result _MouseUp(BMessage* message)
 	{
-		_Log("mouse up pressed=%d over=%d", (int)fArrowPressed, (int)_OverArrow(message));
+		const bool over = _OverArrow(message, true);
+		_Log("mouse up pressed=%d over=%d", (int)fArrowPressed, (int)over);
 		if (fArrowPressed) {
 			fArrowPressed = false;
 			// (opened by a message of its own: not in the middle of the mouse event, whatever state the window or the file manager is in then)
-			if (_OverArrow(message))
+			if (over)
 				fWindow.SendMessage(kShowAllValues);
 		}
 		return B_DISPATCH_MESSAGE;
@@ -615,6 +624,13 @@ private:
 	{
 		const bool over = _OverArrow(message);
 		_ShowHand(over);
+		// a press on the arrow whose release did not come to the window: the buttons are up and the pointer is still there, so the click is complete
+		if (fArrowPressed && message->GetInt32("buttons", 0) == 0 && system_time() - fPressedAt > 150000) {
+			fArrowPressed = false;
+			_Log("release was lost: over=%d", (int)over);
+			if (over)
+				fWindow.SendMessage(kShowAllValues);
+		}
 		// (the hand is the field's to keep while the pointer is over the arrow; a drag that was started elsewhere goes on)
 		return over && message->GetInt32("buttons", 0) == 0 ? B_SKIP_MESSAGE : B_DISPATCH_MESSAGE;
 	}
@@ -870,6 +886,7 @@ private:
 	bool						fNavigated;		///< an arrow key has selected an item since the list was filled
 	bool						fHand;			///< the pointer is over the arrow and the field shows the hand
 	bool						fArrowPressed;	///< the press was on the arrow
+	bigtime_t					fPressedAt;
 };
 
 }	// namespace sen
