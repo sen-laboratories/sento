@@ -39,7 +39,7 @@ Select a calendar file (`.ics`, also the old `.vcs`; exported from Google, Outlo
 
 ## The temporal navigator
 
-Open the relations of an event (*Open related*, group **Temporal**) to see how it lies in time to the others: **Between** (what is before and after), **Meets**, **Overlaps**, **During** and **Equals**, the relations of **Allen's interval algebra** (the names of W3C OWL-Time), with their inverses, worked out when you open them, never stored. Two days in a row *meet*; a time that is not exact counts with its widest extent, so a relation is never claimed that the time does not allow. Any file that has a start is found, whatever its type; the query goes over all volumes.
+Open the relations of an event (*Open related*, group **Temporal**) to see how it lies in time to the others: **Between** (what is before and after), **Meets**, **Overlaps**, **During** and **Equals**, the relations of **Allen's interval algebra** (the names of W3C OWL-Time), with their inverses, worked out when you open them, never stored. Two days in a row *meet*; a time that is not exact counts with its widest extent, so a relation is never claimed that the time does not allow. Any file that has a start is found, and has the relations, whatever its type; the query goes over all volumes.
 
 <!-- screenshot: images/beta8/temporal-relations.png — Open related, group Temporal, at an event -->
 
@@ -59,6 +59,8 @@ Open the relations of an event (*Open related*, group **Temporal**) to see how i
 
 * **Click to edit, done right**: in the list view the **whole cell** of an editable attribute is the place to click (an empty one too), as in a spreadsheet. The cell is **outlined at once**, the edit starts after a short pause (a faster double click still opens the file) and fills the cell. **Enter** accepts, **Escape** reverts; the name keeps its small area so that the space after it still starts a rubber band selection.
 * **Lists of values while you edit**: attributes with a list of values (the event type) show a list below the field that follows the text: first the values that **begin** with it, else those that **contain** it, the matching characters in **bold**; a small arrow at the right end opens the whole list.
+* **The right control for the kind of attribute**: a yes/no attribute is a **check box** (greyed where the attribute or the volume is read-only), a time or a day has a **calendar** that drops down from an arrow in the field (month and year, hour and minute, *All day*); typing works as well (`2026-11-12 09:30`, `1994-05~`, `12 Nov 2026`), a text that is no time is refused, and an attribute that the ontology calls a *date* (birthday, date of publication) is shown and edited as a day. The end of an event is never before its start here either, and times sort right before 1902 and after 2037.
+* **Find by time**: time attributes offer *before*, *after* and *is* with the calendar arrow, and ask BFS with the integer that the times are stored as (a date in words gave wrong answers on the 64-bit indexes).
 * **Akita offers a restart after an update**: when `pkgman update` has installed a new Akita, a running Akita notices it and asks *Later* or *Restart*.
 * **Relations**: *Copy to Library* and *Open related* on the items of a relation that are entities; dropping them into a folder makes the entities there. The relations of a type show the **icon of their folder** (spatial, temporal and document references have their own); a relation item that has a title of its own (an event of a calendar) is named by it; *Open contained* is greyed out where there is nothing contained.
 * A file that says that relations could not be fetched has the icon of a **broken link**.
@@ -108,7 +110,6 @@ First-time installation? See the *Quick Install* instructions in the beta 3 note
 
 * **Fuzzy times are typed as text**: the date and time controls are for exact times. A start or an end that is not exact (`1994-05~`, `202X`) is edited as text in a field that already has one; an empty start or end shows the controls.
 * **Recurrence**: rules that the reader does not know give no *Series* relation (the log says so); there is no editing of the repeat rule.
-* **Akita: Find** has no date picker for time attributes yet; a query on `schema:startDate` needs the time as a number.
 * **Copying events**: only *Copy to Library*, *Copy to* and dropping into a folder make entities; dragging into a relation window or the Trash does not.
 * **Overpass servers**: *nearby* can take half a minute on a busy public server; servers that need a key are off until you enter one.
 * **Filesystem requirements**: BFS volumes only. Requires Haiku nightlies `hrev60299_1` or newer.

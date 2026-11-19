@@ -120,6 +120,17 @@ public:
 	/** The arrow in the field (on by default; set before AttachTo). */
 	void SetShowArrow(bool show) { fShowArrow = show; }
 
+	/**
+	 * What the arrow does when the menu has no values: it sends this message to the target (a field that is not a list but has a control of its own, such as a calendar for a day). With values the arrow
+	 * opens the list as always; without values and without this message there is no arrow. Set before AttachTo.
+	 */
+	void SetArrowMessage(const BMessenger& target, const BMessage& message)
+	{
+		fArrowTarget = target;
+		fArrowMessage = message;
+		fHasArrowMessage = true;
+	}
+
 	/** Where a pick goes. */
 	void SetTargetForChoice(const BMessenger& target) { fTarget = target; }
 	void SetTargetForChoice(const BHandler* handler, const BLooper* looper = NULL) { fTarget = BMessenger(handler, looper); }
@@ -144,7 +155,7 @@ public:
 		BWindow* window = textView->Window();
 		if (window->Lock()) {
 			window->AddCommonFilter(fFilter);
-			if (fShowArrow && !fTexts.empty() && textView->Parent() != NULL) {
+			if (fShowArrow && (!fTexts.empty() || fHasArrowMessage) && textView->Parent() != NULL) {
 				// the arrow is at the right end of the field, the text stops before it
 				const float width = ceilf(textView->LineHeight() * 1.1f);
 				BRect frame = textView->Frame();
@@ -224,6 +235,11 @@ public:
 	/** Opens the list with all values (what the arrow does); typing filters it from then on. */
 	void ShowAll()
 	{
+		if (fTexts.empty() && fHasArrowMessage) {
+			BMessage message(fArrowMessage);
+			fArrowTarget.SendMessage(&message);
+			return;
+		}
 		fShowAll = true;
 		fLastText = "";
 		Refresh();
@@ -816,6 +832,9 @@ private:
 	std::vector<std::string>	fTexts;
 	std::vector<std::string>	fMeanings;
 	BMessenger					fTarget;
+	BMessenger					fArrowTarget;
+	BMessage					fArrowMessage;
+	bool						fHasArrowMessage = false;
 	BMessenger					fWindow;
 	BTextView*					fText;
 	Hook*						fFilter;

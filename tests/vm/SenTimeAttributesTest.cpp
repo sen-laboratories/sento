@@ -44,5 +44,16 @@ int main(int, char** argv)
 	BString duration("PT2H"), title("Test event");
 	node.WriteAttrString("schema:duration", &duration); node.WriteAttrString("dc:title", &title);
 	Show(node, "state shown in the form");
+	// EditText and the order of start and end (an Akita edit)
+	timeattr::Store(node, "schema:startDate", "2026-11-14 10:00"); timeattr::Store(node, "schema:endDate", "2026-11-14 12:00");
+	t = 0; node.ReadAttr("schema:startDate", B_TIME_TYPE, 0, &t, sizeof(t));
+	printf("EditText exact: '%s' (must be 2026-11-14 10:00)\n", timeattr::EditText(node, "schema:startDate", t).c_str());
+	timeattr::Store(node, "schema:startDate", "1994-05~"); t = 0; node.ReadAttr("schema:startDate", B_TIME_TYPE, 0, &t, sizeof(t));
+	printf("EditText fuzzy: '%s' (must be 1994-05~)\n", timeattr::EditText(node, "schema:startDate", t).c_str());
+	timeattr::Store(node, "schema:startDate", "2026-11-14 10:00"); timeattr::Store(node, "schema:endDate", "2026-11-14 12:00");
+	r = timeattr::StoreKeepingOrder(node, "schema:endDate", "2026-11-14 09:00"); printf("end before start -> %s\n", strerror(r)); Show(node, "end becomes the start (10:00)");
+	timeattr::Store(node, "schema:endDate", "2026-11-14 12:00");
+	r = timeattr::StoreKeepingOrder(node, "schema:startDate", "2026-11-14 13:00"); printf("start past end -> %s\n", strerror(r)); Show(node, "end moves with it (15:00)");
+	r = timeattr::StoreKeepingOrder(node, "schema:startDate", "nonsense"); printf("garbage -> %s (B_BAD_VALUE)\n", strerror(r));
 	return 0;
 }

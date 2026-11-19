@@ -18,6 +18,7 @@ Beta 6 brought places, Beta 7 people and your own whereabouts. Beta 8 adds **tim
 **Akita.**
 * **Click to edit, as in a spreadsheet**: the whole cell of an editable attribute is the place to click, it is outlined at once and the edit starts faster. **Enter** accepts, **Escape** reverts.
 * **Lists of values that follow your typing**: first the values that begin with your text, else those that contain it, with the matching characters in bold; a small arrow opens the whole list.
+* **The right control for the kind of attribute**: yes/no attributes are check boxes (greyed where read-only), times and days have a calendar that drops down from the field, and Find asks for times with *before*, *after* and *is*.
 * **Update notice**: when `pkgman update` installs a new Akita, a running Akita offers *Restart*.
 * Relations show the icon of their folder, items of a relation that are entities can be copied into your Library, and *Open contained* is greyed out where there is nothing contained.
 
@@ -35,7 +36,7 @@ pkgman install sen_plugin_calendar_extractor sen_plugin_temporal_navigator sen_o
 
 New here? `pkgman add-repo https://kiri.sen-labs.org/x86_64`, then `pkgman install sen_core sen_plugins akita sen_filetypes shoji basho` and the ontologies you like. Requires a Haiku **nightly from hrev60299_1 on**.
 
-**Good to know:** fuzzy times are typed as text; the date and time controls are for exact ones. Repeat rules the reader does not know give no Series relation. *Find* has no date picker for time attributes yet. BFS volumes only.
+**Good to know:** fuzzy times are typed as text; the date and time controls are for exact ones. Repeat rules the reader does not know give no Series relation. BFS volumes only.
 
 **Links:** [Release notes](https://github.com/sen-laboratories/sento/releases/tag/v1.0.0-beta.8) · [Source code](https://github.com/sen-laboratories) · Package repository `https://kiri.sen-labs.org/x86_64` · Support SEN Labs on [Liberapay](https://liberapay.com/sen-labs/).
 

@@ -351,6 +351,11 @@ inline constexpr char kRemote[]        = "SEN:remote";
  * start of one, e.g. a supertype ("audio"), like the filters for the templates of a new file.
  */
 inline constexpr char kSourceTypes[]        = "SEN:sourceTypes";
+/**
+ * strings: attributes that make a file a start of the relation (a relation that is worked out when it is asked for: dynamic): it is offered at every file that has one of them, whatever its type
+ * (the temporal relations at any file that has a `schema:startDate`). It is an alternative to kSourceTypes: a file that fits one of the two gets it; kExcludeSourceTypes still wins.
+ */
+inline constexpr char kSourceAttributes[]   = "SEN:sourceAttributes";
 /** strings: the relation cannot start at files of these types (same kind of types); this wins over kSourceTypes */
 inline constexpr char kExcludeSourceTypes[] = "SEN:excludeSourceTypes";
 /**

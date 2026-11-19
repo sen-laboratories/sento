@@ -109,7 +109,7 @@ Store(BNode& node, const char* attribute, const std::string& input)
 	if (companion == NULL)
 		return B_NOT_SUPPORTED;
 
-	const size_t first = input.find_first_not_of(" \t"), last = input.find_last_not_of(" \t");
+	const size_t first = input.find_first_not_of(" \t");
 	if (first == std::string::npos) {
 		status_t result = node.RemoveAttr(attribute);
 		if (result != B_OK && result != B_ENTRY_NOT_FOUND)
@@ -133,6 +133,64 @@ Store(BNode& node, const char* attribute, const std::string& input)
 	}
 	written = node.WriteAttr(companion->edtf, B_STRING_TYPE, 0, stored.edtf.c_str(), stored.edtf.size() + 1);
 	return written == (ssize_t)stored.edtf.size() + 1 ? B_OK : (written < 0 ? (status_t)written : B_IO_ERROR);
+}
+
+/**
+ * The text to edit a start or an end with: the text of a fuzzy value if there is one that still belongs to the time, else the time on the local clock (`YYYY-MM-DD hh:mm`, with
+ * the seconds if there are any). It reads back with Store() the same way, whatever the locale of the display is.
+ */
+inline std::string
+EditText(BNode& node, const char* attribute, long long seconds)
+{
+	std::string fuzzy;
+	if (FuzzyText(node, attribute, seconds, &fuzzy))
+		return fuzzy;
+	const time_t moment = (time_t)seconds;
+	struct tm parts;
+	if (localtime_r(&moment, &parts) == NULL)
+		return std::string();
+	char text[64];
+	if (parts.tm_sec != 0)
+		snprintf(text, sizeof(text), "%04d-%02d-%02d %02d:%02d:%02d", parts.tm_year + 1900, parts.tm_mon + 1, parts.tm_mday, parts.tm_hour, parts.tm_min, parts.tm_sec);
+	else
+		snprintf(text, sizeof(text), "%04d-%02d-%02d %02d:%02d", parts.tm_year + 1900, parts.tm_mon + 1, parts.tm_mday, parts.tm_hour, parts.tm_min);
+	return text;
+}
+
+/**
+ * Store() with the rule that the end of a thing is never before its start: an end that is typed before the start becomes the start; a start that is moved past the end takes the end
+ * with it and the end keeps its distance from the start (as the form of Shoji does). What is taken along has no fuzzy text (it is a moment, not a said value).
+ */
+inline status_t
+StoreKeepingOrder(BNode& node, const char* attribute, const std::string& input)
+{
+	const Companion* companion = Find(attribute);
+	if (companion == NULL)
+		return B_NOT_SUPPORTED;
+	const Companion* start = Find("schema:startDate");
+	const Companion* end = Find("schema:endDate");
+
+	time_t oldStart = 0, oldEnd = 0;
+	const bool hadStart = node.ReadAttr(start->attribute, B_TIME_TYPE, 0, &oldStart, sizeof(oldStart)) == (ssize_t)sizeof(oldStart);
+	const bool hadEnd = node.ReadAttr(end->attribute, B_TIME_TYPE, 0, &oldEnd, sizeof(oldEnd)) == (ssize_t)sizeof(oldEnd);
+
+	const status_t result = Store(node, attribute, input);
+	if (result != B_OK)
+		return result;
+
+	time_t newStart = 0, newEnd = 0;
+	const bool hasStart = node.ReadAttr(start->attribute, B_TIME_TYPE, 0, &newStart, sizeof(newStart)) == (ssize_t)sizeof(newStart);
+	const bool hasEnd = node.ReadAttr(end->attribute, B_TIME_TYPE, 0, &newEnd, sizeof(newEnd)) == (ssize_t)sizeof(newEnd);
+	if (!hasStart || !hasEnd || newEnd >= newStart)
+		return B_OK;
+
+	time_t moved = newStart;
+	if (!companion->end && hadStart && hadEnd && oldEnd >= oldStart)
+		moved = newStart + (oldEnd - oldStart);
+	if (node.WriteAttr(end->attribute, B_TIME_TYPE, 0, &moved, sizeof(moved)) != (ssize_t)sizeof(moved))
+		return B_IO_ERROR;
+	const status_t removed = node.RemoveAttr(end->edtf);
+	return removed == B_ENTRY_NOT_FOUND ? B_OK : removed;
 }
 
 }	// namespace timeattr

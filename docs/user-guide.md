@@ -223,6 +223,7 @@ A time that is **not exact** (*about May 1994*, *some year of the 2020s*) is wri
 - **Between** (the files *before* and *after* the event), **Meets** (one ends where the other begins), **Overlaps**, **During** (and *contains*), **Equals**. Each file in the folder says how it is related *as seen from the event you opened*.
 - Two days in a row **meet**; a time that is not exact counts with its widest extent, so a relation is never claimed that the time does not allow.
 - A **calendar** (the umbrella of its events) is left out: its time is the time that its events cover.
+- The relations are offered at **every file that has a start** (`schema:startDate`), whatever its type: a photo or a document that has one has them, too.
 
 <!-- screenshot to add: images/beta8/temporal-relations.png (Open related, group Temporal, at an event) -->
 <!-- screenshot to add: images/beta8/shoji-event.png (an event in Shoji: Event Type list, Start/End controls) -->
@@ -231,6 +232,19 @@ A time that is **not exact** (*about May 1994*, *some year of the 2020s*) is wri
 ## Editing an attribute in the list
 
 In the list view of Akita, **the whole cell** of an editable attribute is the place to click (an empty one too), as in a spreadsheet. A click selects the file and **outlines the cell at once** (a dotted grey line); after a short pause the edit starts, and the field fills the cell. A double click that is faster than the pause still opens the file. **Enter** accepts the edit, **Escape** reverts it, clicking another cell accepts it and starts the next. The **name** keeps the area of its text (the empty space after it starts a rubber band selection): its first click selects, a second one renames. Shift and Command clicks only select.
+
+### Finding by time
+
+In the **Find** window (*Find...*, *by attribute*) a time attribute offers **before**, **after** and **is**; the text field of the row has the same calendar arrow. *Is* means within the period that you typed (a day, a month `2026-11`, a year `1994`, a minute); *after 2026-11-12* means from the 13th on. The times of the ontologies are kept as 64-bit integers and BFS reads a date in words as 32 bits, which gave wrong answers; Find now asks with the integer.
+
+### The right control for the kind of attribute
+
+What is edited in the list follows the **type of the attribute** as the ontology (or FileTypes) says it:
+
+- A **yes/no attribute** is a **check box** in the cell. One click turns it over (the cell is outlined first, as above; a faster double click still opens the file). The check box is **greyed** and does nothing where the attribute is read-only or the file is on a volume that cannot be written.
+- A **time** (day and time of day) and a **day** (an attribute that the ontology calls a *date*, such as a birthday or the date of publication, which is shown as a day only) have a small **arrow** at the right end of the field: it opens a **calendar** below the cell (month and year buttons; for a time also hour and minute and *All day*). Picking a day ends the edit with it. You can also type: `2026-11-12 09:30`, `2026-11-12`, or a time that is not exact such as `1994-05~` (a start or an end), or words such as `12 Nov 2026 9:30`; a text that is no time is refused and nothing is written. An empty field removes the attribute. On a volume that cannot be written there is no arrow.
+- The **end** of an event is never before its **start** here either: an end that is typed before the start becomes the start, a start that is moved past the end takes the end with it.
+- A start or an end that was said fuzzily (`1994-05~`) is **shown as it was said**; times sort correctly also before 1902 and after 2037.
 
 ## Updating Akita
 
