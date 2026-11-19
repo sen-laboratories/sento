@@ -521,6 +521,15 @@ what is known about it in the attributes (the form of Shoji, a cell of the list 
 - an attribute that the plugin wrote itself from the content is not a reason to read the content again: Enrich (without Overwrite) keeps what is there, Enrich (Overwrite) is the user's decision to take the content again;
 - a value that is only said in words by an attribute (`every 2 weeks`) is turned into what the plugin needs (a rule) by the plugin; a value that it cannot read leaves the content as it was.
 
+**The exception: relations that are a structure of the content** (self relations such as the attendees of an event, the outline or the parts of a file). They are **always extracted from the content**. The attributes cannot stand in for them: such a relation may have been
+materialised, but even then there is no way to know that it was materialised completely, so an attribute (or a stored copy) is at most a hint, never the answer. A file without content gives the empty relation. The rule of this section is for what a user can *say*
+about the thing (a value, a type, a place), not for what the file *contains*.
+
+**A technical value beside the words** (how something repeats, as an example). A value that people say in words and programs need exactly has two attributes: the words for people (`schema:repeatFrequency`, shown, edited, with a popup of usual values) and the technical value (`SEN:recurrence`, the RRULE, not shown),
+as the time has its EDTF text beside it (`SenTimeAttributes.h`). `SenRecurrence.h` (sento) is the one place that turns words into the rule (`RuleFromWords()`: every day, every weekday, every 2 weeks...) and that keeps them in step: whoever changes the words (Shoji, a column of Akita) calls
+`SyncFromText()` after it. Simple words set the rule, words that cannot be read leave it, empty words write an empty rule, which says *does not repeat* and overrides the content (a missing rule leaves it to the content). Whoever reads (`SeriesEventOf()`) takes the rule if the words are those of the rule,
+the words if they differ and can be read (they were changed alone), else the rule. There is no watcher for low-level changes with `addattr`: a script that changes one of the two changes both.
+
 The calendar extractor is the reference: `SeriesEventOf()` and `ResolvePlace()` in `plugins/calendar-extractor/CalendarService.cpp` (start, end, how it repeats and the location come from the attributes; the file content fills what is missing; `RuleFromWords()` reads the field Repeats).
 
 ### Dynamic relations and entities in the temporary relation folder
