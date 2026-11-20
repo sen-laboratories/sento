@@ -718,7 +718,11 @@ private:
 		}
 		if (fHasExtra) {
 			AddItem(new BSeparatorItem());
-			AddItem(new ExtraItem(this, fExtraLabel.c_str()));
+			ExtraItem* extra = new ExtraItem(this, fExtraLabel.c_str());
+			// (the list of all values, and the field has a value that is none of them (every 2 weeks on Monday): that is what the extra item, `Custom...`, stands for, and it is checked)
+			if (fShowAll && !current.IsEmpty() && _ExactMatch(current.String()) < 0)
+				extra->SetMarked(true);
+			AddItem(extra);
 		} else if (matches.size() == 1)
 			AddItem(new Companion());
 		fNavigated = false;
