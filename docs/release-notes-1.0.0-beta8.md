@@ -65,31 +65,35 @@ Open the relations of an event (*Open related*, group **Temporal**) to see how i
 * **Attributes before content**: a rule of all plugins now: after an extraction the attributes of the file come before the content of the original (which is never written back to). The *Series* and *Takes place at* relations of an event use how it repeats, its start, end and location as they are now, also for an event that you made by hand; *Repeats* is a popup (every day, every weekday, every week, every month, every year) and keeps the technical rule (`SEN:recurrence`, not shown) in step: choosing or typing simple words (every 2 weeks) in Shoji or Akita sets the rule too, and clearing the words says that the event does not repeat, also when its calendar file does. In the form of an event the start and the end have **one box All day**, between them (it shows a dash if the two differ). **Shoji is ready to be translated** (its texts are in the catalog `locales/en.catkeys`). The list of *Repeats* ends with **Custom…**, a window for every N days, weeks, months or years, the weekdays and how long (never, N times, until a day); the weekdays begin with the first day of the week of your language and region. Fixed: all lists of a form showed the values of the first one (Event type). The notification of the ontology update shows the oni and also appears when only a check takes a while. The relations of the ontologies show their provenance and the description of the type, and an empty relation is an empty folder.
 * **Akita offers a restart after an update**: when `pkgman update` has installed a new Akita, a running Akita notices it and asks *Later* or *Restart*.
 * **Relations**: *Copy to Library* and *Open related* on the items of a relation that are entities; dropping them into a folder makes the entities there. The relations of a type show the **icon of their folder** (spatial, temporal and document references have their own); a relation item that has a title of its own (an event of a calendar) is named by it; *Open contained* is greyed out where there is nothing contained.
+* **Attributes that do not belong to a file** show a greyed **n/a** in the list instead of an empty cell, so you can tell *not part of this type* from *not filled in*; they are not editable. Clicking an item of a relation that stands for an entity (an event of a calendar, in any such relation) opens it as that entity, in Shoji.
 * A file that says that relations could not be fetched has the icon of a **broken link**.
 
 <!-- screenshot: images/beta8/akita-edit-cell.png — the outlined cell and the list of event types in the list view -->
 
+## The Deskbar menu: Context → New…
+
+**New…** is the first item of the **Context** menu (a separator below it, then your contexts). It makes a new context, **makes it the current one** at once, and opens the folder of the contexts in Akita with the new name in edit mode, so you type the name and are in your new context. If you rename the current context later, it stays the current one.
+
 ## Places: the Overpass servers
 
-The spatial navigator asks a **list of Overpass servers** in turn (a switch, a name, a description and the order for each; drag a row to move it): the public server and two more that need no key are on at first, two more that need a free key are off. A server that fails is not waited for, each server has a **Test** that shows the HTTP status, an **API key** and an address that you may change, and *Spaces* now puts the city, region and country that a file says before the name that it was found by. Map tiles that a style's server does not have are remembered, so the standard tile is not fetched again.
+The spatial navigator asks a **list of Overpass servers** in turn (a switch, a name, a description and the order for each; drag a row to move it): the public server and two more that need no key are on at first, two more that need a free key are off. A server that fails is not waited for, each server has a **Test** that shows the HTTP status, an **API key** and an address that you may change, and a **Get key…** button beside the key that opens the page where a free key is made (for overpass.ch: `overpass.ch/dashboard/keys`). *Spaces* now puts the city, region and country that a file says before the name that it was found by. Map tiles that a style's server does not have are remembered, so the standard tile is not fetched again.
 
 <img src="https://raw.githubusercontent.com/sen-laboratories/sento/v1.0.0-beta.8/docs/images/beta8/spatial-navigator-settings.png" alt="The settings of the spatial navigator: the list of Overpass servers, their status and details" width="640">
 
 ## Under the hood
 
 * **sento**: `SenEdtf.h` (EDTF: earliest and latest moment, durations; times of day as local time on request) and `SenTimeAttributes.h` (the one implementation of start, end and the text beside them), `SenAttrValues.h` (the allowed values of an attribute, from the MIME database) and `SenFilterMenu.h` (`sen::FilterPopUpMenu`, the list that follows a text field); the settings form specification gains `popup`, master/detail (`update_msg`), `beside`, revert buttons and `kActionDone`. BFS cannot index a time attribute as a time: it is indexed as the 64-bit integer that holds it (`sen::IndexTypeOf`), which the server and the ontology installer now do.
-* **Ontologies**: `sen_ontology_temporal` (new, `0.1.0-10`), enum values of attributes are published in the MIME database (`SEN:ATTR:VALUES`), *Description* is viewable in all ontologies, the core relation *Contains* is called **Composition**, Locations have the fields of their form.
+* **Ontologies**: `sen_ontology_temporal` (new, `0.1.0-12`), enum values of attributes are published in the MIME database (`SEN:ATTR:VALUES`), *Description* is viewable in all ontologies, the core relation *Contains* is called **Composition**, Locations have the fields of their form.
 * **sen-core**: relations and plugins are looked up by the technical **and** the semantic type of a file; items of a relation can be made into entities (*materialise*, `SEN:materialiseAs`); a one-sided relation type is only offered for a file that has it; the settings of a plugin that ended its session are sent again after it restarted.
+* **sen_oni**: the ontology installer does nothing when nothing has changed since its last complete update (the menu entry *Update* does the whole check), shows one notification for a burst of checks and starts far fewer processes.
 * **Calendar extractor**: a portable C++ core with more than 230 test checks (time arithmetic, parser, calendars, texts, facts); the temporal navigator has 75 checks.
 
 ## Packages
 
-<!-- to be checked against Kiri at the release -->
-
-* **Core & UI**: `sen_core` (`1.0.0~beta8-6`), `akita` (`1.0.0~beta8-14`), `shoji` (`1.0.0~beta8-26`), `sen_oni` (`1.0.0~beta8-2`), `sen_filetypes` (`1.0.0~beta4-1`).
+* **Core & UI**: `sen_core` (`1.0.0~beta8-13`), `akita` (`1.0.0~beta8-25`), `shoji` (`1.0.0~beta8-32`), `sen_oni` (`1.0.0~beta8-7`), `sen_filetypes` (`1.0.0~beta4-1`).
 * **Location service**: `basho` and `basho_devel` (`0.1.0~develop.1-7`).
-* **Plugins (`sen_plugins` `1.0.0~beta8-2`)**: **New:** `sen_plugin_calendar_extractor` (`0.1.0~beta8-5`), `sen_plugin_temporal_navigator` (`0.1.0~beta8-4`). **Updated:** `sen_plugin_place_enricher` (Spaces, `0.1.0~beta8-1`), `sen_plugin_spatial_navigator` (`0.1.0~beta8-8`), `sen_plugin_person_enricher` (Robin, `0.1.0~beta7-11`).
-* **Ontologies**: **New:** `sen_ontology_temporal` (`0.1.0-10`). **Updated:** `sen_ontology_core` (`0.1.0-34`), `sen_ontology_people` (`0.1.0-37`), `sen_ontology_spatial` (`0.1.0-42`), `sen_ontology_movies` and `sen_ontology_papers` (`0.1.0-33`).
+* **Plugins (`sen_plugins` `1.0.0~beta8-2`)**: **New:** `sen_plugin_calendar_extractor` (`0.1.0~beta8-8`), `sen_plugin_temporal_navigator` (`0.1.0~beta8-4`). **Updated:** `sen_plugin_place_enricher` (Spaces, `0.1.0~beta8-1`), `sen_plugin_spatial_navigator` (`0.1.0~beta8-9`), `sen_plugin_person_enricher` (Robin, `0.1.0~beta7-12`).
+* **Ontologies**: **New:** `sen_ontology_temporal` (`0.1.0-12`). **Updated:** `sen_ontology_core` (`0.1.0-35`), `sen_ontology_people` (`0.1.0-38`), `sen_ontology_spatial` (`0.1.0-42`), `sen_ontology_movies` and `sen_ontology_papers` (`0.1.0-34`), `sen_ontology_books` (`0.1.0-33`).
 
 ## Upgrading from Beta 7
 
@@ -111,14 +115,19 @@ First-time installation? See the *Quick Install* instructions in the beta 3 note
 ## Known limitations
 
 * **Fuzzy times are typed as text**: the date and time controls are for exact times. A start or an end that is not exact (`1994-05~`, `202X`) is edited as text in a field that already has one; an empty start or end shows the controls.
-* **Recurrence**: rules that the reader does not know give no *Series* relation (the log says so); there is no editing of the repeat rule.
+* **Recurrence**: rules that the reader does not know give no *Series* relation (the log says so). Words in *Repeats* that cannot be read stay as they are and leave the rule as it was.
 * **Copying events**: only *Copy to Library*, *Copy to* and dropping into a folder make entities; dragging into a relation window or the Trash does not.
-* **Overpass servers**: *nearby* can take half a minute on a busy public server; servers that need a key are off until you enter one.
+* **Overpass servers**: *nearby* can take half a minute on a busy public server; servers that need a key are off until you enter one. A server that needs a key can still be switched on without one: it is skipped until a key is there (the settings window will ask before it lets you leave an incomplete entry, in beta 9).
 * **Filesystem requirements**: BFS volumes only. Requires Haiku nightlies `hrev60299_1` or newer.
 
 ## What comes next
 
-<!-- to be written by the owner -->
+<!-- draft, from sen-meta/plan/beta9.md: for the owner to word -->
+
+* **Settings that cannot be left half done**: fields marked as required, and a settings window that asks before it closes in the middle of an entry that must be filled in.
+* **Papers and what they point to**: relations from a paper to the works it cites and the works that cite it, its authors, their institutions and its subjects, worked out when you open them (like the places and times of this beta), with **Add to library** for the ones you want to keep.
+* **Calendars that stay up to date**: a transport that keeps a calendar file of your Library in step with Google Calendar and other sources.
+* **Translations**: the first German catalogs for Akita and Shoji.
 
 ## Your support is essential
 

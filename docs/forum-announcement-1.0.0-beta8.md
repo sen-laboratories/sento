@@ -13,16 +13,19 @@ Beta 6 brought places, Beta 7 people and your own whereabouts. Beta 8 adds **tim
 
 **Temporal navigator.** *Open related › Temporal* at an event shows how it lies in time to the others: **Between** (before and after), **Meets**, **Overlaps**, **During**, **Equals**, the relations of Allen's interval algebra, worked out when you open them and never stored.
 
-**Shoji.** An Event form, a **date and time control** (calendar drop-down, time of day, *All day*), and the rule that an end is never before its start. In every form, **Enter** accepts an edit and **Escape** puts the stored value back; lists of common values follow what you type.
+**Shoji.** An Event form, a **date and time control** (calendar drop-down, time of day, *All day*), the rule that an end is never before its start, and a **Repeats** popup (every day, week, month, year, or **Custom…** with weekdays and an end) that keeps the technical repeat rule in step. In every form, **Enter** accepts an edit and **Escape** puts the stored value back; lists of common values follow what you type.
 
 **Akita.**
 * **Click to edit, as in a spreadsheet**: the whole cell of an editable attribute is the place to click, it is outlined at once and the edit starts faster. **Enter** accepts, **Escape** reverts.
 * **Lists of values that follow your typing**: first the values that begin with your text, else those that contain it, with the matching characters in bold; a small arrow opens the whole list.
 * **The right control for the kind of attribute**: yes/no attributes are check boxes (greyed where read-only), times and days have a calendar that drops down from the field, and Find asks for times with *before*, *after* and *is*.
 * **Update notice**: when `pkgman update` installs a new Akita, a running Akita offers *Restart*.
+* **n/a** in the list marks an attribute that does not belong to the file's type, and a click on an event of a calendar opens that event.
 * Relations show the icon of their folder, items of a relation that are entities can be copied into your Library, and *Open contained* is greyed out where there is nothing contained.
 
-**Places.** The spatial navigator asks a **list of Overpass servers** in turn (drag to reorder, test each one, API keys where needed), and Spaces puts the city, region and country of a file before the name.
+**Places.** The spatial navigator asks a **list of Overpass servers** in turn (drag to reorder, test each one, API keys where needed), a **Get key…** button opens the page where a free key is made, and Spaces puts the city, region and country of a file before the name.
+
+**Contexts.** **Context › New…** in the Deskbar menu makes a new context, switches to it and opens it in Akita with the name ready to type.
 
 **Upgrade** (stop SEN while packages are updated):
 
