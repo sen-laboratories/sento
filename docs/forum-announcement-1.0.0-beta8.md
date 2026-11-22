@@ -16,6 +16,8 @@ The new **Temporal ontology** turns your desktop into an integrated, searchable 
 
 ---
 
+![An event in Shoji: type, start and end controls, attendees and links](https://raw.githubusercontent.com/sen-laboratories/sento/main/docs/images/beta8/shoji-event.png)
+
 ### Local-First Calendar Extractor
 
 Select any `.ics` or legacy `.vcs` file (exported from Google Calendar, Outlook, Apple Calendar, Thunderbird, Nextcloud, etc.) in Akita and choose **Enrich**:
@@ -30,6 +32,10 @@ Select any `.ics` or legacy `.vcs` file (exported from Google Calendar, Outlook,
 
 ---
 
+![The Events of a calendar, with Copy to Library](https://raw.githubusercontent.com/sen-laboratories/sento/main/docs/images/beta8/events-relation.png)
+
+![The settings of the calendar extractor](https://raw.githubusercontent.com/sen-laboratories/sento/main/docs/images/beta8/calendar-extractor-settings.png)
+
 ### The Temporal Navigator
 
 Choose *Open related… › Temporal* on any file with a timestamp to explore chronological relationships through **Allen's Interval Algebra**:
@@ -37,6 +43,8 @@ Choose *Open related… › Temporal* on any file with a timestamp to explore ch
 * **Fuzzy Interval Safety**: Imprecise dates evaluate across their broadest possible bounds to prevent false positive classifications.
 
 ---
+
+![Open related, Temporal: Overlaps of an event](https://raw.githubusercontent.com/sen-laboratories/sento/main/docs/images/beta8/temporal-relations.png)
 
 ### Akita: Spreadsheet-Style List Editing & Desktop Polish
 
@@ -53,6 +61,10 @@ Akita (SEN's native Tracker fork) gains major usability refinements:
 
 ---
 
+![Editing an attribute in the list: the cell is outlined, the event types follow your typing](https://raw.githubusercontent.com/sen-laboratories/sento/main/docs/images/beta8/akita-edit-cell.png)
+
+![A calendar drops down from the Start cell of the list](https://raw.githubusercontent.com/sen-laboratories/sento/main/docs/images/beta8/akita-calendar.png)
+
 ### Shoji: Forms, Dates, and Recurrence
 
 * **Dedicated Event Form**: Displays all event fields with direct-launch links for places and meeting URLs.
@@ -62,6 +74,8 @@ Akita (SEN's native Tracker fork) gains major usability refinements:
 * **Localization Ready**: All UI strings are cataloged and ready for translation via Haiku's Locale Kit.
 
 ---
+
+![The date and time control of Shoji with its calendar](https://raw.githubusercontent.com/sen-laboratories/sento/main/docs/images/beta8/shoji-datetime.png)
 
 ### Places: Prioritized Overpass Mirrors
 

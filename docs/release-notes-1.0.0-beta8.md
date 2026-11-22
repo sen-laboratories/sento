@@ -16,7 +16,7 @@ At the same time, **Akita** receives a major productivity overhaul with spreadsh
 > [!IMPORTANT]
 > **SEN follows Haiku nightlies**: packages for Akita and SEN FileTypes require `haiku >= r1~beta6_hrev60299_1` and define no upper version limit, ensuring `pkgman` never blocks system updates.
 
-<!-- screenshot: images/beta8/shoji-event.png — an event in Shoji (Event Type list, Start and End controls, attendees, links) -->
+<img src="https://raw.githubusercontent.com/sen-laboratories/sento/main/docs/images/beta8/shoji-event.png" alt="An event in Shoji: type, start and end controls, attendees and links" width="640">
 
 ## The Temporal Ontology: Events and Calendars
 
@@ -41,8 +41,8 @@ Select any calendar file (`.ics`, or legacy `.vcs` from Google Calendar, Outlook
 * **Entity Materialisation**: Choosing *Copy to Library* on an item in a calendar's *Events* relation (or dragging it into a folder) extracts it into an independent, fully enriched event file.
 * **Attributes Before Content**: In accordance with SEN's updated plugin architecture, extracted attributes take precedence over the raw source file, leaving original files untouched.
 
-<!-- screenshot: images/beta8/calendar-extractor-settings.png — the settings of the calendar extractor (name pattern, Myself, description) -->
-<!-- screenshot: images/beta8/events-relation.png — the Events relation of a calendar and Copy to Library -->
+<img src="https://raw.githubusercontent.com/sen-laboratories/sento/main/docs/images/beta8/calendar-extractor-settings.png" alt="The settings of the calendar extractor" width="640">
+<img src="https://raw.githubusercontent.com/sen-laboratories/sento/main/docs/images/beta8/events-relation.png" alt="The Events relation of a calendar, with Copy to Library" width="640">
 
 ## The Temporal Navigator
 
@@ -52,7 +52,7 @@ Open the relations of any file with a timestamp (*Open related… › Temporal*)
 * **Fuzzy Interval Safety**: When comparing imprecise dates, intervals evaluate across their widest possible temporal extent, preventing inaccurate or misleading relationships.
 * **Universal Application**: Temporal relations work across all file types with a `schema:startDate`, connecting events, documents, photos, and media across time.
 
-<!-- screenshot: images/beta8/temporal-relations.png — Open related, group Temporal, at an event -->
+<img src="https://raw.githubusercontent.com/sen-laboratories/sento/main/docs/images/beta8/temporal-relations.png" alt="Open related, group Temporal, at an event" width="640">
 
 ## Akita: Spreadsheet-Style List Editing & Desktop Polish
 
@@ -72,7 +72,9 @@ Open the relations of any file with a timestamp (*Open related… › Temporal*)
 * **Enhanced BFS Time Queries**: Find queries on date/time attributes now offer *before*, *after*, and *is* operators with an integrated calendar picker. Queries operate directly on indexed 64-bit timestamps, avoiding legacy text-parsing query bugs.
 * **Direct Entity Navigation**: Double-clicking an event item within a calendar relation directly opens the event entity in Shoji. Dragging items from relation windows into folders materialises them as standalone files.
 
-<!-- screenshot: images/beta8/akita-edit-cell.png — the outlined cell and the list of event types in the list view -->
+<img src="https://raw.githubusercontent.com/sen-laboratories/sento/main/docs/images/beta8/akita-edit-cell.png" alt="The outlined cell and the list of event types in the list view" width="640">
+
+<img src="https://raw.githubusercontent.com/sen-laboratories/sento/main/docs/images/beta8/akita-calendar.png" alt="The calendar that drops down from the Start cell" width="640">
 
 ## Shoji: Forms, Dates, and Recurrence
 
@@ -84,7 +86,7 @@ Open the relations of any file with a timestamp (*Open related… › Temporal*)
 * **Dynamic Settings Architecture**: Settings forms gain autocomplete text popups, master/detail table bindings (`follows_table`), side-by-side controls, per-field revert buttons, and non-blocking button states ("Waiting for reply…").
 * **Localization Ready**: All Shoji UI strings are cataloged and ready for translation via Haiku's Locale Kit (`locales/en.catkeys`).
 
-<!-- screenshot: images/beta8/shoji-datetime.png — the date and time control with its calendar -->
+<img src="https://raw.githubusercontent.com/sen-laboratories/sento/main/docs/images/beta8/shoji-datetime.png" alt="The date and time control with its calendar" width="640">
 
 ## The Deskbar Menu: Context → New…
 
