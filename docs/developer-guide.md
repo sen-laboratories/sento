@@ -184,6 +184,7 @@ Defined in the ontology resource `SEN:REL:CONFIG` of the relation type, in a mes
 | `SEN:bidir` (default **true**) | relations are always bidirectional unless declared otherwise: SEN writes the opposite relation to the target, using `SEN:inverse` for its label and properties. |
 | `SEN:dynamic` | resolved at run time (by a plugin or a query), never stored, read-only. |
 | `SEN:self` | reflexive: the relation lives *inside* the source file (headings of a document, includes of a source file, files of an archive). Resolved by `extract` plugins; Tracker shows these in a separate menu (currently "Open self...", to be called **"Open contained..."**). Self relations are what allow looking *into* a file. |
+| `SEN:materialiseAs` | an entity type (`entity/x-vnd.sen-labs.entity.event`): what an *item* of the relation stands for. A contained item is a place in the file of the source, not a file of its own; with this flag the plugin of the relation can make the entity (see "Items that are entities" below). Without it the relation file is what is kept (a deep link). Schema annotation `materialise_as`. |
 | `SEN:relation` | config of the forward direction (label, ...) |
 | `SEN:inverse` | config of the opposite direction (label, ...) |
 
@@ -423,6 +424,20 @@ A plugin with the feature `identify` finds out what a file is and sets its **sem
 makes sure that the file has its Haiku type (`BEOS:TYPE`) first: Haiku takes a file with `META:TYPE` and without `BEOS:TYPE` for an entry of the MIME database. The type is returned in the reply as `sensei::key::kSemanticType`. The source code
 extractor of sensei is an example: Haiku gives every source file `text/x-source-code`, the plugin names the language and then reads the references with the scanner of that language.
 
+### Two types: the technical type stays, the semantic type is added
+
+A file has a **technical type**, `BEOS:TYPE` (`application/pdf`, `text/calendar`, `text/x-source-code`): what Haiku, its applications and the preferred-application lookup go by, and a **semantic type**, `META:TYPE` (`document/scientific-paper`,
+`entity/x-vnd.sen-labs.entity.event`): what the file means. The rules:
+
+- **A plugin only adds the semantic type**, in `identify` or `enrich`; it never changes the technical type. It sets `BEOS:TYPE` only when the file has none (then from the guess of the MIME database, or the one type of its format), because a file with
+  `META:TYPE` and without `BEOS:TYPE` is taken for an entry of the MIME database. The files that a plugin makes itself (an entity in the Library, the Markdown file of a description) get their own technical type.
+- **Whatever is looked up by a type is looked up by both**, the technical type first, then the semantic type if the file has one that is another (`RelationHandler::GetTypesForRef`; the enrichment of the server does the same): a type names a file if either does.
+  This holds for the types of a **relation** (`SEN:sourceTypes`, `SEN:targetTypes` and what they exclude: the relation is offered at the file if either type fits, and excluded if either is excluded) and for the `file_types` of a **plugin**
+  (which plugin enriches or extracts a file). A relation or a plugin may therefore name what it means: a generic `application/pdf`, or the abstract `document/scientific-paper`, or both. The matching is by prefix (`document/`, `audio`).
+- The split keeps the semantic layer independent of the platform: the technical type is what the operating system says (a MIME type on Haiku, a UTI such as `public.calendar-event` on macOS, and a UTI conforms to others as a prefix does), the semantic type is SEN's own, so a port needs a mapping for the first only.
+- A navigator opens the target the way the file manager does (`sensei/common/OpenTarget.h`, also used by `TargetOpenerApp`): a file with an entity type as its semantic type opens with the application of that type, any other file with the one of its technical type.
+- The ontologies need no list of file types for the entity (`entity/x-vnd.sen-labs.entity.event` is enough for a `.ics` that was enriched as an event); older entries that name both the entity and its file type (`application/x-person`) are harmless.
+
 ### Extractors look *inside* a file, and return normal and contained relations
 
 An extractor reads a file's content and may find **both** kinds of relation:
@@ -474,6 +489,91 @@ FileTypes is a single launch application, so there is one instance, and it is no
 * the **FileTypes of Haiku** is started with `-type` if it is not running (and an attribute is then opened by scripting it like a person would: "Item n of View listview attr of Window w", with
   the window found by the list it has), or only brought to the front if it is running.
 
+### Enrichers write attributes
+
+An enricher (`enrich`, the message `sensei::cmd::kEnrich`, or the *Enrich* of the file manager (Akita), which sends `B_REFS_RECEIVED` without `SEN:self`) reads what it can about a file, from the file itself or from a service, and writes it into the **attributes of the file**. What a
+person or another program put there stays (`wipe`, Shift in the menu, or `--overwrite` replaces it); a notification says what is being enriched and the answer replaces it with what was found. Examples: `paperboy` (a paper), `movie-enricher`, `person-enricher`, `place-enricher`
+(their shared base is `sensei/common/BaseEnricher`). An enricher that does not need the network reads the content of the file: the attributes are then a view of what the file says. An enricher that creates other things (the cast of a movie, the authors of a book) makes **entity files** for them
+(below) and relates them to the file.
+
+### Choosing the path: which feature for which relation
+
+The server has **four paths to a plugin**; the flags of the relation type in its ontology (`dynamic`, `self`, `source_types`, `app`, see section 3.3) decide which one a relation takes, and the plugin declares the matching feature:
+
+| What the plugin does | Feature | Relation type | Request and answer |
+|---|---|---|---|
+| says what a file *is* (the semantic type) | `identify` | none | `'SEid'`; the reply has `META:TYPE` |
+| writes what the file says or what a service knows into its attributes | `enrich` | none (it may create relations and entities) | `'SEer'` / `B_REFS_RECEIVED` |
+| lists the **parts of the file itself** (outline, declarations): contained relations | `extract` | `self` (and `dynamic`) | `B_REFS_RECEIVED` with `SEN:self`; a tree of items (`_label`, `_type`, `_to`, `_itemId` and `_item`), see above |
+| works out a relation **between files** when the user opens it, nothing stored: `within`, `nearby`, `before`, attendees | `navigate` | `dynamic`, **not** `self` | `sensei::cmd::kResolve` (`Sensei.h`); a message `kTargets` for each related file |
+
+The rule in the server is `dynamic && !self`: a relation that is `dynamic` and not `self` is resolved by the navigator that is the preferred application of the type (`app:` in the ontology), at the files of the types in `source_types`. A plugin may have several features and the
+same signature serves all of them (Paperboy identifies and enriches); the navigator of a relation type can be the plugin that also enriches the files that the relation starts at.
+
+### Attributes before content (a contract of every plugin)
+
+After a file has been extracted, **the attributes of the file are what is true about the thing; the content of the file is only what the attributes were made from.** The original file is never written back to: the user changes
+what is known about it in the attributes (the form of Shoji, a cell of the list of Akita, the popup of values), and the semantic type says how to read them. So a plugin that works with a file that has been extracted
+(it resolves a relation, enriches again, reads a value) **reads the attributes of the ontology first and the content only for what the attributes do not have**:
+
+- a relation that is worked out from the file (the series of an event, the place of an event) uses the attributes as they are NOW (`schema:repeatFrequency`, `schema:startDate`, `schema:location`...), also when they differ from the content of the file;
+- an object that has no content that the plugin knows (an event made by hand in Shoji, a person made by hand) is read from its attributes alone and must work, too: no content is not an error, and an empty result is an empty relation;
+- an attribute that the plugin wrote itself from the content is not a reason to read the content again: Enrich (without Overwrite) keeps what is there, Enrich (Overwrite) is the user's decision to take the content again;
+- a value that is only said in words by an attribute (`every 2 weeks`) is turned into what the plugin needs (a rule) by the plugin; a value that it cannot read leaves the content as it was.
+
+**The exception: relations that are a structure of the content** (self relations such as the attendees of an event, the outline or the parts of a file). They are **always extracted from the content**. The attributes cannot stand in for them: such a relation may have been
+materialised, but even then there is no way to know that it was materialised completely, so an attribute (or a stored copy) is at most a hint, never the answer. A file without content gives the empty relation. The rule of this section is for what a user can *say*
+about the thing (a value, a type, a place), not for what the file *contains*.
+
+**A technical value beside the words** (how something repeats, as an example). A value that people say in words and programs need exactly has two attributes: the words for people (`schema:repeatFrequency`, shown, edited, with a popup of usual values) and the technical value (`SEN:recurrence`, the RRULE, not shown),
+as the time has its EDTF text beside it (`SenTimeAttributes.h`). `SenRecurrence.h` (sento) is the one place that turns words into the rule (`RuleFromWords()`: every day, every weekday, every 2 weeks...) and that keeps them in step: whoever changes the words (Shoji, a column of Akita) calls
+`SyncFromText()` after it. Simple words set the rule, words that cannot be read leave it, empty words write an empty rule, which says *does not repeat* and overrides the content (a missing rule leaves it to the content). Whoever reads (`SeriesEventOf()`) takes the rule if the words are those of the rule,
+the words if they differ and can be read (they were changed alone), else the rule. `SenRepeatPicker.h` is the window for a repeat cycle (`RepeatPickerWindow`: every N units, weekdays, how long; it writes both attributes itself) and `FilterPopUpMenu::SetExtraItem()` puts its opener, `Custom...`, at the end of the list. There is no watcher for low-level changes with `addattr`: a script that changes one of the two changes both.
+
+The calendar extractor is the reference: `SeriesEventOf()` and `ResolvePlace()` in `plugins/calendar-extractor/CalendarService.cpp` (start, end, how it repeats and the location come from the attributes; the file content fills what is missing; `RuleFromWords()` reads the field Repeats).
+
+### Dynamic relations and entities in the temporary relation folder
+
+When the user opens a dynamic relation (*Open related*), the server starts the navigator with `kResolve`: `refs` is the source, `sen::key::kRelationType` the type, and `sensei::key::kLibraries` has the Library folder of each entity type that the relation is between. The plugin
+works the relation out and answers with `kResult` and one `kTargets` message for each related file: `sen::key::kTargetRef` (a ref to an existing file) and the properties of the relation seen from the source (`SEN:REL:Label`, the label of the direction: a type has `label` and `inverse_label`;
+`SEN:REL:Kind`, `SEN:REL:Provenance`, any other attribute of the type). The server adds the `SEN:ID`s and answers as for a stored relation, so the menus and the relation views need nothing of their own. A relation folder of such a relation is **temporary**: it
+shows what was true when it was opened (peek); a folder that the user keeps (dragged to the Desktop or Home) keeps the query and works the relation out again each time it is opened.
+
+The targets do not have to exist yet: the plugin makes the **entity files** it needs with `sensei::FindOrCreateEntityFile()` (`common/EntityFile.h`) in the Library folder that came with the request (a person in `~/Library/People`, a place in `Places`), or finds the one that is there and
+updates it in place, so that nothing is made twice. The attendees of an event are people and its location a place: they are entities in the relation folder, and they are the Person and Place of the Library from then on. The new entities can be handed to the enrichers afterwards (`sen::cmd::kEnrichRefs`
+with `auto`), as the spatial navigator does for the places that it made. A plugin never writes anything else: the relation itself is never stored.
+
+### Several relations to one file: places inside it
+
+A file can be the target of many relations, each at **another place in it**: the pages of a PDF that a document refers to (`docref`), the lines of a source file, the events of a calendar. The place is part of the relation, not of the file: the target is the same file and a
+**selector** (W3C Web Annotation: `oa:hasTarget` with `oa:hasSelector`, a `oa:FragmentSelector` `page=3`, a text quote, an EPUB CFI; section 3.2) says where. The navigator of the relation type opens the file at that place (`document-reference-navigator` gives the page to the viewer that is installed). A relation
+type that points *into* a file needs no new file for each place; one that points to **another thing** (a person, a place) points to an entity file.
+
+### Items that are entities: `SEN:materialiseAs`
+
+The items of a contained relation are places in the file of the source (`SEN:REL:TRG` is that file). For the references into a PDF that is what is wanted: a copy of the relation file is a deep link, and the target is always the same PDF. For the events of a calendar it is not: they
+are **entities** in their own right, which a person wants to keep, search and relate (before, after, overlaps). A relation type that says so (`materialise_as: entity/...` in the schema, `SEN:materialiseAs` in its config) has its items turned into the entities **when they are needed, never when
+they are listed** (a peek makes no files):
+
+- the server command `sen::cmd::kRelationsMaterialise` (`refs` the file that holds the items, `kRelationType`, and one `kRelationProperties` message for each item, with its attributes). The server asks the plugin of the relation (its preferred application) with `sensei::cmd::kMaterialise`: `refs`, `kRelationType`,
+  `kLibraries` (the Library folder of the entity type) and `sensei::key::kItems` (the properties of the items). The plugin answers `kResult` and a `kTargets` message for each item that has an entity now, with `sen::key::kTargetRef` and the `sen::key::kItemId` of the item. A relation without
+  `SEN:materialiseAs` is answered with `B_NOT_SUPPORTED`. The server gives every entity its `SEN:ID` and stores the relation **Contains** of the core ontology between the file and the entity (the file *contains* the entity, the entity is *contained in* the file: the relation is reused, not made again
+  for each ontology); the properties of that relation are the fields of the `kTargets` message besides the entity and the item (the plugin puts the identifier there, which is what finds the item again; the id of the item is new at every listing and is not kept).
+- the entity is **found by its identifier** (`dc:identifier`, the UID of a calendar event; an event without one gets a key made of what it says, `sen-<hash>`), so that keeping an event twice finds the file that is there; the plugin writes it again if the source says it differently now. The file that the plugin
+  makes has the type of the entity (`entity/x-vnd.sen-labs.entity.event`, as one made from a template has, so it opens in Shoji) and the plugin adds the semantic type like any enrichment (see "Two types"); a calendar file that was only
+  identified keeps its technical type (`text/calendar`).
+- `sen::key::kDestinationRef` (optional) is a folder to make the entities in: **dragging items out of a relation view** (or *Copy to* / *Move to*) makes them in the folder they were dropped in, a copy of one that is kept in the Library too (the plugin finds only what is in that folder, so dropping twice makes no second file). Links and the Trash are not affected; the other files of a selection are copied as before.
+- When an entity that was deleted (or is in the Trash) is made again it is a new file with a new `SEN:ID`: the server takes the stored relation to the old one away (same identifier, target gone) and stores the new one, so there is one relation for the item.
+- Akita does it for *Copy to Library* (the menu item for items of such a relation) and for *Open related* on an item: the menu asks for the relations of the entity, not of the file that holds it. `TrackerSenRelations::IsMaterialisableItem()` tells whether an item is one (the config of its type in the MIME database).
+
+### A new plugin: the steps
+
+1. Name the folder for what it does (`sensei/plugins/<name>`); signature `application/x-vnd.sen-plugin.sen-labs.<name>`; the features it needs; `file_types`; `Resources.rdef` (the version in `app_version`, nowhere else).
+2. Put what can be tested without Haiku into a plain C++ `core/` (no BeAPI) with `tests/run.sh` on the Mac; the application (`App.cpp`) only translates between messages and the core.
+3. Features: `identify` sets `META:TYPE` and makes sure `BEOS:TYPE` exists; `enrich` writes attributes with the names of `SenOnto<Name>.h` (never string literals); a relation type that the plugin resolves needs an entry in the ontology (`sen-oni`, section 8) with `dynamic`, `source_types`, `label`, `inverse_label`, `app`.
+4. Settings (if any) through `common/SettingsSession.h` and the form of Shoji (spec in `spec-settings-and-message-template.md`); a plugin without settings has `SEN:plugin:hasSettings` false or no such attribute.
+5. `./build.sh` in the VM, `REVISION=N ./package.sh <name>`; the plugin lists itself in `PLUGINS.md` (generated: `tools/overview.py`).
+
 ## 7. Code conventions
 
 - C++20; native Haiku API at the boundary (BMessage, BNode, BQuery, BEntry), the standard library for internal logic.
@@ -504,6 +604,8 @@ literals of attribute names; the constants of the core API (`SenAttributes.h`, .
   columns and queries work across relation types.
 - **Indices** are created by the ontology installer (`sen-oni/bin/mime`) and by the SEN server (at start and when a volume is mounted) on every mounted volume that supports
   them; an index is never removed (attribute names are shared with other programs). BFS indexes only the first 255 bytes of a string and no 16 bit values.
+- **Times are `B_TIME_TYPE`, indexed as the integer that holds them.** BFS refuses to index the type TIME, so the indices of a time attribute (`schema:startDate`, `schema:endDate`) are made as 64-bit integers (`sen::IndexTypeOf`, used by the server and the installer), and a time is written as a `time_t` (8 bytes). Start and end are kept **only** through `SenTimeAttributes.h` (`sen::timeattr::Store/FuzzyText`): the earliest moment of a start, the latest of an end, and the text of a not-exact value (EDTF, `SenEdtf.h`) in `SEN:startDateEdtf` / `SEN:endDateEdtf` beside it. Shoji, Akita and the temporal navigator all go through it. Dynamic relations that need an interval (Allen's algebra in `sensei/plugins/temporal-navigator`) derive it from these attributes, never from a type: any file with a start has one.
+- **Allowed values of an attribute.** An `enum` of the schema is published for each attribute that uses it in the MIME database (`SEN:ATTR:VALUES`, with the Wikidata item as `meaning` and `allow_custom`; the descriptions and aliases are not emitted yet). `SenAttrValues.h` reads them, and `sen::FilterPopUpMenu` (`SenFilterMenu.h`) offers them as a list that follows a text field: Shoji and Akita use the same control and the same data, so a new enum value needs a schema change and nothing else. Mind the locking of the control (it is a `BPopUpMenu` whose track thread and menu window the field's window must not wait for under a lock) and read the header comments before changing it.
 - **Tests:** `python3 -m unittest discover -s sen-oni/tests` (also in CI) checks the generator, that the committed files are up to date, and that `sento` and `sensei` agree with the schema;
   `sento/tests` runs the TSID tests on Linux, macOS and Haiku; `sen-core/tests/vm/run.sh` is the end-to-end test in the Haiku VM.
 

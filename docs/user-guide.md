@@ -178,6 +178,84 @@ To **keep** one, drag it onto your Home folder or the Desktop, as for any folder
 
 ![A kept folder of what is nearby](images/beta6/kept-nearby-folder.png)
 
+## Calendar files and events
+
+An invitation or a calendar entry (`.ics`, also the old `.vcs`; from Google, Outlook, Apple, Thunderbird and others) is an **event** once SEN has read it. Select the file in Akita and choose **Enrich**: the file is typed as an *Event*, its
+time, place, organizer, status, the link of an online meeting (and its service: Zoom, Google Meet, Microsoft Teams, Webex, Jitsi, GoToMeeting, Whereby, Skype) and the rest are written into its attributes, so that you can show them as columns,
+sort by them and search for them, and the file is **named after the event with its date and time**: `2026-11-12_0930_Planning.ics`. You can change the name in the settings of the calendar extractor (*Name pattern*, with the tokens `{date}` `{time}` `{year}` `{month}` `{day}` `{hour}` `{minute}` `{title}`; the default is `{date}_{time}_{title}`). The description is kept as a **Markdown file** beside it (`2026-11-12_0930_Planning.md`) with its links and formatting.
+The times in the attributes do not depend on your time zone setting: Akita shows them in the zone that you set. Nothing is sent over the network.
+
+A file with **several events** (an export of a calendar) becomes a **Calendar** that holds them: it has the name of the calendar, the number of events and the time that they cover.
+
+Open the relations of an event (*Open related*, group *Temporal*, where the relations between events are as well):
+
+- **Attendee** lists the people of the event, each with their role (organizer, required, optional, resource) and their *response* to the invitation (accepted, declined, tentative, needs action). The response belongs to the relation between the event and the person, not to
+  the person. Each person is a *Person* in the Library (found by the e-mail address, so the same person is not made twice); the person that you are is marked *you* (set **Myself** in the settings of the calendar extractor).
+- **Takes place at** is the place of the event, a *Place* in the Library (with its coordinates if the file has them; Spaces looks it up).
+- **Series** shows the instance of a repeating event just **before** and **after** this one, as the rule of the file says (with its exceptions and the instances that were moved). The event that has the rule is the series itself, seen from **today** as a calendar app shows it: its *next* is the next time it comes (the next birthday), its *previous* the last time it was. An instance that the file moved or changed has the instances around it.
+- **Description** opens the Markdown file of the event.
+- **Events**, at a calendar, are the events that it holds. They are contained in the file as the outline of a document is: the menu of the calendar shows them as a list, in order of their start. The window of an event (Shoji) shows what the file says, also how it repeats (in words), the people with their roles and answers, the status and the links of the page and of the online meeting (click the label).
+
+The events in the folder of the Events relation are only **items** at first: a copy of such a file would copy the relation. To **keep an event as an event**, select it (or several) and choose **Copy to Library**: the calendar extractor makes the event a calendar file of its own in the Library (`Events`), named after its date and time, enriched like an event that you received alone. Keeping it again finds the file that is there. You can also **drag the events out** of the folder (or use *Copy to*): they become events in the folder where you drop them. Choosing **Open related** on such an item shows the relations of the event, for example the events before and after it.
+
+The folders of these relations are made when you open them: look at them (peek), or keep them. The instances of a series and the events of a calendar are places in the same calendar file, as the pages of a PDF are.
+
+In the settings (*Plugins*, under *Enrich*, *Identify* or *Navigate*: *SEN Calendar Extractor*) you can switch the renaming and the Markdown file off and set **Myself**: type your name and address (`Name <address>`) or choose yourself from the list of the people that SEN knows.
+
+### How an event repeats, and what the file says
+
+*Repeats* is a field with a list (every day, every weekday, every week, every month, every year; other words are allowed, such as *every 2 weeks*). **What is in the attributes of the event counts**: the *Series* relation (the next and the previous time, seen from today) and *Takes place at* use *Repeats*, the start, the end and the *Location* as they are now, also when they differ from the calendar file that the event was made from, which is never changed. An event that you made by hand, with no calendar file behind it, has a series, too.
+
+Behind *Repeats* (the words for you) there is a second attribute, *SEN:recurrence*, which is not shown: the rule as programs read it (`FREQ=WEEKLY;INTERVAL=2`), which can say more than the words (on Monday and Wednesday). When you choose a value or type simple words (*every 2 weeks*) in Shoji or in a column of Akita, the rule follows. Words that cannot be read (*every second Friday after payday*) stay as they are and the rule stays as it was. The list of *Repeats* ends with **Custom…**: a window to set how often (every 2 weeks), on which weekdays, and how long (never, after 10 times, on a day), with the words as you will see them; *OK* writes the words and the rule, *Doesn't repeat* takes them away. Clearing *Repeats* says that the event does not repeat, also when its calendar file says it does. A script that changes one of the two should change both (or take the words away): if the words say something readable that differs from the rule, the words win.
+
+### Event types
+
+An event has a **type** (the field *Event Type*, the attribute `SEN:eventType`): what kind of event it is. The ontology knows the common kinds and maps them to Wikidata: *Meeting, Conference, Telephone call, Video conference, Party, Birthday, Anniversary, Wedding anniversary, Jubilee, Death anniversary, Wedding, Funeral, Graduation, Baptism, Dinner party, Housewarming, Farewell party, Baby shower, Ceremony* and, since beta 8, the days of the calendar: **Holiday, Public holiday, National day, Religious holiday, Festival** and **Observance**. You are not limited to them: any other text may be typed.
+
+The type is a field with a **list that follows what you type** (the same in Shoji and in the list view of Akita): it opens below the field and shows the types that **begin** with your text; if there are none, those that **contain** it anywhere. The characters that matched are drawn **bold**. Use the arrow keys to move in the list, **Enter** to take the selected entry (or the one that the text names), **Escape** to close it. The small **arrow** at the right end of the field opens the whole list, also while the field is empty.
+
+### Days and times in Shoji
+
+The **Start** and the **End** of an event (or of anything else that has a time) have a control for the **day** (in the order and with the separator of your locale; type it as it is written, or click the arrow button next to it for a calendar) and one for the **time of day**. **All day** leaves the time out (the time field is dimmed). Typing is a *pending* change: **Enter**, leaving the control, choosing a day in the calendar or checking *All day* completes it; **Escape** puts back what is stored. **Enter** keeps the edit in every field of the form, **Escape** reverts it.
+
+**The end of an event is never before its start.** If you type an end that is before the start, it becomes the start; if you move the start past the end, the end moves with it and keeps the length that the event had.
+
+A time that is **not exact** (*about May 1994*, *some year of the 2020s*) is written in the *Extended Date/Time Format* (EDTF): `1994-05~` (about), `1994?` (uncertain), `202X` (some year of the 2020s). SEN keeps it as the **earliest** moment of a start (the **latest** of an end), so that sorting and searching work, and keeps the text beside it (`SEN:startDateEdtf`, `SEN:endDateEdtf`). Such a value is typed as text in the field of an event that already has one; the date and time controls are for exact times.
+
+### Temporal relations: before, meets, overlaps
+
+*Open related*, group **Temporal**, at an event, shows how it lies in time to the other events (and to any file that has a start): the relations of **Allen's interval algebra**, worked out when you open them (they are not stored, so they are right after you corrected a time):
+
+- **Between** (the files *before* and *after* the event), **Meets** (one ends where the other begins), **Overlaps**, **During** (and *contains*), **Equals**. Each file in the folder says how it is related *as seen from the event you opened*.
+- Two days in a row **meet**; a time that is not exact counts with its widest extent, so a relation is never claimed that the time does not allow.
+- A **calendar** (the umbrella of its events) is left out: its time is the time that its events cover.
+- The relations are offered at **every file that has a start** (`schema:startDate`), whatever its type: a photo or a document that has one has them, too.
+
+<!-- screenshot to add: images/beta8/temporal-relations.png (Open related, group Temporal, at an event) -->
+<!-- screenshot to add: images/beta8/shoji-event.png (an event in Shoji: Event Type list, Start/End controls) -->
+<!-- screenshot to add: images/beta8/akita-edit-cell.png (the outlined cell and the list of event types in the list view) -->
+
+## Editing an attribute in the list
+
+In the list view of Akita, **the whole cell** of an editable attribute is the place to click (an empty one too), as in a spreadsheet. A click selects the file and **outlines the cell at once** (a dotted grey line); after a short pause the edit starts, and the field fills the cell. A double click that is faster than the pause still opens the file. **Enter** accepts the edit, **Escape** reverts it, clicking another cell accepts it and starts the next. The **name** keeps the area of its text (the empty space after it starts a rubber band selection): its first click selects, a second one renames. Shift and Command clicks only select.
+
+### Finding by time
+
+In the **Find** window (*Find...*, *by attribute*) a time attribute offers **before**, **after** and **is**; the text field of the row has the same calendar arrow. *Is* means within the period that you typed (a day, a month `2026-11`, a year `1994`, a minute); *after 2026-11-12* means from the 13th on. The times of the ontologies are kept as 64-bit integers and BFS reads a date in words as 32 bits, which gave wrong answers; Find now asks with the integer.
+
+### The right control for the kind of attribute
+
+What is edited in the list follows the **type of the attribute** as the ontology (or FileTypes) says it:
+
+- A **yes/no attribute** is a **check box** in the cell. One click turns it over (the cell is outlined first, as above; a faster double click still opens the file). The check box is **greyed** and does nothing where the attribute is read-only or the file is on a volume that cannot be written.
+- A **time** (day and time of day) and a **day** (an attribute that the ontology calls a *date*, such as a birthday or the date of publication, which is shown as a day only) have a small **arrow** at the right end of the field: it opens a **calendar** below the cell (month and year buttons; for a time also hour and minute and *All day*). Picking a day ends the edit with it. You can also type: `2026-11-12 09:30`, `2026-11-12`, or a time that is not exact such as `1994-05~` (a start or an end), or words such as `12 Nov 2026 9:30`; a text that is no time is refused and nothing is written. An empty field removes the attribute. On a volume that cannot be written there is no arrow.
+- The **end** of an event is never before its **start** here either: an end that is typed before the start becomes the start, a start that is moved past the end takes the end with it.
+- A start or an end that was said fuzzily (`1994-05~`) is **shown as it was said**; times sort correctly also before 1902 and after 2037.
+
+## Updating Akita
+
+A running Akita does not notice a new version of its program by itself. Since beta 8 it **watches its package**: when `pkgman update` has installed a new Akita, a small alert asks *Later* or *Restart*; *Restart* starts the new Akita and quits the old one (its windows come back as they were).
+
 ## Shoji, the form for a file
 
 Shoji opens a file (a paper, a person, a movie...) as a form: the Deskbar menu of SEN and *Open With... Shoji* start it, and in its settings it can be made the application for more types. A few things to know:

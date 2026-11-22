@@ -5,6 +5,10 @@
 #pragma once
 
 #include <stddef.h>
+#include <time.h>
+
+#include <SupportDefs.h>
+#include <TypeConstants.h>
 
 /**
  * @file SenAttributes.h
@@ -15,6 +19,19 @@
  * SenMessages.h, MIME types in SenMimeTypes.h.
  */
 namespace sen {
+
+/**
+ * The type of the BFS index for an attribute of a type: the same type, except for a time. BFS indexes integers, not the type code TIME (fs_create_index refuses it with "bad argument
+ * type"): the index of a time is the integer that holds it, 64 bits for the `time_t` of Haiku on a 64-bit system. The times of an indexed attribute must be written with that size.
+ */
+inline uint32
+IndexTypeOf(uint32 attributeType)
+{
+	if (attributeType == B_TIME_TYPE)
+		return sizeof(time_t) == 8 ? B_INT64_TYPE : B_INT32_TYPE;
+	return attributeType;
+}
+
 namespace attr {
 
 /** Prefix of every attribute that SEN manages. */
@@ -96,6 +113,8 @@ inline constexpr char kPlural[] = "SEN:PLURAL";
 inline constexpr char kLibraryPath[] = "SEN:libraryPath";
 /** Resource of a relation type with the vector icon of its relation folder. */
 inline constexpr char kRelationFolderIcon[] = "SEN:ICON:FOLDER";
+/** message, attribute of the entry of a type in the MIME database: the common values of its attributes that have an enum in the schema, keyed by the name of the attribute (see SenAttrValues.h) */
+inline constexpr char kAttributeValues[] = "SEN:ATTR:VALUES";
 
 // ---- ontologies (written by the ontology installer)
 
