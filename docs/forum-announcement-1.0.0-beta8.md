@@ -1,46 +1,105 @@
 # SEN 1.0 Beta 8 "Sofia": Time and Events
 
-Beta 6 brought places, Beta 7 people and your own whereabouts. Beta 8 adds **time**: a new Temporal ontology with **Events** and **Calendars**, a **calendar extractor** for `.ics` files, a **temporal navigator**, date and time controls in **Shoji**, and a much nicer way to edit attributes in **Akita**'s list view. Still for **Haiku R1/beta6 nightlies (x86_64)** (from `hrev60299_1` on), and still storing everything natively in file attributes.
+Beta 6 brought places and spatial relations, and Beta 7 connected them to people with privacy-first ambient location awareness. Beta 8 completes the foundational picture with **time and events**: introducing the **Temporal ontology** (`Event` and `Calendar` entities), an offline **Calendar Extractor** for `.ics` files, a dynamic **Temporal Navigator** powered by Allen's interval algebra, date and time controls in **Shoji**, and spreadsheet-style in-place list editing in **Akita**.
 
-**Events, Calendars and the Temporal ontology.** An Event has a start, an end, a duration, a type, a place, an organizer, attendees, a status, an online-meeting link and a repeat rule; a Calendar is the umbrella of the events of one calendar file.
-* **Real time attributes, also fuzzy ones**: the start and the end are time attributes (so columns, sorting and queries just work), with the text of a not-exact time (*about May 1994*, EDTF `1994-05~`) kept beside them. Any file may carry a start and an end.
-* **Event types**: from *Meeting*, *Birthday* and *Wedding* to the new **Holiday, Public holiday, National day, Religious holiday, Festival** and **Observance**, all mapped to Wikidata. Any other text is fine, too.
+As always, SEN is built natively for **Haiku R1/beta6 nightlies (x86_64)** (from `hrev60299_1` onward), storing all semantic metadata directly inside native BFS file attributes.
 
-**Calendar extractor.** Choose *Enrich* on an `.ics` or `.vcs` file (Google, Outlook, Apple, Thunderbird...):
-* A forgiving reader for iCalendar and the old vCalendar 1.0, including repeat rules, exceptions and online-meeting links (Zoom, Meet, Teams, Webex, Jitsi...). Nothing leaves your machine.
-* The file becomes an **Event** (or a **Calendar** if it holds several), is **named by its date and time** (`2026-11-12_0930_Planning.ics`, by a pattern you can change) and gets its description as a **Markdown file** beside it.
-* **Relations**: Attendee (with role and response; each a Person in your Library), Takes place at, Series (the instance before and after), Description, and Events at a calendar. *Copy to Library* keeps an item of a calendar as an event of its own.
+---
 
-**Temporal navigator.** *Open related › Temporal* at an event shows how it lies in time to the others: **Between** (before and after), **Meets**, **Overlaps**, **During**, **Equals**, the relations of Allen's interval algebra, worked out when you open them and never stored.
+### Time, Events, and the Temporal Ontology
 
-**Shoji.** An Event form, a **date and time control** (calendar drop-down, time of day, *All day*), the rule that an end is never before its start, and a **Repeats** popup (every day, week, month, year, or **Custom…** with weekdays and an end) that keeps the technical repeat rule in step. In every form, **Enter** accepts an edit and **Escape** puts the stored value back; lists of common values follow what you type.
+The new **Temporal ontology** turns your desktop into an integrated, searchable schedule:
+* **Dual Exact and Fuzzy Time (EDTF)**: Timestamps (`schema:startDate`, `schema:endDate`) are stored as native 64-bit integers for instant BFS indexing, Tracker queries, and accurate column sorting across historical dates (including pre-1970 and post-2038). Imprecise dates (*"around May 1994"*, *"2020s"*) are captured alongside using the standard Extended Date/Time Format (EDTF, `1994-05~`, `202X`), with earliest and latest bounds calculated automatically. Any file on your system can carry start and end attributes.
+* **Comprehensive Metadata**: Events track title, description, start/end times, duration, location, organizer, attendees (with attendance status), online meeting links, and recurrence rules.
+* **Curated Event Types**: Search-as-you-type autocomplete offers common event types (Meeting, Birthday, Conference, etc.), now expanded with formal calendar designations: **Holiday, Public holiday, National day, Religious holiday, Festival**, and **Observance**—all mapped to Wikidata entities.
+* **Native Vector Icons**: Custom HVIF vector icons for Events and Calendars.
 
-**Akita.**
-* **Click to edit, as in a spreadsheet**: the whole cell of an editable attribute is the place to click, it is outlined at once and the edit starts faster. **Enter** accepts, **Escape** reverts.
-* **Lists of values that follow your typing**: first the values that begin with your text, else those that contain it, with the matching characters in bold; a small arrow opens the whole list.
-* **The right control for the kind of attribute**: yes/no attributes are check boxes (greyed where read-only), times and days have a calendar that drops down from the field, and Find asks for times with *before*, *after* and *is*.
-* **Update notice**: when `pkgman update` installs a new Akita, a running Akita offers *Restart*.
-* **n/a** in the list marks an attribute that does not belong to the file's type, and a click on an event of a calendar opens that event.
-* Relations show the icon of their folder, items of a relation that are entities can be copied into your Library, and *Open contained* is greyed out where there is nothing contained.
+---
 
-**Places.** The spatial navigator asks a **list of Overpass servers** in turn (drag to reorder, test each one, API keys where needed), a **Get key…** button opens the page where a free key is made, and Spaces puts the city, region and country of a file before the name.
+### Local-First Calendar Extractor
 
-**Contexts.** **Context › New…** in the Deskbar menu makes a new context, switches to it and opens it in Akita with the name ready to type.
+Select any `.ics` or legacy `.vcs` file (exported from Google Calendar, Outlook, Apple Calendar, Thunderbird, Nextcloud, etc.) in Akita and choose **Enrich**:
+* **100% Offline & Resilient**: A standalone C++ parser (backed by 230+ tests) handles folded lines, byte order marks, quoted-printable encoding, legacy vCalendar 1.0 syntax, and complex recurrence rules (daily to yearly, intervals, counts, and exceptions) completely locally. Nothing touches the network.
+* **Automatic Organization**: Files become **Event** entities (or **Calendar** containers for multi-event files), are automatically renamed using customizable patterns (e.g. `2026-11-12_0930_Planning.ics`), and save detailed descriptions as companion **Markdown files** (`.md`).
+* **Deep Relations**:
+  * **Attendees**: Linked to `Person` entities in your Library by email, noting their roles and attendance status (with yourself identified via the configurable *Myself* setting).
+  * **Takes place at**: Linked to physical `Place` entities in your Library.
+  * **Online Meetings**: Automatically extracts meeting links and identifies services (Zoom, Google Meet, Teams, Webex, Jitsi, GoToMeeting, Whereby, Skype).
+  * **Series**: Links preceding and upcoming occurrences calculated from recurrence rules.
+* **Materialise Events**: Dragging individual events out of a calendar's relation view or choosing *Copy to Library* instantly creates standalone, fully enriched event files.
 
-**Upgrade** (stop SEN while packages are updated):
+---
+
+### The Temporal Navigator
+
+Choose *Open related… › Temporal* on any file with a timestamp to explore chronological relationships through **Allen's Interval Algebra**:
+* **Dynamic Chronological Relations**: Evaluates **Between** (preceding/succeeding), **Meets**, **Overlaps**, **During**, and **Equals** (plus their inverses) on the fly across all mounted BFS volumes. Relations are calculated dynamically on demand and never stored statically.
+* **Fuzzy Interval Safety**: Imprecise dates evaluate across their broadest possible bounds to prevent false positive classifications.
+
+---
+
+### Akita: Spreadsheet-Style List Editing & Desktop Polish
+
+Akita (SEN's native Tracker fork) gains major usability refinements:
+* **Spreadsheet-Style In-Place Editing**: Clicking anywhere in an editable cell immediately highlights the cell and begins inline editing, while fast double-clicks still open files. Pressing **Enter** commits changes; **Escape** cleanly reverts to the original value.
+* **Type-Aware Controls**:
+  * **Checkboxes**: Boolean attributes render clean, aligned checkboxes with proper read-only states.
+  * **Calendar Dropdown**: Date and time cells feature an integrated calendar dropdown for picking dates, times, and toggling "All day". Freeform typing (`2026-11-12 09:30`, `1994-05~`) is fully validated.
+  * **Autocomplete Popups**: Attributes with defined vocabularies (e.g. `Event Type`) present a live autocomplete dropdown as you type, with prefix matches prioritized and matching characters in **bold**.
+* **Visual Applicability (`n/a`)**: When an attribute column does not apply to a file's semantic type, Akita displays a dimmed, non-editable **n/a** instead of an ambiguous blank cell.
+* **Native Identity & Vector Icons**: Deskbar now officially displays **Akita**, accompanied by hand-crafted pixel icons (16/32px) and native HVIF vector artwork.
+* **Seamless Update Notifications**: Running Akita instances automatically detect package updates after `pkgman update` and prompt to restart the desktop cleanly.
+* **Find by Time**: Query files with *before*, *after*, and *is* using the calendar picker, running directly against native 64-bit integer BFS indexes.
+
+---
+
+### Shoji: Forms, Dates, and Recurrence
+
+* **Dedicated Event Form**: Displays all event fields with direct-launch links for places and meeting URLs.
+* **Date & Time Controls**: Locale-aware date formatting, popup calendar, time input, and a unified **All day** toggle. Intelligent boundary validation ensures end dates never precede start dates.
+* **Advanced Recurrence Editor**: Common presets (Daily, Weekdays, Weekly, Monthly, Yearly) plus a **Custom…** cycle dialog for custom intervals (every N days/weeks/months/years), specific weekdays (starting on your locale's first day of the week), and stop conditions (never, after N occurrences, or until a date). Plain language syncs automatically with standard iCalendar `RRULE` strings (`SEN:recurrence`).
+* **Settings Engine Upgrades**: Autocomplete popups, master/detail table bindings (`follows_table`), and non-blocking action buttons with "Waiting for reply…" states.
+* **Localization Ready**: All UI strings are cataloged and ready for translation via Haiku's Locale Kit.
+
+---
+
+### Places: Prioritized Overpass Mirrors
+
+The Spatial Navigator now supports a prioritized, configurable list of OpenStreetMap **Overpass API servers**:
+* Drag and drop to reorder fallback mirrors. If a busy server times out, queries automatically fall back to the next available mirror.
+* Pre-configured public servers plus support for authenticated mirrors (like overpass.ch), complete with an inline **Get key…** shortcut to provider sign-up pages.
+* Live server test buttons display real-time HTTP status indicators.
+* Spaces prioritizes city, region, and country attributes from existing file metadata, while failed tile lookups are cached to avoid redundant network hits.
+
+---
+
+### Instant Contexts
+
+The SEN Deskbar menu now places **New…** at the top of the **Context** submenu. Selecting it creates a new context, activates it immediately, and opens its folder in Akita with the title field ready for typing. Renaming an active context keeps it active seamlessly.
+
+---
+
+### Upgrading from Beta 7
+
+Stop SEN services while updating packages, then restart them:
 
 ```sh
 sen stop
 pkgman update
-sen start       # Akita offers a restart itself
+sen start       # Akita will prompt to restart automatically if running
 pkgman install sen_plugin_calendar_extractor sen_plugin_temporal_navigator sen_ontology_temporal
 ```
-*(Updating `sen_plugins` pulls in the two plugins automatically.)*
+*(Updating `sen_plugins` pulls in the calendar extractor and temporal navigator automatically.)*
 
-New here? `pkgman add-repo https://kiri.sen-labs.org/x86_64`, then `pkgman install sen_core sen_plugins akita sen_filetypes shoji basho` and the ontologies you like. Requires a Haiku **nightly from hrev60299_1 on**.
+New to SEN? Run:
+```sh
+pkgman add-repo https://kiri.sen-labs.org/x86_64
+pkgman install sen_core sen_plugins akita sen_filetypes shoji basho
+```
+along with your desired ontologies. Requires a Haiku **nightly from hrev60299_1 onward** on BFS volumes.
 
-**Good to know:** fuzzy times are typed as text; the date and time controls are for exact ones. Repeat rules the reader does not know give no Series relation. BFS volumes only.
+---
 
-**Links:** [Release notes](https://github.com/sen-laboratories/sento/releases/tag/v1.0.0-beta.8) · [Source code](https://github.com/sen-laboratories) · Package repository `https://kiri.sen-labs.org/x86_64` · Support SEN Labs on [Liberapay](https://liberapay.com/sen-labs/).
+**Links:** [Release Notes](https://github.com/sen-laboratories/sento/releases/tag/v1.0.0-beta.8) · [Source Code](https://github.com/sen-laboratories) · Package Repository `https://kiri.sen-labs.org/x86_64` · Support SEN Labs on [Liberapay](https://liberapay.com/sen-labs/).
 
-Reports and feedback are always welcome. What is the next date you want your desktop to know about?
+We'd love to hear your thoughts and feedback! What calendar or scheduling workflows would you like to see next on Haiku?
