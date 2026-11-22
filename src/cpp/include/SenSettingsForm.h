@@ -111,11 +111,14 @@ const char* const kStateOk			= "ok";				///< ... it works (a green check mark)
 //    from the answer, as for any change of its own, tells its owner, and tells its observers again, so the detail shows what the master holds (also when the master refused the value).
 //  - a part may have `kUpdateDefault`, the value that the master would show by default. A button (`kind = button`) that listens is the **revert button** of its field id: it is enabled while `value`
 //    and `default` differ, and pressing it answers with `value` = `default` (it is no value of its own and nothing is stored under its name).
+//  - a part may have `kUpdateUrl`: a button that listens is then a **link button** (a `Get key...` that brings the user to the page where an API key is made): it is enabled while the address is not empty, and
+//    pressing it opens the address with the application that the user has for it (the web browser). The master changes the address with the row that is selected, as any other part.
 const char* const kUpdateReplyTo	= "reply_to";
 const char* const kUpdateCommand	= "command";
 const char* const kUpdateValue		= "value";
 const char* const kUpdateEnabled	= "enabled";
 const char* const kUpdateDefault	= "default";
+const char* const kUpdateUrl		= "url";
 
 /** The command of a message from the four characters of the schema (`OVrw`); 0 if there are not four. */
 inline uint32_t UpdateCommand(const char* text)

@@ -151,6 +151,8 @@ inline constexpr uint32_t kUiRequestRestart = 'SUrs';
 inline constexpr uint32_t kUiRestartAkita = 'SUra';
 /** open the folder with the contexts (the Context item of the Deskbar menu itself) */
 inline constexpr uint32_t kUiOpenContexts = 'SUoc';
+/** make a new context: its folder is made in the folder of the contexts, which is shown in Tracker with the new one selected and its name being edited */
+inline constexpr uint32_t kUiNewContext = 'SUnx';
 /** open the folder with the ontologies (a file for each, with the attributes of the ontology) in Tracker */
 inline constexpr uint32_t kUiOpenOntologies = 'SUon';
 /** show an ontology in Tracker, in its folder, selected (refs: its file) */
