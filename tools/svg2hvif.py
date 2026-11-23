@@ -127,7 +127,7 @@ def gradient_of(ident, matrix, opacity):
 def float24(value):
     """a number as the 24 bit float of HVIF (1 bit sign, 6 bits exponent with the bias 32, 17 bits mantissa), big endian"""
     import math
-    if value == 0:
+    if abs(value) < 2.0 ** -30:		# (zero, or what the arithmetic of a rotation leaves of it: below the smallest number of the format)
         return b'\x00\x00\x00'
     sign = 1 if value < 0 else 0
     mantissa, exponent = math.frexp(abs(value))		# value = mantissa * 2**exponent, 0.5 <= mantissa < 1
