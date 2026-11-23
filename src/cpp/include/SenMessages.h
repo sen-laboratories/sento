@@ -349,6 +349,12 @@ inline constexpr char kMaterialiseAs[] = "SEN:materialiseAs";
  */
 inline constexpr char kRemote[]        = "SEN:remote";
 /**
+ * bool: the relation is offered from the side of its target only: its forward direction (the label of the relation, "contains") is not listed with the relations of a file, the opposite one
+ * ("contained in") is. For a relation whose forward direction is shown by the self relation of the same file ("Open contained" lists what a file contains), so that it is not there twice.
+ * Schema annotation `inverse_only`.
+ */
+inline constexpr char kInverseOnly[]    = "SEN:inverseOnly";
+/**
  * strings: the relation can start only at files of these types (without it, at any file). A type is a MIME type or the
  * start of one, e.g. a supertype ("audio"), like the filters for the templates of a new file.
  */
