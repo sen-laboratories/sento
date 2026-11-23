@@ -115,7 +115,7 @@ The Spatial Navigator now supports a prioritized, configurable list of OpenStree
 * **Ontologies**:
   * New `sen_ontology_temporal` (`0.1.0-12`) package.
   * Attribute enum vocabularies published directly into Haiku's MIME database (`SEN:ATTR:VALUES`).
-  * Renamed the core *Contains* relation to **Composition** with inverse relation *contained in*.
+  * Renamed the core *Contains* relation to **Composition** with inverse relation *contained in*. Its menu has a level for each direction (*Open related… › Composition › contains / contained in › …*), and its relation folder has a folder for each.
   * Exposed *Description* attribute as viewable across all entity ontologies.
 * **sen-core**:
   * Relation and plugin dispatch now checks both technical MIME types and semantic entity types.
