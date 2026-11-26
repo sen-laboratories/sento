@@ -87,6 +87,6 @@ the package did not install. **SEN:** the test scripts delete the older revision
 
 The guest of the test VM (UTM, QEMU, "Sound card: Intel HDA" = PCI 8086:293e) hangs at "Asking other processes to quit" on every restart (`shutdown -r`); QEMU spins at about 300 % CPU, ssh does not answer.
 The log of the boot that hung ends with `msi_free_vectors: freeing 1 vectors starting from 35`: the vector of the `hda` driver (once followed by a kernel page fault in an add-on). Seen on hrev60455 and hrev60493,
-with and without a package update before it. **Workaround:** the sound card `virtio-sound-pci` in UTM (or no sound device): the restart works every time since. Evidence and the way it was found:
+with and without a package update before it. **Workaround:** no sound device in UTM; the card `virtio-sound-pci` does the same, because Haiku has no driver for it (no output in the sound preferences). The restart works every time since. The VM has no sound then. Evidence and the way it was found:
 [analysis-vm-shutdown-hang.md](analysis-vm-shutdown-hang.md). Not reported upstream (see the notes on contributions). The BFS lines in the same logs (`inode ... is already deleted`) are unrelated to the hang.
 **SEN:** the reverse relations take every file once, keyed by its `SEN:ID` (a query could list a file several times).

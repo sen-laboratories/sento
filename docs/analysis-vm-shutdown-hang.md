@@ -5,7 +5,7 @@ SPDX-FileCopyrightText: 2026 SEN Labs e.U.
 
 # Analysis: the Haiku VM freezes, and hangs at "Asking other processes to quit"
 
-Status: **solved for symptom B (the hang at restart), 2026-11-26**: the emulated Intel HD Audio controller (the `hda` driver) hangs the guest at shutdown; with `virtio-sound-pci` instead the VM restarts every time (see "Resolution" below). Symptom A (the freezes while running) is not shown to have the same cause; watch it. Started 2026-11-26 after the VM hung on a reboot. Nothing below the resolution is a conclusion unless it says so. The log excerpts are from the guest
+Status: **solved for symptom B (the hang at restart), 2026-11-26**: the emulated Intel HD Audio controller (the `hda` driver) hangs the guest at shutdown; with `virtio-sound-pci` (unsupported by Haiku: effectively no sound card) the VM restarts every time (see "Resolution" below). Symptom A (the freezes while running) is not shown to have the same cause; watch it. Started 2026-11-26 after the VM hung on a reboot. Nothing below the resolution is a conclusion unless it says so. The log excerpts are from the guest
 (`/var/log/previous_syslog` of the boot that hung, `/var/log/syslog.1` of 2026-11-23); the host side is UTM 5.0.9 on macOS.
 
 ## Resolution (2026-11-26): the sound card
@@ -15,9 +15,9 @@ Cause: **the `hda` driver of Haiku (hrev60455 and hrev60493) hangs the guest whe
 How it was found, and what settled it:
 1. The boot after a restart that hung always held the same last lines: `msi_free_vectors` / `free_io_interrupt_vectors` for vector 35. The log names the driver at boot (`hda: using MSI vector 35`), so the vector told the device without a serial console (this was the experiment "name the device at vector 35", section 5, item 2).
 2. A restart without any package update before it hung as well (5c): not the update, not Akita, not the disk, not BFS.
-3. The user powered the VM down with the Intel sound driver in place (a power-off from outside does not run the driver's teardown path), then changed the sound card in UTM to **`virtio-sound-pci`**: since then **no hang on restart**, also after a Haiku package update (Akita) and a restart of Akita, i.e. the sequences that hung before.
+3. The user powered the VM down with the Intel sound driver in place (a power-off from outside does not run the driver's teardown path), then changed the sound card in UTM to **`virtio-sound-pci`** (Haiku has no driver for it: the sound preferences list no output, so for the guest this is the same as having no sound card): since then **no hang on restart**, also after a Haiku package update (Akita) and a restart of Akita, i.e. the sequences that hung before.
 
-What to do: in UTM, Edit > Devices > Sound, choose **virtio-sound-pci** (whether Haiku drives it as an audio device was not checked; the VM needs none), or remove the sound device (the VM needs no sound for builds and tests). Intel HDA stays unusable for restarts in this setup until a fix of Haiku's `hda` driver: a bug report is possible with this recipe (QEMU/UTM `intel-hda` + `hda-duplex`, Haiku hrev60493, `shutdown -r`, hang at "Asking other processes to quit", QEMU spinning on all vCPUs).
+What to do: in UTM, Edit > Devices > Sound, remove the sound device, or choose **virtio-sound-pci**, which Haiku does not support (no output in the sound preferences), so it amounts to the same: the VM has no sound, and needs none for builds and tests. Intel HDA stays unusable for restarts in this setup until a fix of Haiku's `hda` driver: a bug report is possible with this recipe (QEMU/UTM `intel-hda` + `hda-duplex`, Haiku hrev60493, `shutdown -r`, hang at "Asking other processes to quit", QEMU spinning on all vCPUs).
 
 Not explained / still open:
 - The freezes while running (symptom A) were not shown to come from `hda`; observe the VM for some days with the new sound card before calling them solved.
