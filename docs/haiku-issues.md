@@ -15,6 +15,7 @@ hrev60299 nightlies) unless an entry says otherwise. Add new findings here as th
 | 3 | FileTypes | `-type <mime>` is ignored when FileTypes already runs | no |
 | 4 | Support kit, `BPropertyInfo` | `FindMatch` did not match entries with index specifiers | no |
 | 5 | package daemon | a second revision of a package makes it wait for a dialog, silently | no |
+| 6 | kernel, VM guest | kernel page fault at shutdown after BFS index errors; the VM also freezes with QEMU at 300% CPU (not yet narrowed down) | no |
 
 ## 1. `mktime` is one second late before 1970
 
@@ -81,3 +82,10 @@ handler that matched by its own code worked. Not re-checked in this repository, 
 Two revisions of one package in `~/config/packages` (or a package that is installed from a repository in `/boot/system` as well) make the package daemon open a "Package changes" window that asks which
 to keep, and nothing is activated until someone answers. The syslog says only `Volume::_PackagesEntryCreated`. Expected at least a line in the log; a test that copies packages into a VM looks as if
 the package did not install. **SEN:** the test scripts delete the older revision first.
+
+## 6. The VM hangs at shutdown, with BFS index errors in the log
+
+The guest of the test VM (UTM, virtio devices) freezes now and then and hangs at "Asking other processes to quit" on a restart; the log of the boot that hung ends with BFS index errors
+(`inode ... is already deleted`, `Could not find value in index`) and a kernel page fault right after the interrupt vectors of a device were freed. `checkfs -c` is clean, a query lists a
+file more than once. Not narrowed down: see [analysis-vm-shutdown-hang.md](analysis-vm-shutdown-hang.md) for the evidence, the hypotheses and the experiments. **SEN:** the reverse
+relations take every file once, keyed by its `SEN:ID`.
