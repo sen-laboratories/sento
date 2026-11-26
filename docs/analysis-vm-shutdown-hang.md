@@ -112,6 +112,20 @@ Checked in `senryu/src/kits/tracker` (`AkitaUpdateWatcher.h`, `Tracker.cpp`, `Tr
 - **How to settle it without guessing:** after the next hang read `previous_syslog` first (does it end in the kernel, as before?), and run an A/B: `akita disable` (stock Tracker) and the server stopped for a few
   restarts after a `pkgman update`, then with each back on. A restart in a healthy state that hangs the same way with both off clears all of SEN.
 
+## 5b. The second hang (2026-11-26, after the next Haiku update): no kernel error in the log
+
+The VM was restarted from inside after a second `pkgman update` (hrev60478 to hrev60493), hung again, and was powered off with `utmctl stop Haiku --kill` and started again.
+
+- `previous_syslog` was **not rewritten** by this restart: it is still the log of the first hung boot (56,284 bytes, same content). The log of the second one is the **tail of `syslog`**
+  (lines before the new boot loader's "Welcome to the Haiku boot loader!").
+- That tail ends with the package daemon's activation of the hrev60493 packages (six `_PackagesEntryRemoved` / `_PackagesEntryCreated` lines each) and then, directly, the next boot (`options = 0`). **No `vm_page_fault`, no
+  `bfs:` line, no shutdown message at all.** Either the guest froze before it wrote anything about the shutdown, or the log lines were lost with the power-off (the log is a file; a `--kill` throws away what the guest had
+  not written out). So this hang does **not** show the kernel fault of the first one, and the page fault should not be taken as the one cause.
+- Both hangs came **after a `pkgman update` that replaced the `haiku` packages** in the running system (the first: hrev60455 to 60478, the second: 60478 to 60493). The user says the restart "always" hangs, so the update is
+  probably not required, but both recorded cases have it. A restart without a preceding update has not been recorded yet: that is the cheapest next experiment (restart the VM now, on hrev60493, with nothing updated).
+- Because the second hang left no trace, the "stale frame" remark of 5a (the screen text may be old once `app_server` has quit) is only a possibility: the user read the step on the screen, and this time nothing in the log
+  says that userland was finished.
+
 ## 6. Notes from the session that found this (not Haiku's fault, but they cost time)
 
 - **`pkgman install <hpkg>` without `-y` loops at EOF**: with stdin from `/dev/null` (a script that only wants to print the plan) it prints `Continue? [yes/no]` again and again. It wrote **1.7 GB**
