@@ -83,9 +83,10 @@ Two revisions of one package in `~/config/packages` (or a package that is instal
 to keep, and nothing is activated until someone answers. The syslog says only `Volume::_PackagesEntryCreated`. Expected at least a line in the log; a test that copies packages into a VM looks as if
 the package did not install. **SEN:** the test scripts delete the older revision first.
 
-## 6. The VM hangs at shutdown, with BFS index errors in the log
+## 6. The VM hangs at shutdown when it has the emulated Intel HD Audio (`hda`)
 
-The guest of the test VM (UTM, virtio devices) freezes now and then and hangs at "Asking other processes to quit" on a restart; the log of the boot that hung ends with BFS index errors
-(`inode ... is already deleted`, `Could not find value in index`) and a kernel page fault right after the interrupt vectors of a device were freed. `checkfs -c` is clean, a query lists a
-file more than once. Not narrowed down: see [analysis-vm-shutdown-hang.md](analysis-vm-shutdown-hang.md) for the evidence, the hypotheses and the experiments. **SEN:** the reverse
-relations take every file once, keyed by its `SEN:ID`.
+The guest of the test VM (UTM, QEMU, "Sound card: Intel HDA" = PCI 8086:293e) hangs at "Asking other processes to quit" on every restart (`shutdown -r`); QEMU spins at about 300 % CPU, ssh does not answer.
+The log of the boot that hung ends with `msi_free_vectors: freeing 1 vectors starting from 35`: the vector of the `hda` driver (once followed by a kernel page fault in an add-on). Seen on hrev60455 and hrev60493,
+with and without a package update before it. **Workaround:** the sound card `virtio-sound-pci` in UTM (or no sound device): the restart works every time since. Evidence and the way it was found:
+[analysis-vm-shutdown-hang.md](analysis-vm-shutdown-hang.md). Not reported upstream (see the notes on contributions). The BFS lines in the same logs (`inode ... is already deleted`) are unrelated to the hang.
+**SEN:** the reverse relations take every file once, keyed by its `SEN:ID` (a query could list a file several times).
