@@ -90,6 +90,28 @@ screen text "Asking other processes to quit" says the last visible step, the cra
    Haiku commits between them for `virtio`, `nvme`, `bfs`, `interrupts` is worth reading).
 6. If it is still reproducible with a known recipe, an entry in `haiku-issues.md` (and a report, if the project decides to send one) can be written from it.
 
+## 5a. Does Akita's restart logic interfere? (read 2026-11-26, from the code; not tested in the VM)
+
+Checked in `senryu/src/kits/tracker` (`AkitaUpdateWatcher.h`, `Tracker.cpp`, `TrackerSen*.cpp`) and in the server (`sen-core/src/server/SenServer.cpp`).
+
+- **What stock Tracker does:** nothing about its own package. After a `pkgman update` the running Tracker keeps its old files until the system restarts. Its `QuitRequested()` (unchanged in Akita, as far
+  as the function reads: not diffed against upstream) saves the open windows into an attribute of the desktop and waits at most 5 seconds (50 x 100 ms) for copy threads. The watcher is the only
+  addition of this kind.
+- **What the watcher does:** it watches the two package folders (`watch_node`, `B_WATCH_DIRECTORY`) and reacts only to an entry `akita-*.hpkg` that is created, removed or moved. Then, for up to
+  15 x 4 s, it compares the program file (`stat`) with the one it started from, and asks once with a **non-blocking** `BAlert::Go(BInvoker*)`. "Restart" runs
+  `(sleep 4; Akita) &` through `system()` and quits. A Haiku update that does not touch an Akita package never starts it. Nothing of it runs in `QuitRequested()`.
+- **Against it being the cause:** the freezes began on 2026-11-10; the watcher was added on **2026-11-18** (`09c1aac1d6`). And the syslog of the hung boot ends in the **kernel** (device teardown, page fault):
+  userland, Akita included, had finished by then. The text "Asking other processes to quit" may be a stale frame: once `app_server` has quit, nothing repaints the screen, so the last text painted stays.
+- **Not excluded:** an "Akita updated" alert left open during the update, or a click on "Restart" shortly before a shutdown (the helper would start Akita again 4 s later, in the middle of the shutdown). Nobody has
+  said that this happened.
+- **Hazards found on the way** (real, but not shown to be involved; each could keep Akita or the server from answering the quit in time):
+  1. Three calls from Akita to the server wait **without a timeout** for the reply (`TrackerSen.cpp` lines 652, 792, 1004: create the class entity, ask the ref for an id, get the ROOT of a relation); others wait 100 s
+     (`TrackerSenRelations.cpp` 953, 1001, 1771). All are started by the user, so they are unlikely at a shutdown, but a stopped server turns them into a blocked thread.
+  2. `SenServer::QuitRequested()` calls `BDeskbar::RemoveItem` (a call that waits for the reply of the Deskbar, which is quitting at the same time).
+  3. The server runs `sen_oni --update` through `system()` in its worker; if the installer waits for the server while the server quits, that process stays behind (the server itself does not wait for it).
+- **How to settle it without guessing:** after the next hang read `previous_syslog` first (does it end in the kernel, as before?), and run an A/B: `akita disable` (stock Tracker) and the server stopped for a few
+  restarts after a `pkgman update`, then with each back on. A restart in a healthy state that hangs the same way with both off clears all of SEN.
+
 ## 6. Notes from the session that found this (not Haiku's fault, but they cost time)
 
 - **`pkgman install <hpkg>` without `-y` loops at EOF**: with stdin from `/dev/null` (a script that only wants to print the plan) it prints `Continue? [yes/no]` again and again. It wrote **1.7 GB**
