@@ -105,8 +105,13 @@ What SEN or a plugin makes new, such as the people of the authors of a paper, th
 - It has **one folder for each type**, named in the plural: *People*, *Books*, *Movies*. The folders are made when they are first needed.
 - A person that exists already (found by its name and its key, in the Library or next to a file where an earlier version put it) is **updated where it is**, not made again.
 - From the command line: `sen --library person` prints the folder for a type (`--create` makes it, `--context <name>` asks for another context).
+- **Add to Library:** select a person, a book or another entity (also in the window of a relation, such as the *Authorship* of a paper) and choose **Add to Library** in the context menu. The item adds to the **current context**; its submenu lists all the contexts, the current one in **bold**, and adds to the one that you choose (only there: the copies in other Libraries stay as they are). The file is copied into the folder of its type in that Library, with its attributes; if it is there already (or a file of that name is), nothing is copied and the notification says so.
 
 **New objects belong to the current context.** What is made new while a context is the current one (the one that is checked in the *Context* menu) is related to it by an **Association**, as if the context were [sticky](#sticky-classifications): a file made with *New*, a relation, the people that a plugin makes. With the context's *Open related...* you see its objects. Switch it off in *Settings › SEN › Core*: then only what you have made sticky yourself is applied. The default context is every file and is never applied.
+
+## Open and Open with
+
+The context menu and the File menu have one item for both: **Open** opens the files with their preferred application. Hold **Shift** when you open the menu and it shows **Open with...** instead: choosing it asks for the application (with the choice to make it the preferred one), and its submenu lists the applications that can open the files, as before. (*Enrich* works the same way: with Shift it is *Enrich (Overwrite)*.) The keys **Command+O** and **Command+Control+O** do not change.
 
 ## Enriching a file
 
@@ -196,7 +201,7 @@ Open the relations of an event (*Open related*, group *Temporal*, where the rela
 - **Description** opens the Markdown file of the event.
 - **Events**, at a calendar, are the events that it holds. They are contained in the file as the outline of a document is: the menu of the calendar shows them as a list, in order of their start. The window of an event (Shoji) shows what the file says, also how it repeats (in words), the people with their roles and answers, the status and the links of the page and of the online meeting (click the label).
 
-The events in the folder of the Events relation are only **items** at first: a copy of such a file would copy the relation. To **keep an event as an event**, select it (or several) and choose **Copy to Library**: the calendar extractor makes the event a calendar file of its own in the Library (`Events`), named after its date and time, enriched like an event that you received alone. Keeping it again finds the file that is there. You can also **drag the events out** of the folder (or use *Copy to*): they become events in the folder where you drop them. Choosing **Open related** on such an item shows the relations of the event, for example the events before and after it.
+The events in the folder of the Events relation are only **items** at first: a copy of such a file would copy the relation. To **keep an event as an event**, select it (or several) and choose **Add to Library**: the calendar extractor makes the event a calendar file of its own in the Library (`Events`), named after its date and time, enriched like an event that you received alone. Keeping it again finds the file that is there. You can also **drag the events out** of the folder (or use *Copy to*): they become events in the folder where you drop them. Choosing **Open related** on such an item shows the relations of the event, for example the events before and after it.
 
 The folders of these relations are made when you open them: look at them (peek), or keep them. The instances of a series and the events of a calendar are places in the same calendar file, as the pages of a PDF are.
 

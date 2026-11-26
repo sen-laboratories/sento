@@ -275,6 +275,15 @@ Every relation has the property **Provenance** (`prov:wasAttributedTo`, `sen::on
 It is not part of what makes two relations the same: making a relation again does not make a second one; a relation that has no provenance (made by an earlier version) gets it then, one that has it keeps its first creator. A relation window names its entries after their targets; if several
 entries of the window have the same name (a person with two Contributions), each is named `<target> (<role>)` with the Role of its relation, and only a second one with the same role is numbered.
 
+A relation that a program **estimates** (an enricher that matches by a name, a date or a register's id) carries the property **Confidence** (`SEN:REL:Confidence`, `sen::onto::core::attr::kRelConfidence`, a float from 0 to 1,
+a percentage or a probability; an estimate, not a measurement). `SenConfidence.h` (header only, plain C++) is the one place for how it is made: the program lists the evidence for the relation, each with a weight
+(`sen::confidence::weight`: an identifier that both sides share 0.97, the source states it 0.90, a stay with start and end that covers the day 0.75, a stay that goes on 0.55, no dates 0.35, the name alone 0.50), and
+`Combine()` gives the confidence (the relation is wrong only if all the evidence is; evidence from one source or from people who copy each other counts less: the `correlation`; `Share()` divides the evidence among things that it
+fits equally). The program never says 1 (`kMaxEstimate`, 0.99). **A relation without the property** was made or confirmed by a person, or is stated by its source, and counts as 1; setting or editing a relation by hand
+therefore removes an estimate. Like the provenance it is not part of what makes two relations the same: the server (`relation::MergeConfidence()`) keeps the relation that is there and raises its value when the same relation is made
+again with a higher estimate (an enrichment never lowers it, and never changes one that has none or has 1). A program that finds more evidence over several calls (the authors of a paper, one after the other) collects it and
+writes the relation once with the combined value. Paperboy is the first user (`core/PaperConfidence.h` has the table).
+
 ```mermaid
 sequenceDiagram
   actor User
@@ -565,7 +574,7 @@ they are listed** (a peek makes no files):
   identified keeps its technical type (`text/calendar`).
 - `sen::key::kDestinationRef` (optional) is a folder to make the entities in: **dragging items out of a relation view** (or *Copy to* / *Move to*) makes them in the folder they were dropped in, a copy of one that is kept in the Library too (the plugin finds only what is in that folder, so dropping twice makes no second file). Links and the Trash are not affected; the other files of a selection are copied as before.
 - When an entity that was deleted (or is in the Trash) is made again it is a new file with a new `SEN:ID`: the server takes the stored relation to the old one away (same identifier, target gone) and stores the new one, so there is one relation for the item.
-- Akita does it for *Copy to Library* (the menu item for items of such a relation) and for *Open related* on an item: the menu asks for the relations of the entity, not of the file that holds it. `TrackerSenRelations::IsMaterialisableItem()` tells whether an item is one (the config of its type in the MIME database).
+- Akita does it for *Add to Library* (the menu item for items of such a relation, and for entities) and for *Open related* on an item: the menu asks for the relations of the entity, not of the file that holds it. `TrackerSenRelations::IsMaterialisableItem()` tells whether an item is one (the config of its type in the MIME database).
 
 ### A new plugin: the steps
 
