@@ -162,6 +162,20 @@ Cheapest tests, in this order:
 2. If audio is wanted: change the emulated device in UTM (the Sound card type), or check whether Haiku's `hda` driver is newer or fixed in a later nightly (`hda` MSI/uninit path).
 3. To see where it spins: a serial console / KDL capture of a hung boot (see section 5), now with `hda` as the first suspect.
 
+## 5d. A hang after the fix (2026-11-26, evening): with `virtio-sound-pci`, after the screen froze
+
+The sound card was `virtio-sound-pci` (the QEMU command line has no `intel-hda`), the guest had run about 7.5 hours, and the **screen froze while the guest was alive** (`ssh` answered, load 0.27, QEMU at 22 % CPU,
+`app_server`, `input_server`, Deskbar and Akita running, no crash report, no KDL). Restarting `input_server` did not help. A `shutdown -r` over `ssh` ended the session, and then the guest hung: `ssh` timed out in
+the banner exchange and QEMU spun at 285-310 %, the same signature as the `hda` hang. So the `hda` fix removes one cause of the hang at shutdown, **not necessarily all of them**.
+
+What the log of that boot showed (head of `syslog` after the forced stop; `previous_syslog` was stale, from 14:25): no kernel panic, no page fault, no `msi_free_vectors`, but the **PS/2 mouse driver flapping**: four
+times `ps2: hot plugin of input/mouse/ps2/intelli_0`, `device ... still active, republishing...`, `ps2_standard_mouse_disconnect`, `Mouse device exiting, General system error` (once `Bad semaphore ID`), `strange mouse data,
+x/y overflow, trying resync`, `bad mouse data, trying resync`, then probe and publish again. The whole earlier uptime (`syslog.1`, 7,216 lines) has none of it, so it began suddenly, after 20:30. The VM's only pointer
+device is the emulated PS/2 mouse (no USB tablet), so the frozen pointer and the loop of the driver are the first suspects for the freeze; whether the spin at shutdown is the same loop is not known.
+`checkfs -c` of both volumes after the restart: 0 blocks not allocated, 0 already set, 10,003 / 14,370 blocks that could be freed (leaks, no damage); the installed packages were intact.
+
+Next: see whether the flapping returns without a freeze (`grep -c "Mouse device exiting" /var/log/syslog`), try a USB tablet instead of the PS/2 pointer in UTM, and keep the log of the next hang.
+
 ## 6. Notes from the session that found this (not Haiku's fault, but they cost time)
 
 - **`pkgman install <hpkg>` without `-y` loops at EOF**: with stdin from `/dev/null` (a script that only wants to print the plan) it prints `Continue? [yes/no]` again and again. It wrote **1.7 GB**
