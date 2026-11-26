@@ -126,6 +126,26 @@ The VM was restarted from inside after a second `pkgman update` (hrev60478 to hr
 - Because the second hang left no trace, the "stale frame" remark of 5a (the screen text may be old once `app_server` has quit) is only a possibility: the user read the step on the screen, and this time nothing in the log
   says that userland was finished.
 
+## 5c. The third hang (2026-11-26, NO update before it): it ends right after the HD Audio driver is torn down
+
+A plain `shutdown -r` on hrev60493 with nothing updated or installed before (only `pkgman refresh`) hung at "Asking other processes to quit" again. QEMU used about 314 % CPU (all four vCPUs spinning), ssh timed out in the banner exchange. So **a Haiku package update is not required** (5b's "both followed an update" was a coincidence of timing, or one trigger among several).
+
+The log of the hung boot (the head of `syslog` after the forced restart; `previous_syslog` is not rewritten) has no BFS error and no page fault this time, and ends with:
+
+```
+KERN: msi_free_vectors: freeing 1 vectors starting from 35
+KERN: free_io_interrupt_vectors: freeing 1 vectors starting from 35
+```
+
+Vector 35 belongs to the **`hda` driver** (`hda: using MSI vector 35`, the Intel ICH9 HD Audio controller 8086:293e that QEMU emulates, PCI 0:3.0, driver `/boot/system/add-ons/kernel/drivers/dev/audio/hmulti/hda`). The first hung boot (section 2) ended with the very same two lines and then the page fault at ip 0xffffffff803b1a2f (above the kernel image, so inside a loaded add-on). Two of the three hangs therefore end at the teardown of the audio driver; the second one left nothing in the log at all (forced kill, lines may be lost).
+
+This is the first hypothesis with evidence in all recorded cases that does not depend on BFS or on Akita. It is not proven: no stack of the spinning CPUs was seen.
+
+Cheapest tests, in this order:
+1. Remove the sound device from the VM (UTM: Haiku > Edit > Devices > Sound > remove) and restart normally. If it comes back, the `hda` teardown is the cause; the VM needs no audio for building and testing.
+2. If audio is wanted: change the emulated device in UTM (the Sound card type), or check whether Haiku's `hda` driver is newer or fixed in a later nightly (`hda` MSI/uninit path).
+3. To see where it spins: a serial console / KDL capture of a hung boot (see section 5), now with `hda` as the first suspect.
+
 ## 6. Notes from the session that found this (not Haiku's fault, but they cost time)
 
 - **`pkgman install <hpkg>` without `-y` loops at EOF**: with stdin from `/dev/null` (a script that only wants to print the plan) it prints `Continue? [yes/no]` again and again. It wrote **1.7 GB**
