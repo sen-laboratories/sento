@@ -583,6 +583,12 @@ they are listed** (a peek makes no files):
 3. Features: `identify` sets `META:TYPE` and makes sure `BEOS:TYPE` exists; `enrich` writes attributes with the names of `SenOnto<Name>.h` (never string literals); a relation type that the plugin resolves needs an entry in the ontology (`sen-oni`, section 8) with `dynamic`, `source_types`, `label`, `inverse_label`, `app`.
 4. Settings (if any) through `common/SettingsSession.h` and the form of Shoji (spec in `spec-settings-and-message-template.md`); a plugin without settings has `SEN:plugin:hasSettings` false or no such attribute.
 5. `./build.sh` in the VM, `REVISION=N ./package.sh <name>`; the plugin lists itself in `PLUGINS.md` (generated: `tools/overview.py`).
+6. **Always query all volumes** when looking for something that exists (a person by an ORCID iD, an institution by a ROR id, a paper by its DOI, a place, an event). A BFS query is made per volume (`BQuery::SetVolume()`), and
+   what is looked for is often not on the volume of the file that is being worked on: the Library is in the home folder, a paper may be on another disk. A query on one volume makes **duplicates** (a second institution of
+   the same ROR id; a person that is matched by name alone and gets a lower confidence) and nobody notices until the volumes differ. The pattern: the volume of the file first (and make the index there if it is missing), then
+   every other volume of the `BVolumeRoster` that `KnowsQuery()` and has the index (a query on an attribute without an index does not work, so skip such a volume; indices are made per volume by `create-sen-indices.sh`).
+   `FindLocalFile()` in `plugins/paperboy/PaperStore.cpp` and `AuthorMaker::_FindByOrcid()` are the reference; `sen::lookup::EntryForId()` (`SenLookup.h`) asks all volumes already. Test it with a file on a second volume
+   (the VM has `/Develop` next to the boot volume), not only on the boot volume.
 
 ## 7. Code conventions
 
