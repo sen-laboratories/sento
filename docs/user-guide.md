@@ -291,7 +291,7 @@ most relations), or press Esc or click outside the menu to cancel. The files sta
 ## Deleting files that have relations
 
 When you delete a file (Move to Trash, or Delete) that has relations, Akita says that it still has relations and asks whether you really want to delete it (the button *Show in Tracker* opens the folder with its relations). If you do,
-the relations of the file are removed on both sides together with it, so that no other file keeps a link to a file that is gone. This includes the relations that other files have **to** it and keep only with themselves: delete an institution, and the people's affiliations with it go (after the question). A label or a context is only a tag on the files that have it: if you delete one, the files lose it without a question. (Relations that point to files that are
+the relations of the file are removed on both sides together with it, so that no other file keeps a link to a file that is gone. This includes the relations that other files have **to** it and keep only with themselves: delete an institution, and the people's affiliations with it go (after the question). A file that has a label, a context or a topic is deleted right away: the tag is with the file. It is the other way round that asks: deleting a **label, context or topic that files refer to** asks once (*This Context is referenced by 12 files. Do you really want to delete it?*), and the files lose it. (Relations that point to files that are
 already gone are removed without asking. The relations of the ontologies are read-only and stay. Labels and the like that are put on a file go with the file anyway.)
 
 ## Sticky classifications
