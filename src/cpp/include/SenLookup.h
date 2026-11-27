@@ -20,6 +20,7 @@
 
 #include "SenAttributes.h"
 #include "SenIdList.h"
+#include "SenTrash.h"
 
 /**
  * @file SenLookup.h
@@ -57,13 +58,20 @@ TargetIds(BNode& node, std::vector<std::string>* ids, const char* base = attr::k
 	return B_OK;
 }
 
-/** @brief The file that has a `SEN:ID`, searched on all volumes that can be queried. */
+/**
+ * @brief The file that has a `SEN:ID`, searched on all volumes that can be queried.
+ *
+ * A file in the Trash does not count (it is as good as gone until it is restored, see SenTrash.h): the id of a file that was thrown away is not found, so the
+ * relations to it lead nowhere, and are there again when it is restored. @p includeTrash finds it anyway (a file in the Trash is taken if there is no other).
+ */
 inline status_t
-EntryForId(const std::string& id, entry_ref* ref)
+EntryForId(const std::string& id, entry_ref* ref, bool includeTrash = false)
 {
 	BString predicate;
 	predicate << attr::kId << "==\"" << id.c_str() << "\"";
 
+	bool inTrash = false;
+	entry_ref trashed;
 	BVolumeRoster roster;
 	BVolume volume;
 	while (roster.GetNextVolume(&volume) == B_OK) {
@@ -72,8 +80,21 @@ EntryForId(const std::string& id, entry_ref* ref)
 		BQuery query;
 		if (query.SetVolume(&volume) != B_OK || query.SetPredicate(predicate.String()) != B_OK || query.Fetch() != B_OK)
 			continue;
-		if (query.GetNextRef(ref) == B_OK)
-			return B_OK;
+		entry_ref found;
+		while (query.GetNextRef(&found) == B_OK) {
+			if (!trash::IsInTrash(found)) {
+				*ref = found;
+				return B_OK;
+			}
+			if (!inTrash) {
+				trashed = found;
+				inTrash = true;
+			}
+		}
+	}
+	if (includeTrash && inTrash) {
+		*ref = trashed;
+		return B_OK;
 	}
 	return B_ENTRY_NOT_FOUND;
 }

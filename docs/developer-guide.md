@@ -208,10 +208,20 @@ classification by an association (`RelationSticky.cpp`). A relation that is adde
 of the ontologies and not for the associations themselves), so that relations can be filtered by context later. The user sets the attribute with Shift+click in the Deskbar menu (the Deskbar view tells the server how the key was held, `sen::key::kShift`, since the menu item
 only sends its message). Contexts are handled alike (the menu clears the attribute of the other contexts when one is chosen or locked; the default one never sticks).
 
-**Deleting.** The file manager asks before it deletes a file that lists targets in `SEN:TO` (`TrackerSenRelations::ConfirmDeletion`): since relations are bidirectional, that is every file that is part of a
-relation. It only says that the file has relations (a button, `ShowRelationsInTracker`, opens the folder of all its relations), and removes the relations of the file with `kRelationsRemoveAll` (both sides) if the user agrees; relations to targets that are gone are removed without a
-question, read-only relations (the ontologies') stay. Meta relations (`SEN:META`) are not asked about: they are one-way, the file that is classified holds them. A deleted classification entity
-therefore leaves associations behind in the files that had it (they point nowhere and are ignored).
+**Deleting and the Trash.** A file that is moved to the Trash keeps its relations, just like it keeps its attributes: Akita asks nothing and the server is not told. They come back with it when it is restored, and go
+when it is deleted for good (the Trash is emptied, or a delete on the spot). In between, a file in the Trash is **as good as gone** for everything that looks at relations: `sen::trash::IsInTrash()` (`SenTrash.h`) is the one rule;
+`sen::lookup::EntryForId()`, `sen::QueryAllVolumes()` and `RelationHandler::QueryForUniqueSenId()` leave files in the Trash out (each has an `includeTrash` argument for what must reach them anyway: removing references, the
+check of the indices, the other side of a relation that is removed), so menus, the graph, the counts and the enrichers (Paperboy looks for a person or paper that is there, not a thrown away one) do not see them, and the
+relations to them lead nowhere until the file is restored. A clean-up of stale relations counts only what is gone for good.
+
+What is deleted for good goes through `FSRemoveEntry()` in the file manager (`FSUtils.cpp`: the one place that removes a file or an empty folder when the Trash is emptied, a delete on the spot, or a file is replaced by a copy). It reads the `SEN:ID`
+before the file is removed and, when that worked, tells the server `kRelationsRemoveReferences` (the id, and the entry that was deleted): the server removes every reference to the id from other files (`SEN:TO` and `SEN:META`:
+the opposite side of bidirectional relations, one-way relations such as an affiliation, the associations with a context, topic or label), unless another file has the same id (a copy that is kept). The message is asynchronous and
+not waited for; a server that is not running leaves the references behind, which **Check & Repair** finds (*references to deleted files*) and removes (it sends the same message for each id). A file without a `SEN:ID` costs one attribute read.
+
+The only question is asked for what is deleted **on the spot** (`TrackerSenRelations::ConfirmDeletion`: Shift+Delete, or a volume without a Trash): a file that still has relations to files that are there, or that other files refer to
+(a label, context or topic), is asked about once, with a button that shows the relations (`ShowRelationsInTracker`). Nothing is removed there any more: the relations go when the file is really deleted, so a user who cancels later loses nothing.
+The Default context may never be deleted (`CanDelete`). Moving a *relation file* out of a relation folder, into the Trash or anywhere, is still the gesture for removing that relation (see 3.4).
 
 ### 3.5 Entities
 

@@ -15,9 +15,9 @@ a SEN:ID, as a flat list. With the **SEN key (Command)** held, the click opens t
 - one menu for every kind of classification (**Labels**, **Topics**, **Projects**...): choosing the menu itself opens the list of them, and choosing one of
   its entries opens a window with the files that have it: a query for the classification ("Files with Label \"Homework\""), the same one as *Open related...* on the classification shows. (As in the menus of the file manager, every menu can be chosen itself.)
 - **Info**: the overview of SEN as a tree: the objects on every volume, the types and relations that are installed with the number of files of each.
-- **Check & Repair**: looks for inconsistencies (the same SEN:ID on several files, files of types that are not installed, volumes without an index, **damaged indices**). A damaged
-  index makes relations of some files invisible without any message (it can happen after the computer was stopped by force); **Repair indices** makes it again and writes the
-  attributes of the SEN objects again, which takes seconds. The same from a terminal: `sen repair` (or the script `repair-sen-indices.sh`).
+- **Check & Repair**: looks for inconsistencies (the same SEN:ID on several files, files of types that are not installed, volumes without an index, **damaged indices**, **references to deleted files**). A damaged
+  index makes relations of some files invisible without any message (it can happen after the computer was stopped by force); **Repair** makes it again and writes the
+  attributes of the SEN objects again, which takes seconds, and removes the references to files that were deleted with another program. The same from a terminal: `sen repair` (or the script `repair-sen-indices.sh`).
 - **Ontologies** (above Settings, they are configuration): the ontologies that are installed, each with its icon. An ontology opens down to its types (the entities, relations,
   classifications...), and a type to its attributes: choosing a type or an attribute shows it in FileTypes (the one of SEN, package `sen_filetypes`, if it is installed
   and not switched off in the Settings), choosing an ontology shows it in its folder. Choosing *Ontologies* itself opens the folder `~/config/settings/sen/ontologies`, which shows the version, description, author and schema of each ontology as its columns (in Akita), and *Update* has the ontologies of the packages
@@ -292,9 +292,13 @@ most relations), or press Esc or click outside the menu to cancel. The files sta
 
 ## Deleting files that have relations
 
-When you delete a file (Move to Trash, or Delete) that has relations, Akita says that it still has relations and asks whether you really want to delete it (the button *Show in Tracker* opens the folder with its relations). If you do,
-the relations of the file are removed on both sides together with it, so that no other file keeps a link to a file that is gone. This includes the relations that other files have **to** it and keep only with themselves: delete an institution, and the people's affiliations with it go (after the question). A file that has a label, a context or a topic is deleted right away: the tag is with the file. It is the other way round that asks: deleting a **label, context or topic that files refer to** asks once (*This Context is referenced by 12 files. Do you really want to delete it?*), and the files lose it. (Relations that point to files that are
-already gone are removed without asking. The relations of the ontologies are read-only and stay. Labels and the like that are put on a file go with the file anyway.)
+**Moving a file to the Trash changes nothing about its relations.** Akita does not ask. The relations stay with the file, like its other attributes, and come back when you restore it. While a file is in the Trash it counts as gone: it does not
+appear in the *Open related* menus, in the graph or in the contexts, and other files do not offer it as a target. **When the Trash is emptied** (or a file is deleted on the spot), the relations of the deleted files are removed with them, on both sides, so that no other file
+keeps a link to a file that is gone. This includes the relations that other files have **to** it and keep only with themselves: delete an institution, and the people's affiliations with it go. Deleting a **label, context or topic** removes it from the files that had it.
+This is just like deleting any file: the Trash is the safety net, and *Empty Trash* asks the usual question once.
+
+When you delete a file **on the spot** (Shift+Delete, or a volume without a Trash) that still has relations to files that are there, or that other files refer to (*This Context is referenced by 12 files.*), Akita asks first, because nothing can be restored then (the button *Show in Tracker* opens the folder with its relations).
+The relations of the ontologies are read-only and stay. If a file was deleted with another program (a shell command), or while SEN was not running, the references to it stay behind until **Check & Repair** removes them.
 
 **The Default context cannot be deleted.** It stands for every file, and what is made without a context belongs to it. Akita refuses to delete, trash, rename or move it (and the folder of the contexts that holds it) and says so; if the folder is gone anyway, the SEN server makes it again.
 

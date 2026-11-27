@@ -93,6 +93,12 @@ inline constexpr uint32_t kRelationRemove               = 'SRrm';
 /** change the properties, target or type of an existing relation */
 inline constexpr uint32_t kRelationUpdate               = 'SRup';
 inline constexpr uint32_t kRelationsRemoveAll           = 'SRra';
+/** Take away every reference to a file that is gone for good: what other files keep of it in SEN:TO and SEN:META (one-way relations, the inverse side of the others, associations
+ *  with a context or topic). Sent by Akita when files are deleted (the Trash is emptied, or a delete on the spot), before the file is removed. A file that is moved to the Trash keeps
+ *  its relations (they come back when it is restored); sen::trash::IsInTrash() files do not count as present in the meantime. Request: sen::attr::kId (the SEN:ID that the file has),
+ *  key::kSourceRef (the file, optional: it is the one that is deleted). Nothing is removed when another file has the ID (a copy that is kept). Needs no answer; kCount of the reply is
+ *  the number of references removed. */
+inline constexpr uint32_t kRelationsRemoveReferences    = 'SRrr';
 
 // ---- plugins
 /** Enrich files with a plugin (refs: the files; wipe: replace what they have, default true; auto: take the best answer without asking). The server chooses the plugin: the
@@ -104,7 +110,8 @@ inline constexpr uint32_t kEnrichRefs = 'SEnr';
 /** Repair the indices of SEN on all volumes (see sen::stats::RepairIndices): an index whose query stops at a stale entry or does not find files that have the attribute is made again
  *  and the files that carry the attribute are reindexed. Only the damaged ones, with kForce all indices of SEN. Fast: the files are the SEN objects (those with a SEN:ID), kDeep opens every
  *  file of the volume (found through the name index; a minute on a large one, and needed when the index of SEN:ID itself is damaged). Runs in a thread of its own and is answered when done: sen::key::kResult (B_OK if
- *  everything that was damaged is repaired), kDetail (the report as text), kIndicesDamaged, kIndicesRepaired and kAttributesRewritten (int32). One repair at a time: B_BUSY otherwise. */
+ *  everything that was damaged is repaired), kDetail (the report as text), kIndicesDamaged, kIndicesRepaired and kAttributesRewritten (int32). After the indices the references to files that are gone (a file deleted with another program) are removed
+ *  (kRelationsRemoveReferences for each id that the check finds, see RunCheck), kDanglingRemoved says how many. One repair at a time: B_BUSY otherwise. */
 inline constexpr uint32_t kRepairIndices = 'SRix';
 
 // ---- Tracker integration
@@ -214,6 +221,8 @@ inline constexpr char kDeep[]           = "SEN:deep";
 inline constexpr char kIndicesDamaged[]   = "SEN:indicesDamaged";
 inline constexpr char kIndicesRepaired[]  = "SEN:indicesRepaired";
 inline constexpr char kAttributesRewritten[] = "SEN:attributesRewritten";
+/** (int32) the references to files that do not exist any more that Check & Repair removed: in the answer to kRepairIndices */
+inline constexpr char kDanglingRemoved[]  = "SEN:danglingRemoved";
 /** bool: also return the properties of relations */
 inline constexpr char kWithProperties[] = "SEN:withProperties";
 /** bool: also return the configuration of relations */
