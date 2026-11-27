@@ -239,7 +239,10 @@ Names serve different purposes and are therefore written differently.
 
 Types: dates `B_TIME_TYPE`, counts `B_INT32_TYPE`, structured data a flattened `B_MESSAGE_TYPE`. Define attributes on the MIME type
 (`META:ATTR_INFO`, with translated public names) so Tracker shows them as columns; make an index per volume only for what is queried
-(`create-sen-indices.sh`). Only the **first** predicate of a query needs an index.
+(`create-sen-indices.sh`). Only the **first** predicate of a query needs an index. An index can be damaged by a crash or a forced stop (BFS keeps entries of deleted files and a
+query stops at the first one, or an attribute is missing from the index): read a query with `sen::ReadQuery()` (`QueryUtil.h`), which skips an entry that cannot be read instead of ending
+the list, never with a loop `while (query.GetNextRef(&ref) == B_OK)`. `sen::stats::CheckIndices()` finds a damaged index by comparing it with the files, `RepairIndices()` (the message
+`sen::cmd::kRepairIndices`, `sen repair`, `repair-sen-indices.sh`) makes it again.
 
 `META:TYPE` is the **semantic** type of a file (e.g. `document/scientific-paper`), set by `identify` plugins; Haiku itself only knows the
 technical MIME type (`application/pdf`). Do not use it for anything else.

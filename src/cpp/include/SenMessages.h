@@ -100,6 +100,13 @@ inline constexpr uint32_t kRelationsRemoveAll           = 'SRra';
  *  notification. Answered with sen::key::kResult (B_OK if a plugin was started for at least one file). Any client (Akita, a script) asks the server and none looks for plugins itself. */
 inline constexpr uint32_t kEnrichRefs = 'SEnr';
 
+// ---- maintenance
+/** Repair the indices of SEN on all volumes (see sen::stats::RepairIndices): an index whose query stops at a stale entry or does not find files that have the attribute is made again
+ *  and the files that carry the attribute are reindexed. Only the damaged ones, with kForce all indices of SEN. Fast: the files are the SEN objects (those with a SEN:ID), kDeep opens every
+ *  file of the volume (found through the name index; a minute on a large one, and needed when the index of SEN:ID itself is damaged). Runs in a thread of its own and is answered when done: sen::key::kResult (B_OK if
+ *  everything that was damaged is repaired), kDetail (the report as text), kIndicesDamaged, kIndicesRepaired and kAttributesRewritten (int32). One repair at a time: B_BUSY otherwise. */
+inline constexpr uint32_t kRepairIndices = 'SRix';
+
 // ---- Tracker integration
 inline constexpr uint32_t kOpenRelationTarget     = 'STot';
 inline constexpr uint32_t kOpenRelationView       = 'STrv';
@@ -199,6 +206,14 @@ inline constexpr char kCreate[]          = "SEN:create";
 /** string: the application signature of a plugin */
 inline constexpr char kPluginSignature[] = "SEN:pluginSignature";
 inline constexpr char kCount[]          = "SEN:count";
+/** bool, with kRepairIndices: make all indices of SEN again, not only the damaged ones */
+inline constexpr char kForce[]          = "SEN:force";
+/** bool, with kRepairIndices: find the files to reindex through the name index of the volume (all files), not through the index of SEN:ID (the SEN objects) */
+inline constexpr char kDeep[]           = "SEN:deep";
+/** int32 in the answer to kRepairIndices: the indices that were found damaged / that were made again / the attributes that were written again */
+inline constexpr char kIndicesDamaged[]   = "SEN:indicesDamaged";
+inline constexpr char kIndicesRepaired[]  = "SEN:indicesRepaired";
+inline constexpr char kAttributesRewritten[] = "SEN:attributesRewritten";
 /** bool: also return the properties of relations */
 inline constexpr char kWithProperties[] = "SEN:withProperties";
 /** bool: also return the configuration of relations */

@@ -90,3 +90,11 @@ The log of the boot that hung ends with `msi_free_vectors: freeing 1 vectors sta
 with and without a package update before it. **Workaround:** no sound device in UTM; the card `virtio-sound-pci` does the same, because Haiku has no driver for it (no output in the sound preferences). The restart works every time since. The VM has no sound then. Evidence and the way it was found:
 [analysis-vm-shutdown-hang.md](analysis-vm-shutdown-hang.md). Not reported upstream (see the notes on contributions). The BFS lines in the same logs (`inode ... is already deleted`) are unrelated to the hang.
 **SEN:** the reverse relations take every file once, keyed by its `SEN:ID` (a query could list a file several times).
+
+## 7. BFS indices keep entries of deleted files after a forced stop
+
+After the VM was stopped by force (it was frozen), queries on an index silently returned a part of the files: `query "SEN:TO==*"` found 146 of the 245 files that have the attribute, and the
+syslog had `bfs: inode N is already deleted!`, `IndexIteratorGetEntry:199: Bad data` and `could not get inode N in index!` on every run of the query. The query (and `BQuery::GetNextRef()`) stops at
+the first such entry, so everything behind it is lost without a clear error; the chunk indices (`SEN:TO:7`) were damaged, too. `checkfs` does not repair the indices. **Workaround:** remove the
+index, create it again and write the attribute of the files again: `rmindex -d <volume> <attr>`, `mkindex -d <volume> -t string <attr>`, `reindex -r <attr> <folder>` (the options are `-d` and `-r`,
+not `-p`). SEN does it with *Check & Repair* (`sen repair`); a loop over a query skips an entry that cannot be read (`sen::ReadQuery`). Not reported upstream (see the notes on contributions).

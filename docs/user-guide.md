@@ -15,7 +15,9 @@ a SEN:ID, as a flat list. With the **SEN key (Command)** held, the click opens t
 - one menu for every kind of classification (**Labels**, **Topics**, **Projects**...): choosing the menu itself opens the list of them, and choosing one of
   its entries opens a window with the files that have it: a query for the classification ("Files with Label \"Homework\""), the same one as *Open related...* on the classification shows. (As in the menus of the file manager, every menu can be chosen itself.)
 - **Info**: the overview of SEN as a tree: the objects on every volume, the types and relations that are installed with the number of files of each.
-- **Check**: looks for inconsistencies (the same SEN:ID on several files, files of types that are not installed, volumes without an index).
+- **Check & Repair**: looks for inconsistencies (the same SEN:ID on several files, files of types that are not installed, volumes without an index, **damaged indices**). A damaged
+  index makes relations of some files invisible without any message (it can happen after the computer was stopped by force); **Repair indices** makes it again and writes the
+  attributes of the SEN objects again, which takes seconds. The same from a terminal: `sen repair` (or the script `repair-sen-indices.sh`).
 - **Ontologies** (above Settings, they are configuration): the ontologies that are installed, each with its icon. An ontology opens down to its types (the entities, relations,
   classifications...), and a type to its attributes: choosing a type or an attribute shows it in FileTypes (the one of SEN, package `sen_filetypes`, if it is installed
   and not switched off in the Settings), choosing an ontology shows it in its folder. Choosing *Ontologies* itself opens the folder `~/config/settings/sen/ontologies`, which shows the version, description, author and schema of each ontology as its columns (in Akita), and *Update* has the ontologies of the packages
