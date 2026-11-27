@@ -111,7 +111,7 @@ What SEN or a plugin makes new, such as the people of the authors of a paper, th
 
 ## Open and Open with
 
-The context menu and the File menu have one item for both: **Open** opens the files with their preferred application. Hold **Shift** when you open the menu and it shows **Open with...** instead: choosing it asks for the application (with the choice to make it the preferred one), and its submenu lists the applications that can open the files, as before. (*Enrich* works the same way: with Shift it is *Enrich (Overwrite)*.) The keys **Command+O** and **Command+Control+O** do not change.
+The context menu and the File menu have one item for both: **Open** opens the files with their preferred application. Hold **Shift** when you open the menu, or press it while the menu is open (as for *Enrich*), and it shows **Open with...** instead: choosing it asks for the application (with the choice to make it the preferred one), and its submenu lists the applications that can open the files, as before. (*Enrich* works the same way: with Shift it is *Enrich (Overwrite)*.) The keys **Command+O** and **Command+Control+O** do not change.
 
 ## Enriching a file
 
@@ -293,6 +293,8 @@ most relations), or press Esc or click outside the menu to cancel. The files sta
 When you delete a file (Move to Trash, or Delete) that has relations, Akita says that it still has relations and asks whether you really want to delete it (the button *Show in Tracker* opens the folder with its relations). If you do,
 the relations of the file are removed on both sides together with it, so that no other file keeps a link to a file that is gone. This includes the relations that other files have **to** it and keep only with themselves: delete an institution, and the people's affiliations with it go (after the question). A file that has a label, a context or a topic is deleted right away: the tag is with the file. It is the other way round that asks: deleting a **label, context or topic that files refer to** asks once (*This Context is referenced by 12 files. Do you really want to delete it?*), and the files lose it. (Relations that point to files that are
 already gone are removed without asking. The relations of the ontologies are read-only and stay. Labels and the like that are put on a file go with the file anyway.)
+
+**The Default context cannot be deleted.** It stands for every file, and what is made without a context belongs to it. Akita refuses to delete, trash, rename or move it (and the folder of the contexts that holds it) and says so; if the folder is gone anyway, the SEN server makes it again.
 
 ## Sticky classifications
 
